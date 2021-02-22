@@ -1,0 +1,19 @@
+&input
+
+! INPUT EN FORMAT NAMELIST. L'ordre de les variables es indiferent
+! Es important que no hi hagi vairables no declarades ni que faltin
+! variables declarades al codi (init.f90)
+! El &input de la primera linia indica el nom del namelist i el \
+! indica el final del namelist.
+
+! System
+N=125
+D=3
+rho=0.6
+
+! Dynamics
+dt=0.01
+n_meas=10
+n_conf=10000
+
+/
