@@ -2,7 +2,7 @@ module init
     implicit none
     contains
 
-        subroutine get_param(input_name)
+        subroutine get_param(unit)
             !
             ! Llegim de l'input els parametres del sistema i es calcula el
             ! nº d'iteracions i la longitud de la cel·la.
@@ -13,15 +13,13 @@ module init
             use parameters
             implicit none
 
-            character (len=*), intent(in):: input_name !AJ: l'asterisk el fa mes generic
+            integer, intent(in):: unit !AJ: l'asterisk el fa mes generic
             integer :: errstat
 
-            namelist /input/ N, D, rho, dt, n_meas, n_conf
+            namelist /input/ N, D, rho, dt, n_meas, n_conf, T_ref, fact_rc, sigma, epsilon
 
             ! Open and read namelist from input file
-            open(10, file=input_name, status="old")
-            read(unit=10, nml=input, iostat=errstat)
-            close(10)
+            read(unit=unit, nml=input, iostat=errstat)
             
             if (errstat > 0) then
                 print *, "ERROR reading namelist from input file in init.f90 (code", errstat, ")"
@@ -31,6 +29,7 @@ module init
             ! Calculem el nº de iteracions i la longitud de la cel·la
             n_total = n_meas * n_conf
             L = (N / rho) ** (1.d0 / D)
+            rc = fact_rc * L / 2.d0
 
         end subroutine get_param
 
