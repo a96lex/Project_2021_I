@@ -4,8 +4,8 @@
       use pbc
       use integraforces
       !AJ: afegir statvis quan sigui un modul
-      ! ES: No faltaria implicit none?
 
+      implicit none
       character(len=50) :: input_name
       real*8, allocatable :: pos(:,:) ! ES: Les declarem aqui o a un modul?
 
@@ -25,7 +25,7 @@
       allocate(pos(D, N))  ! ES: Fem el allocate aqui o la poso al inclosa al get_param? En cas del segon, caldria passar tambe
                            ! pos i vel a get_param() o fer un modul on hi siguin.
       call init_sc(pos)
-      call init_vel(vel, 10.)  ! Cridem amb temperatura reduida (T'=10) molt alta per fer el melting
+      !call init_vel(vel, 10.)  ! Cridem amb temperatura reduida (T'=10) molt alta per fer el melting
 
       print*,"------Parameters------"
       print*, "N=",N,"D=",D
