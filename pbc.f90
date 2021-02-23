@@ -1,4 +1,5 @@
 module pbc
+  contains
  ! ---------------------------------------------------- Minimum image search -----------------------------------------------------------  
   subroutine min_img(x,y,z,a,b,c,dist,L,v)
     ! finds the closets image of a particle further from L/2 applying PBC
@@ -11,6 +12,7 @@ module pbc
     real(8), intent(in) :: x,y,z,a,b,c,L
     real(8), dimension(3), intent(out) :: v
     real(8), intent(inout) :: dist
+    real(8) :: dist_prova,signe !AJ, necessari per compilacio
     
     ! Aixo és una funció que es podria passar amb un modul o algo:
     real(8) dist_3d
@@ -23,7 +25,8 @@ module pbc
     if(x.lt.L/2d0) signe=-1d0
     if(x.gt.L/2d0) signe=1d0 ! realment no es donara aquest cas, pero per mantenir la generalitat
     ! Try a displacement on x and accept it if it reduces de distance
-    dist_prova = dist_3d(x,y,z,a+signe*L,b,c)
+
+    ! dist_prova = dist_3d(x,y,z,a+signe*L,b,c)
     if(dist_prova.lt.dist) then ! accept new x coordinate
       dist=dist_prova
       v(1) = v(1) + signe*L
@@ -32,7 +35,8 @@ module pbc
     if(y.lt.L/2d0) signe=-1d0
     if(y.gt.L/2d0) signe=1d0
     ! Try a displacement on y and accept it if it reduces de distance
-    dist_prova = dist_3d(x,y,z,v(1),b+signe*L,c)
+    ! dist_prova = dist_3d(x,y,z,v(1),b+signe*L,c)
+
     if(dist_prova.lt.dist) then ! accept new y coordinate
       dist=dist_prova
       v(2) = v(2) + signe*L
@@ -41,7 +45,8 @@ module pbc
     if(z.lt.L/2d0) signe=-1d0
     if(z.gt.L/2d0) signe=1d0
     ! Try a displacement on z and accept it if it reduces de distance
-    dist_prova = dist_3d(x,y,z,v(1),v(2),c+signe*L)
+    
+    ! dist_prova = dist_3d(x,y,z,v(1),v(2),c+signe*L)
     if(dist_prova.lt.dist) then ! accept new z coordinate
       dist=dist_prova
       v(3) = v(3) + signe*L
