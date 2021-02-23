@@ -93,7 +93,7 @@ module init
                 end do
               vel_CM = vel_CM + vel(:,i)
             end do
-            vel_CM = vel_CM/real(N)
+            vel_CM = vel_CM/dble(N)
           
             do i = 1, N
               vel(:,i) = vel(:,i) - vel_CM
