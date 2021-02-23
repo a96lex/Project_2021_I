@@ -13,19 +13,19 @@ parameters.o : parameters.f90
 	$(compiler) -c $(opt) parameters.f90
 
 init.o : init.f90 parameters.o
-	$(compiler) -c $(opt) init.f90 parameters.f90
+	$(compiler) -c $(opt) init.f90 
 
 pbc.o : pbc.f90 parameters.o
-	$(compiler) -c $(opt) pbc.f90 parameters.f90
+	$(compiler) -c $(opt) pbc.f90 
 
 integraforces.o : integraforces.f90 parameters.o
-	$(compiler) -c $(opt) integraforces.f90 parameters.f90
+	$(compiler) -c $(opt) integraforces.f90 
 
 statvis.o : statvis.f90 parameters.o
-	$(compiler) -c $(opt) statvis.f90 parameters.f90
+	$(compiler) -c $(opt) statvis.f90 
 
 main.o : main.f90 $(mods)
-	$(compiler) -c $(opt) main.f90 parameters.f90 init.f90 integraforces.f90 pbc.f90
+	$(compiler) -c $(opt) main.f90
 
 
 .PHONY: clean
