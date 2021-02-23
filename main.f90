@@ -2,6 +2,7 @@
       use parameters
       use init
       use pbc
+      use integraforces
       !AJ: afegir statvis quan sigui un modul
 
       call get_param("input_template.txt") !AJ: canviar a unit
