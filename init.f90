@@ -13,7 +13,7 @@ module init
             use parameters
             implicit none
 
-            character (len=50), intent(in):: input_name
+            character (len=*), intent(in):: input_name !AJ: l'asterisk el fa mes generic
             integer :: errstat
 
             namelist /input/ N, D, rho, dt, n_meas, n_conf
