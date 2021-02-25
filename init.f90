@@ -66,19 +66,19 @@ module init
 
         subroutine init_vel(vel, T)
             ! Torna el array de velocitats vel(D,N) consistent amb la T donada.
-            ! 
-            ! Falta -> Forma per calcular la energia cinetica 
 
             use parameters, only : D, N
+            use integraforces, only : energykin
             implicit none
 
             real*8, intent(inout) :: vel(D,N)
             real*8, intent(in) :: T
           
             real*8 :: vel_CM(D)
-            real*8 :: kin
+            real*8 :: aux, kin
             integer :: i, j
           
+            ! Inicialitza les velocitats de manera random entre -1 i 1
             vel_CM = 0
             do i = 1, N
                 do j = 1, D
@@ -88,12 +88,14 @@ module init
             end do
             vel_CM = vel_CM/dble(N)
           
+            ! Eliminem la velocitat neta del sistema
             do i = 1, N
               vel(:,i) = vel(:,i) - vel_CM
             end do
             
-            ! call kinetic_E(vel, kin)  ! Falta la funcio/subrutina per le energia cinetica
-            !vel = vel * sqrt(dble(3*N-3)*T/(2.d0*kin))
+            ! Reescalem les velocitats a la temperatura objectiu
+            call energykin(vel, kin, aux)  
+            vel = vel * sqrt(dble(3*N)*T/(2.d0*kin))
 
         end subroutine
 
