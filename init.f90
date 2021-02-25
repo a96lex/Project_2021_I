@@ -80,10 +80,10 @@ module init
             implicit none
 
             real*8, intent(inout) :: vel(D,N)
-            real*8, intent(out) :: T
+            real*8, intent(in) :: T
           
-            real :: vel_CM(D)
-            ! real :: kinetic  ! Falta una funcio o subrutina per calcular la energia cinetica
+            real*8 :: vel_CM(D)
+            real*8 :: kin
             integer :: i, j
           
             vel_CM = 0
@@ -93,13 +93,39 @@ module init
                 end do
               vel_CM = vel_CM + vel(:,i)
             end do
+            print *, vel_CM
             vel_CM = vel_CM/dble(N)
           
             do i = 1, N
               vel(:,i) = vel(:,i) - vel_CM
             end do
             
-            print *, "ES: Velocitats no escalades a la T donada. Pendent de fer."
-            ! vel = vel * sqrt(real(3*N-3)*T/(2*kinetic(vel, N)))  ! Falta la funcio/subrutina per le energia cinetica
-          end subroutine
+            call kinetic_E(vel, kin)
+            vel = vel * sqrt(dble(3*N-3)*T/(2.d0*kin))  ! Falta la funcio/subrutina per le energia cinetica
+
+            ! Test vel_CM
+            vel_CM = 0.d0
+            do i = 1, N
+                vel_CM = vel_CM + vel(:,i)
+            end do
+            print *, vel_CM
+        end subroutine
+
+        subroutine kinetic_E(v, k)
+            use parameters, only : D, N
+
+            implicit none
+            real*8, intent(in) :: v(D,N)
+            real*8, intent(out) :: k
+
+            real*8 :: aux
+            integer :: i
+
+            aux = 0.d0
+            do i = 1, N
+                aux = aux + sum(v(:,i) * v(:,i))
+            end do
+            k = 0.5d0 * aux
+
+        end subroutine kinetic_E
 end module init

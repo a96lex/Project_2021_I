@@ -7,7 +7,7 @@
 
       implicit none
       character(len=50) :: input_name
-      real*8, allocatable :: pos(:,:) ! ES: Les declarem aqui o a un modul?
+      real*8, allocatable :: pos(:,:), vel(:,:) ! ES: Declarades aqui fins resoldre el issue https://github.com/EIA-Master/Project_2021_I/issues/10
 
       ! Per executar el programa cal fer >> main.x input_file. Si no, es provara de llegir l'arxiu estandar input.txt.
       if (command_argument_count() == 0) then
@@ -22,10 +22,14 @@
       ! Initialize system
       call get_param(10)
       close(10)
-      allocate(pos(D, N))  ! ES: Fem el allocate aqui o la poso al inclosa al get_param? En cas del segon, caldria passar tambe
-                           ! pos i vel a get_param() o fer un modul on hi siguin.
+
+      ! Allocate
+      allocate(pos(D, N))  ! ES: Fem el allocate aqui fins resoldre el issue https://github.com/EIA-Master/Project_2021_I/issues/10
+      allocate(vel(D,N))   
+
+
       call init_sc(pos)
-      !call init_vel(vel, 10.)  ! Cridem amb temperatura reduida (T'=10) molt alta per fer el melting
+      call init_vel(vel, 10.d0)  ! Cridem amb temperatura reduida (T'=10) molt alta per fer el melting
 
       print*,"------Parameters------"
       print*, "N=",N,"D=",D
