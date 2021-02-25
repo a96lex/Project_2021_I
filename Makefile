@@ -12,13 +12,13 @@ $(mods) : $(dep_objects)
 parameters.o : parameters.f90
 	$(compiler) -c $(opt) parameters.f90
 
-init.o : init.f90 parameters.o
+init.o : init.f90 parameters.o integraforces.o
 	$(compiler) -c $(opt) init.f90 
 
 pbc.o : pbc.f90 parameters.o
 	$(compiler) -c $(opt) pbc.f90 
 
-integraforces.o : integraforces.f90 parameters.o
+integraforces.o : integraforces.f90 parameters.o pbc.o
 	$(compiler) -c $(opt) integraforces.f90 
 
 statvis.o : statvis.f90 parameters.o
