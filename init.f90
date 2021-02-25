@@ -3,13 +3,11 @@ module init
     contains
 
         subroutine get_param(unit)
-            !
             ! Llegim de l'input els parametres del sistema i es calcula el
             ! nº d'iteracions i la longitud de la cel·la.
             ! Els propers llocs on es faci servir 'use parameters' tindran
             ! les variables acualitzades
-            ! Eloi (no se ni si compila 22/02 pq falta el parameters.mod)
-            !
+            
             use parameters
             implicit none
 
@@ -40,11 +38,10 @@ module init
             ! Funciona per N^(1/D) no exactes, però la densitat NO sera la requerida
 
             use parameters, only : D, N, L
-            ! use statvis, only : writeXyz  ! En cas que es vulgui fer un print del resultat
-
             implicit none
+            
             real*8, intent(out):: pos(D,N)
-            integer :: M  ! Nº atoms en cada dimensio.
+            integer :: M    ! Nº atoms en cada dimensio.
             real*8 :: a, r  ! Distancia interatomica i variable per assignar posicions al loop
             integer :: i, j, aux
             real*8 :: raux
@@ -65,16 +62,12 @@ module init
             end do
             pos = pos - L/2.  ! Centrem el sistema al (0,0,0)
             
-            ! En cas que algu vulgui veure com queda l'estat inicial
-            ! open(unit=11, file="test_xyz.xyz", action="write")
-            ! call writeXyz(D, N, pos, 11)
-            ! close(11)
         end subroutine
 
         subroutine init_vel(vel, T)
             ! Torna el array de velocitats vel(D,N) consistent amb la T donada.
             ! 
-            ! Falta -> Forma per calcular la 
+            ! Falta -> Forma per calcular la energia cinetica 
 
             use parameters, only : D, N
             implicit none
@@ -93,39 +86,15 @@ module init
                 end do
               vel_CM = vel_CM + vel(:,i)
             end do
-            print *, vel_CM
             vel_CM = vel_CM/dble(N)
           
             do i = 1, N
               vel(:,i) = vel(:,i) - vel_CM
             end do
             
-            call kinetic_E(vel, kin)
-            vel = vel * sqrt(dble(3*N-3)*T/(2.d0*kin))  ! Falta la funcio/subrutina per le energia cinetica
+            ! call kinetic_E(vel, kin)  ! Falta la funcio/subrutina per le energia cinetica
+            !vel = vel * sqrt(dble(3*N-3)*T/(2.d0*kin))
 
-            ! Test vel_CM
-            vel_CM = 0.d0
-            do i = 1, N
-                vel_CM = vel_CM + vel(:,i)
-            end do
-            print *, vel_CM
         end subroutine
 
-        subroutine kinetic_E(v, k)
-            use parameters, only : D, N
-
-            implicit none
-            real*8, intent(in) :: v(D,N)
-            real*8, intent(out) :: k
-
-            real*8 :: aux
-            integer :: i
-
-            aux = 0.d0
-            do i = 1, N
-                aux = aux + sum(v(:,i) * v(:,i))
-            end do
-            k = 0.5d0 * aux
-
-        end subroutine kinetic_E
 end module init
