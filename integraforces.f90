@@ -35,4 +35,22 @@
                   P = rho*T_ref + 1.d0/(3.d0*L**3)*P
             end subroutine compute_force_LJ
 
+
+            subroutine energykin(v,ekin)
+            ! Computes the kinetic energy and instant temperature of the
+            ! system
+               implicit none
+               real(8), intent(in) :: v(D,N)
+               real(8), intent (out) :: ekin
+               integer :: i
+               
+               ekin=0.0d0
+               do i=1,N
+                  ekin=ekin+sum(v(:,i)**2)/2.0d0  
+               enddo
+
+               return 
+            end subroutine energykin
+
+
       end module integraforces
