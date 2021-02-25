@@ -36,12 +36,12 @@
             end subroutine compute_force_LJ
 
 
-            subroutine energykin(v,ekin)
+            subroutine energykin(v,ekin,Tins)
             ! Computes the kinetic energy and instant temperature of the
             ! system
                implicit none
                real(8), intent(in) :: v(D,N)
-               real(8), intent (out) :: ekin
+               real(8), intent (out) :: ekin, Tins
                integer :: i
                
                ekin=0.0d0
@@ -49,6 +49,7 @@
                   ekin=ekin+sum(v(:,i)**2)/2.0d0  
                enddo
 
+               Tins=2.0d0*ekin/(3.0d0*N)
                return 
             end subroutine energykin
 
