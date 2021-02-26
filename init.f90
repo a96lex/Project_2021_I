@@ -94,7 +94,7 @@ module init
             end do
             
             ! Reescalem les velocitats a la temperatura objectiu
-            call energykin(vel, kin, aux)  
+            call energy_kin(vel, kin, aux)  
             vel = vel * sqrt(dble(3*N)*T/(2.d0*kin))
 
         end subroutine

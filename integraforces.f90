@@ -17,7 +17,7 @@
                do i=1,N
                      do j=i+1,N
                            distv = r(:,i)-r(:,j)
-                           ! call pbc(distv) !PBC goes here
+                           call min_img_2(distv)
                            dist = sqrt(sum((distv)**2))
                            if(dist<rc) then
                                  f(:,i) = f(:,j)& 
@@ -36,8 +36,48 @@
                P = rho*T_ref + 1.d0/(3.d0*L**3)*P
          end subroutine compute_force_LJ
 
+         subroutine andersen_therm(v)
+         !     Applies the Andersen thermostat to a system of N particles. Requires
+         !     boxmuller subroutine.
+         !           Input
+         !           -----
+         !                 v : real*8,dimension(D,N)
+         !                       Velocities of the system.
+         !           Output
+         !           ------
+         !                 v : real*8,dimension(D,N)
+         !                       Velocities of the system after the thermostat application.
+            implicit none
+            real*8,intent(inout) :: v(D,N)
+            real*8 :: sigma,nu,x1,x2
+            integer :: i,j
+            sigma = sqrt(T_ref) !Standard deviation of the gaussian.
+            nu = 0.1*dt
+            do i=1,N
+                  if (rand()<nu) then ! Check if collision happens.
+                        do j=1,D
+                              x1 = rand()
+                              x2 = rand()
+                              call box_muller(sigma,x1,x2) !Modify the velocity.
+                              v(i,j) = x1
+                        enddo
+                  endif
+            enddo
+         end subroutine andersen_therm  
+                  
 
-         subroutine energykin(v,ekin,Tins)
+      subroutine box_muller(sigma, X1,X2)
+            implicit none
+            real*8,intent(in) :: sigma
+            real*8,intent(out) :: x1,x2
+            real*8 :: PI
+            PI = 4d0*datan(1d0)
+            x1 = sigma*dsqrt(-2d0*dlog(1.d0-x1))*dcos(2d0*PI*x2)
+            x2 = sigma*dsqrt(-2d0*dlog(1.d0-x1))*dsin(2d0*PI*x2)
+      end subroutine box_muller
+
+
+         subroutine energy_kin(v,ekin,Tins)
          ! Computes the kinetic energy and instant temperature of the
          ! system
             implicit none
@@ -52,7 +92,7 @@
 
             Tins=2.0d0*ekin/(3.0d0*N)
             return 
-         end subroutine energykin
+         end subroutine energy_kin
 
 
          subroutine verlet_v_step(r,v,t,dt)
@@ -113,7 +153,7 @@
       
             do i=1,Nt !Main time loop.
                call verlet_v_step(r,v,t,dt) !Perform Verlet step.
-               !call andersen(D,N,v,Temp) !Apply thermostat
+               call andersen_therm(v) !Apply thermostat
                call compute_force_LJ(r,f,U,Ppot)
                call energykin(v,ekin,Tins)
                Ptot = (dble(N)/L**3)*Tins + 1.d0/(3.d0*L**3)*Ppot
