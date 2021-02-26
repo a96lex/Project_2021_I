@@ -176,6 +176,7 @@
                  write(eunit_g,*) (j-1)*grid_shells, rad_distr(j)
                enddo
                write(eunit_g,*) ! separation line
+               
             enddo
 
             return

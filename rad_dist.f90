@@ -15,7 +15,7 @@ module radial_distribution
       integer, intent(in) :: Nshells
       integer i
       allocate(rad_distr(Nshells))
-      allocate(rad_distr(Nshells))
+      allocate(shells_vect(Nshells))
       ! Define the grid parameter:
       grid_shells = L/(2*dble(Nshells))
       ! Compute volume of each shell:
@@ -35,6 +35,7 @@ module radial_distribution
     integer i,j,k
     real(8) dist,distv,inner_radius,outer_radius
     
+    rad_distr = 0d0
     ! Compute the radial distribution function by averaging the r.d.f. over all particles.
     do i=1,N
       do j=1,N
