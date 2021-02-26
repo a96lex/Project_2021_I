@@ -33,7 +33,7 @@
                enddo
                ! P = P/(dble(N)*(dble(N)-1.d0)/2.d0)
 
-               P = rho*T_ref + 1.d0/(3.d0*L**3)*P
+               P = 1.d0/(3.d0*L**3)*P
          end subroutine compute_force_LJ
 
          subroutine andersen_therm(v,Temp)
@@ -143,9 +143,9 @@
             integer :: i,j
 
             t = 0.d0
-            call compute_force_LJ(r,f,U,Ptot) !Initial force, energy and pressure
+            call compute_force_LJ(r,f,U,Ppot) !Initial force, energy and pressure
             call energy_kin(v,ekin,Tins) !Compute initial kinetic energy
-            !AJ: Total pressure is aleardy computed at compute_force_LJ
+            Ptot = rho*Tins + Ppot !AJ: modifed to use the rho in parameters.
 
             !Write intial results.
             write(eunit,*)"t","K","U","E","T","v_tot"
@@ -157,9 +157,9 @@
             do i=1,Nt !Main time loop.
                call verlet_v_step(r,v,t,dt) !Perform Verlet step.
                call andersen_therm(v,Temp) !Apply thermostat
-               call compute_force_LJ(r,f,U,Ptot)
+               call compute_force_LJ(r,f,U,Ppot)
                call energy_kin(v,ekin,Tins)
-               !AJ: same comment about pressure
+               Ptot = rho*Tins + Ppot
 
                !Write to file.
                write(eunit,*) t, ekin, U, ekin+U, Tins, sum(v,2)
