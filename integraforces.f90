@@ -52,16 +52,16 @@
             implicit none
             real*8,intent(inout) :: v(D,N)
             real*8,intent(in) :: Temp
-            real*8 :: sigma,nu,x1,x2
+            real*8 :: std,nu,x1,x2
             integer :: i,j
-            sigma = sqrt(Temp) !Standard deviation of the gaussian.
+            std = sqrt(Temp) !Standard deviation of the gaussian.
             nu = 0.1*dt
             do i=1,N
                   if (rand()<nu) then ! Check if collision happens.
                         do j=1,D
                               x1 = rand()
                               x2 = rand()
-                              call box_muller(sigma,x1,x2) !Modify the velocity.
+                              call box_muller(std,x1,x2) !Modify the velocity.
                               v(i,j) = x1
                         enddo
                   endif
@@ -69,14 +69,14 @@
          end subroutine andersen_therm  
                   
 
-      subroutine box_muller(sigma, X1,X2)
+      subroutine box_muller(std, X1,X2)
             implicit none
-            real*8,intent(in) :: sigma
+            real*8,intent(in) :: std
             real*8,intent(out) :: x1,x2
             real*8 :: PI
             PI = 4d0*datan(1d0)
-            x1 = sigma*dsqrt(-2d0*dlog(1.d0-x1))*dcos(2d0*PI*x2)
-            x2 = sigma*dsqrt(-2d0*dlog(1.d0-x1))*dsin(2d0*PI*x2)
+            x1 = std*dsqrt(-2d0*dlog(1.d0-x1))*dcos(2d0*PI*x2)
+            x2 = std*dsqrt(-2d0*dlog(1.d0-x1))*dsin(2d0*PI*x2)
       end subroutine box_muller
 
 
