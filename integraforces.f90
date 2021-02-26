@@ -135,12 +135,18 @@
          subroutine vvel_solver(Nt,dt,r,v,Temp,eunit) !Nt -- n_total?
    !     Performs Nt steps of the velocity verlet algorithm while computing
    !     different observables and writing to file.
+            use radial_distribution
             implicit none
             integer, intent(in) :: Nt, eunit
             real(8) :: dt, Temp
             real(8) :: r(D,N), v(D,N), f(D,N)
             real(8) :: ekin, U, t, Tins, Ppot, Ptot
-            integer :: i,j
+            integer :: i,j,Nshells,eunit_g
+            
+            ! Initialization of the g(r) calculation:
+            Nshells = 100
+            call prepare_shells(Nshells)
+            eunit_g = 2*eunit ! Solucio temporal
 
             t = 0.d0
             call compute_force_LJ(r,f,U,Ppot) !Initial force, energy and pressure
@@ -160,9 +166,17 @@
                call compute_force_LJ(r,f,U,Ppot)
                call energy_kin(v,ekin,Tins)
                Ptot = rho*Tins + Ppot
+               call rad_distr_fun(r)
 
                !Write to file.
                write(eunit,*) t, ekin, U, ekin+U, Tins, sum(v,2)
+               
+               !Write snapshot of g(r)
+               do j=1,Nshells
+                 write(eunit_g,*) (j-1)*grid_shells, rad_distr(j)
+               enddo
+               write(eunit_g,*) ! separation line
+               
             enddo
 
             return
