@@ -68,7 +68,7 @@ module init
             ! Torna el array de velocitats vel(D,N) consistent amb la T donada.
 
             use parameters, only : D, N
-            use integraforces, only : energykin
+            use integraforces, only : energy_kin
             implicit none
 
             real*8, intent(inout) :: vel(D,N)

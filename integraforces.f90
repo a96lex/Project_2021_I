@@ -36,22 +36,25 @@
                P = rho*T_ref + 1.d0/(3.d0*L**3)*P
          end subroutine compute_force_LJ
 
-         subroutine andersen_therm(v)
+         subroutine andersen_therm(v,Temp)
          !     Applies the Andersen thermostat to a system of N particles. Requires
          !     boxmuller subroutine.
          !           Input
          !           -----
          !                 v : real*8,dimension(D,N)
          !                       Velocities of the system.
+         !                 T : real*8
+         !                       Target temperature of the thermostat.
          !           Output
          !           ------
          !                 v : real*8,dimension(D,N)
          !                       Velocities of the system after the thermostat application.
             implicit none
             real*8,intent(inout) :: v(D,N)
+            real*8,intent(in) :: Temp
             real*8 :: sigma,nu,x1,x2
             integer :: i,j
-            sigma = sqrt(T_ref) !Standard deviation of the gaussian.
+            sigma = sqrt(Temp) !Standard deviation of the gaussian.
             nu = 0.1*dt
             do i=1,N
                   if (rand()<nu) then ! Check if collision happens.
@@ -140,9 +143,9 @@
             integer :: i,j
 
             t = 0.d0
-            call compute_force_LJ(r,f,U,Ppot) !Initial force, energy and pressure
-            call energykin(v,ekin,Tins) !Compute initial kinetic energy
-            Ptot = (dble(N)/L**3)*Tins + 1.d0/(3.d0*L**3)*Ppot !Total pressure
+            call compute_force_LJ(r,f,U,Ptot) !Initial force, energy and pressure
+            call energy_kin(v,ekin,Tins) !Compute initial kinetic energy
+            !AJ: Total pressure is aleardy computed at compute_force_LJ
 
             !Write intial results.
             write(eunit,*)"t","K","U","E","T","v_tot"
@@ -153,10 +156,10 @@
       
             do i=1,Nt !Main time loop.
                call verlet_v_step(r,v,t,dt) !Perform Verlet step.
-               call andersen_therm(v) !Apply thermostat
-               call compute_force_LJ(r,f,U,Ppot)
-               call energykin(v,ekin,Tins)
-               Ptot = (dble(N)/L**3)*Tins + 1.d0/(3.d0*L**3)*Ppot
+               call andersen_therm(v,Temp) !Apply thermostat
+               call compute_force_LJ(r,f,U,Ptot)
+               call energy_kin(v,ekin,Tins)
+               !AJ: same comment about pressure
 
                !Write to file.
                write(eunit,*) t, ekin, U, ekin+U, Tins, sum(v,2)
