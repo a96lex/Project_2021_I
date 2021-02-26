@@ -14,7 +14,7 @@ module init
             integer, intent(in):: unit
             integer :: errstat
 
-            namelist /input/ N, D, rho, dt, n_meas, n_conf, T_ref, fact_rc, sigma, epsilon
+            namelist /input/ N, D, rho, dt_sim, n_meas, n_conf, T_ref, fact_rc, sigma, epsilon
 
             ! Llegim els parametres del input
             read(unit=unit, nml=input, iostat=errstat)
@@ -65,7 +65,7 @@ module init
         end subroutine
 
         subroutine init_vel(vel, T)
-            ! Torna el array de velocitats vel(D,N) consistent amb la T donada.
+            ! Torna el array de velocitats (aleatories) vel(D,N) consistent amb la T donada.
 
             use parameters, only : D, N
             use integraforces, only : energy_kin

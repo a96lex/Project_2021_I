@@ -13,7 +13,7 @@ rho=0.6
 T_ref=1.0
 
 ! Dynamics
-dt=0.01
+dt_sim=0.01
 n_meas=10
 n_conf=10000
 

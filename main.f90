@@ -7,9 +7,9 @@
 
       implicit none
       character(len=50) :: input_name
-      real*8, allocatable :: pos(:,:), vel(:,:) ! ES: Declarades aqui fins resoldre el issue https://github.com/EIA-Master/Project_2021_I/issues/10
+      real*8, allocatable :: pos(:,:), vel(:,:)
 
-      ! Per executar el programa cal fer >> main.x input_file. Si no, es provara de llegir l'arxiu estandar input.txt.
+      ! Per executar el programa cal fer >> main.x input_file. Si no, donara error.
       if (command_argument_count() == 0) stop "ERROR: Cridar fent >> ./main.x input_path"
       call get_command_argument(1, input_name)
       
@@ -22,13 +22,13 @@
 
       print*,"------Parameters------"
       print*, "N=",N,"D=",D
-      print*,"dt=",dt
+      print*,"dt_sim=",dt_sim
       print*,"rho=",rho,"L=",L
       print*,"eps=",epsilon,"sigma=",sigma,"rc=",rc
       print*,"n_meas,n_conf,n_total=",n_meas,n_conf,n_total
       
       ! Allocates
-      allocate(pos(D, N))  ! ES: Fem el allocate aqui fins resoldre el issue https://github.com/EIA-Master/Project_2021_I/issues/10
+      allocate(pos(D, N))
       allocate(vel(D,N))   
 
       ! Initialize positions and velocities
@@ -43,7 +43,7 @@
 
 
       ! Deallocates
-      deallocate(pos)  ! ES: Fem el deallocate aqui fins resoldre el issue https://github.com/EIA-Master/Project_2021_I/issues/10
+      deallocate(pos) 
       deallocate(vel)
 
       end program main
