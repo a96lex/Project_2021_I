@@ -35,6 +35,13 @@
       call init_sc(pos)
       call init_vel(vel, 10.d0)  ! Cridem amb temperatura reduida (T'=10) molt alta per fer el melting
 
+
+      
+
+
+
+
+
       ! Deallocates
       deallocate(pos)  ! ES: Fem el deallocate aqui fins resoldre el issue https://github.com/EIA-Master/Project_2021_I/issues/10
       deallocate(vel)

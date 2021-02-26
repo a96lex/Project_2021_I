@@ -68,7 +68,7 @@ module init
             ! Torna el array de velocitats vel(D,N) consistent amb la T donada.
 
             use parameters, only : D, N
-            use integraforces, only : energykin
+            use integraforces, only : energy_kin
             implicit none
 
             real*8, intent(inout) :: vel(D,N)
@@ -94,7 +94,7 @@ module init
             end do
             
             ! Reescalem les velocitats a la temperatura objectiu
-            call energykin(vel, kin, aux)  
+            call energy_kin(vel, kin, aux)  
             vel = vel * sqrt(dble(3*N)*T/(2.d0*kin))
 
         end subroutine
