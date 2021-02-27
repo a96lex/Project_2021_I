@@ -5,7 +5,6 @@
       use integraforces
       use statvis
       use radial_distribution
-      !AJ: afegir statvis quan sigui un modul
 
       implicit none
       character(len=50) :: input_name
@@ -18,10 +17,8 @@
       if (command_argument_count() == 0) stop "ERROR: Cridar fent >> ./main.x input_path"
       call get_command_argument(1, input_name)
       
-      ! ES: Obrim els arxius necessaris tots a la vegada (?)
+      ! Obrim input i el llegim
       open(unit=10, file=input_name)
-
-      ! Read input parameters
       call get_param(10)
       close(10)
 
