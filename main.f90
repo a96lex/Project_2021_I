@@ -41,16 +41,20 @@
       call init_vel(vel, 10.d0)  ! Cridem amb temperatura reduida (T'=10) molt alta per fer el melting
 
 
-
+      ! Start melting of the system
       open(unit=10,file="results/thermodynamics_initialization.dat") ! AJ: open result for initialitzation.
       open(unit=11,file="results/init_conf.xyz")
 
       call writeXyz(D,N,pos,11)
-      
+
       call vvel_solver(5000,1.d-4,pos,vel,10.d0,10) ! AJ: Initialization of system.
 
       call writeXyz(D,N,pos,11) ! AJ: write initial configuration, check that it is random.
 
+      close(10)
+      close(11)
+
+      ! Start dynamics
       call init_vel(vel, T_ref) ! AJ: reescale to target temperature
 
 
@@ -78,6 +82,8 @@
             endif
       enddo
 
+      close(10)
+      close(11)
 
       ! Deallocates
       deallocate(pos) 
