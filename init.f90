@@ -60,8 +60,8 @@ module init
                     pos(i,j) = r
                 end do
             end do
-            pos = pos - L/2.  ! Centrem el sistema al (0,0,0)
-            
+            pos = pos - (L - a)/2.d0 ! Centrem el sistema al (0,0,0)
+
         end subroutine
 
         subroutine init_vel(vel, T)

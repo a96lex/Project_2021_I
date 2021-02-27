@@ -8,10 +8,17 @@
                 integer, intent(in)  :: D,N,unit
                 double precision, intent(in) :: r(D,N)
                 integer   :: i
+				double precision :: zeros(3-D)
                 write(unit=unit,fmt=*) N
                 write(unit=unit,fmt=*)
+
+				if (D < 3) zeros = 0.d0
                 do i=1,N
-                    write(unit=unit,fmt=*) "He",r(1,i),r(2,i),r(3,i)  ! Es possible que estiguin canviats els index? ES
+					if (D < 3) then
+						write(unit=unit,fmt=*) "He", r(:,i), zeros(:)
+					else
+                    	write(unit=unit,fmt=*) "He",r(1,i),r(2,i),r(3,i)  ! Es possible que estiguin canviats els index? ES
+					end if
 			  !AJ: Els index estaven canviats, arreglat, potser s'hauria de posar formatting en comptes de *
                 enddo    
             end subroutine writeXyz
