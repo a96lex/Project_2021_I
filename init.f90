@@ -49,14 +49,14 @@ module init
             raux = N ** (1.d0 / D)
             M = ceiling(raux)
             if (abs(raux - M) > 1.d-3) print *, "WARNING: The number of atoms per dimension is approximated", raux, "->", M
-            a = L / real(M - 1)
+            a = L / dble(M)
 
+            r = - a  ! Necessari per que comenci pel 0 en el i=1 j=1. Si algu té alguna suggerencia o millora que la faci.
             do i = 1, D
-                r = - a  ! Necessari per que comenci pel 0 en el i=1 j=1. Si algu té alguna suggerencia o millora que la faci.
                 aux = M ** (D - i)
                 do j = 1, N
                     if (mod(j - 1, aux) == 0) r = r + a
-                    if (r > L) r = 0.d0
+                    if (r > L - a) r = 0.d0
                     pos(i,j) = r
                 end do
             end do

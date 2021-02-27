@@ -14,8 +14,8 @@ T_ref=1.0
 
 ! Dynamics
 dt_sim=0.01
-n_meas=10
-n_conf=10000
+n_meas=1
+n_conf=1000
 
 ! Lennard-Jones potential 
 sigma=1.0

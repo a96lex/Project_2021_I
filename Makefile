@@ -2,6 +2,7 @@ objects= main.o parameters.o init.o pbc.o integraforces.o statvis.o rad_dist.o
 dep_objects= parameters.o init.o pbc.o integraforces.o statvis.o rad_dist.o
 mods= parameters.mod init.mod pbc.mod integraforces.mod statvis.mod radial_distribution.mod
 compiler=gfortran
+# opt=-Wall
 opt=
 
 main.x : $(objects)
