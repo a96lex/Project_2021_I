@@ -20,7 +20,7 @@
                            call min_img_2(distv)
                            dist = sqrt(sum((distv)**2))
                            if(dist<rc) then
-                                 f(:,i) = f(:,j)& 
+                                 f(:,i) = f(:,i)& 
                                  + (48.d0/dist**14 - 24.d0/dist**8)*distv
                                  f(:,j) = f(:,j)& 
                                  - (48.d0/dist**14 - 24.d0/dist**8)*distv
