@@ -109,28 +109,4 @@
 	      close(10)
 	    return
 	    end subroutine binning
-
-            ! encara no funciona. No aconsegueixo fer plots amb més d'una
-            ! linea temporal a fortran. Potser es millor fer gnuplot normal
-            subroutine plotEnergy(timesteps,unit,filename)
-                implicit none
-                integer, intent(in) :: timesteps,unit
-                character(len=100), intent(in) :: filename
-                real*8 :: Ecin, Epot, Etot
-                integer :: i
-
-                open(unit=unit, file=trim(filename), action="read")
-
-                print '(a)', 'unset key'             ! Disable legend.
-                print '(a)', 'set title "Plot test"' ! Set title.
-                print '(a)', 'plot "-" using 0:3 with lines, "" using 0:2 with lines'
-                
-                do i = 1, timesteps
-                    read(unit,*) Ecin, Epot, Etot
-                    write(*, *) Ecin, Epot, Etot
-                end do
-
-                close(unit=unit)
-
-            end subroutine plotEnergy
     end module statvis
