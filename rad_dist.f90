@@ -2,9 +2,9 @@ module radial_distribution
   real(8), parameter :: pi = 4d0*datan(1d0)
   ! grid_shells will save the width of the spherical shells:
   real(8) :: grid_shells
-  ! rad_distr will save the number of particles on each shell
+  ! g will save the number of particles on each shell (the actual radial distr function)
   ! shells_vect will save the volume of each spherical shell
-  real(8), dimension(:), allocatable :: rad_distr, shells_vect
+  real(8), dimension(:), allocatable :: g, shells_vect
   contains
     
     subroutine prepare_shells(Nshells)
@@ -14,7 +14,7 @@ module radial_distribution
       implicit none
       integer, intent(in) :: Nshells
       integer i
-      allocate(rad_distr(Nshells))
+      allocate(g(Nshells))
       allocate(shells_vect(Nshells))
       ! Define the grid parameter:
       grid_shells = L/(2*dble(Nshells))
@@ -25,17 +25,20 @@ module radial_distribution
    end subroutine prepare_shells
    
    
-   subroutine rad_distr_fun(pos)
+   subroutine rad_distr_fun(pos,Nshells)
     ! computes g(r) in a histogram-like way, saving it in the defined rad_distr array
     ! pass the shell volumes * density in a vector to avoid calculating them every time! (denominator, g = N/(dens*V))
     use parameters, only : N,L,D
+    use pbc
     implicit none
+    integer, intent(in) :: Nshells
     real(8), intent(in) :: pos(D,N)
     ! internal:
     integer i,j,k
-    real(8) dist,distv,inner_radius,outer_radius
+    real(8) dist,inner_radius,outer_radius
+    real(8), dimension(D) :: distv(D)
     
-    rad_distr = 0d0
+    g = 0d0
     ! Compute the radial distribution function by averaging the r.d.f. over all particles.
     do i=1,N
       do j=1,N
@@ -45,17 +48,17 @@ module radial_distribution
           call min_img_2(distv)
           dist = sqrt(sum((distv)**2))
           do k=1,Nshells
-            outer_radius = k*grid_space
-            inner_radius = (k-1)*grid_space
+            outer_radius = k*grid_shells
+            inner_radius = (k-1)*grid_shells
             if(dist.lt.outer_radius.and.dist.gt.inner_radius) then
-              g(k) = g(k) + (1d0/shell_vols(k))/dble(N) ! normalize to the number of particles, divide by N
+              g(k) = g(k) + (1d0/shells_vect(k))/dble(N) ! normalize to the number of particles, divide by N
             endif
           enddo
         endif
       enddo
     enddo
-    
     return
   end subroutine rad_distr_fun
+
 end module radial_distribution
   

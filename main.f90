@@ -4,6 +4,7 @@
       use pbc
       use integraforces
       use statvis
+      use radial_distribution
       !AJ: afegir statvis quan sigui un modul
 
       implicit none
