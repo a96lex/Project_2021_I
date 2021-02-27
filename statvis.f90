@@ -11,7 +11,8 @@
                 write(unit=unit,fmt=*) N
                 write(unit=unit,fmt=*)
                 do i=1,N
-                    write(unit=unit,fmt=*) "He",r(i,1),r(i,2),r(i,3)  ! Es possible que estiguin canviats els index? ES
+                    write(unit=unit,fmt=*) "He",r(1,i),r(2,i),r(3,i)  ! Es possible que estiguin canviats els index? ES
+			  !AJ: Els index estaven canviats, arreglat, potser s'hauria de posar formatting en comptes de *
                 enddo    
             end subroutine writeXyz
 

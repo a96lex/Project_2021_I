@@ -36,7 +36,7 @@
                P = 1.d0/(3.d0*L**3)*P
          end subroutine compute_force_LJ
 
-         subroutine andersen_therm(v,Temp)
+         subroutine andersen_therm(v,dt,Temp)
          !     Applies the Andersen thermostat to a system of N particles. Requires
          !     boxmuller subroutine.
          !           Input
@@ -51,7 +51,7 @@
          !                       Velocities of the system after the thermostat application.
             implicit none
             real*8,intent(inout) :: v(D,N)
-            real*8,intent(in) :: Temp
+            real*8,intent(in) :: dt,Temp
             real*8 :: std,nu,x1,x2
             integer :: i,j
             std = sqrt(Temp) !Standard deviation of the gaussian.
@@ -128,6 +128,7 @@
             enddo 
 
             t=t+dt !Update time
+            !AJ : this is not a good way to update time, prone to carry over errors.
             return
          end subroutine verlet_v_step
 
@@ -135,7 +136,7 @@
          subroutine vvel_solver(Nt,dt,r,v,Temp,eunit) !Nt -- n_total?
    !     Performs Nt steps of the velocity verlet algorithm while computing
    !     different observables and writing to file.
-            use radial_distribution
+            ! use radial_distribution ! AJ: radial_distribution is broken
             implicit none
             integer, intent(in) :: Nt, eunit
             real(8) :: dt, Temp
@@ -144,9 +145,9 @@
             integer :: i,j,Nshells,eunit_g
             
             ! Initialization of the g(r) calculation:
-            Nshells = 100
-            call prepare_shells(Nshells)
-            eunit_g = 2*eunit ! Solucio temporal
+            ! Nshells = 100
+            ! call prepare_shells(Nshells)
+            ! eunit_g = 2*eunit ! Solucio temporal
 
             t = 0.d0
             call compute_force_LJ(r,f,U,Ppot) !Initial force, energy and pressure
@@ -162,20 +163,21 @@
       
             do i=1,Nt !Main time loop.
                call verlet_v_step(r,v,t,dt) !Perform Verlet step.
-               call andersen_therm(v,Temp) !Apply thermostat
+               call andersen_therm(v,dt,Temp) !Apply thermostat
                call compute_force_LJ(r,f,U,Ppot)
                call energy_kin(v,ekin,Tins)
                Ptot = rho*Tins + Ppot
-               call rad_distr_fun(r)
+            !    call rad_distr_fun(r)
 
                !Write to file.
                write(eunit,*) t, ekin, U, ekin+U, Tins, sum(v,2)
                
                !Write snapshot of g(r)
-               do j=1,Nshells
-                 write(eunit_g,*) (j-1)*grid_shells, rad_distr(j)
-               enddo
-               write(eunit_g,*) ! separation line
+               !AJ: broken, uncomment when fixed
+            !    do j=1,Nshells
+            !      write(eunit_g,*) (j-1)*grid_shells, rad_distr(j)
+            !    enddo
+            !    write(eunit_g,*) ! separation line
                
             enddo
 
