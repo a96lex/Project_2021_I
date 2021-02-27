@@ -3,20 +3,18 @@ module init
     contains
 
         subroutine get_param(unit)
-            !
             ! Llegim de l'input els parametres del sistema i es calcula el
             ! nº d'iteracions i la longitud de la cel·la.
             ! Els propers llocs on es faci servir 'use parameters' tindran
             ! les variables acualitzades
-            ! Eloi (no se ni si compila 22/02 pq falta el parameters.mod)
-            !
+            
             use parameters
             implicit none
 
             integer, intent(in):: unit
             integer :: errstat
 
-            namelist /input/ N, D, rho, dt, n_meas, n_conf, T_ref, fact_rc, sigma, epsilon
+            namelist /input/ N, D, rho, dt_sim, n_meas, n_conf, T_ref, fact_rc, sigma, epsilon
 
             ! Llegim els parametres del input
             read(unit=unit, nml=input, iostat=errstat)
@@ -40,11 +38,10 @@ module init
             ! Funciona per N^(1/D) no exactes, però la densitat NO sera la requerida
 
             use parameters, only : D, N, L
-            ! use statvis, only : writeXyz  ! En cas que es vulgui fer un print del resultat
-
             implicit none
+            
             real*8, intent(out):: pos(D,N)
-            integer :: M  ! Nº atoms en cada dimensio.
+            integer :: M    ! Nº atoms en cada dimensio.
             real*8 :: a, r  ! Distancia interatomica i variable per assignar posicions al loop
             integer :: i, j, aux
             real*8 :: raux
@@ -65,27 +62,23 @@ module init
             end do
             pos = pos - L/2.  ! Centrem el sistema al (0,0,0)
             
-            ! En cas que algu vulgui veure com queda l'estat inicial
-            ! open(unit=11, file="test_xyz.xyz", action="write")
-            ! call writeXyz(D, N, pos, 11)
-            ! close(11)
         end subroutine
 
         subroutine init_vel(vel, T)
-            ! Torna el array de velocitats vel(D,N) consistent amb la T donada.
-            ! 
-            ! Falta -> Forma per calcular la 
+            ! Torna el array de velocitats (aleatories) vel(D,N) consistent amb la T donada.
 
             use parameters, only : D, N
+            use integraforces, only : energy_kin
             implicit none
 
             real*8, intent(inout) :: vel(D,N)
-            real*8, intent(out) :: T
+            real*8, intent(in) :: T
           
-            real :: vel_CM(D)
-            ! real :: kinetic  ! Falta una funcio o subrutina per calcular la energia cinetica
+            real*8 :: vel_CM(D)
+            real*8 :: aux, kin
             integer :: i, j
           
+            ! Inicialitza les velocitats de manera random entre -1 i 1
             vel_CM = 0
             do i = 1, N
                 do j = 1, D
@@ -93,13 +86,17 @@ module init
                 end do
               vel_CM = vel_CM + vel(:,i)
             end do
-            vel_CM = vel_CM/real(N)
+            vel_CM = vel_CM/dble(N)
           
+            ! Eliminem la velocitat neta del sistema
             do i = 1, N
               vel(:,i) = vel(:,i) - vel_CM
             end do
             
-            print *, "ES: Velocitats no escalades a la T donada. Pendent de fer."
-            ! vel = vel * sqrt(real(3*N-3)*T/(2*kinetic(vel, N)))  ! Falta la funcio/subrutina per le energia cinetica
-          end subroutine
+            ! Reescalem les velocitats a la temperatura objectiu
+            call energy_kin(vel, kin, aux)  
+            vel = vel * sqrt(dble(3*N)*T/(2.d0*kin))
+
+        end subroutine
+
 end module init
