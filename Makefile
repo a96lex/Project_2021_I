@@ -31,11 +31,13 @@ statvis.o : statvis.f90 parameters.o
 main.o : main.f90 $(mods)
 	$(compiler) -c $(opt) main.f90
 
-.PHONY: plots
+.PHONY: plots trajectoryVideo clean
 plots:
 	gnuplot plots.g
 
-.PHONY: clean
+trajectoryVideo:
+	python ./molecule_plotter/main.py $(filename)
+
 clean :
 	rm -f $(objects)
 	rm -f $(mods)
