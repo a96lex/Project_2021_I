@@ -1,4 +1,3 @@
 *.o
 *.mod
 *.x
-/molecule_plotter/venv
