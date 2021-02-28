@@ -11,7 +11,7 @@
       real*8, allocatable :: pos(:,:), vel(:,:)
       
       real*8 :: time,ekin,epot,Tins,P
-      integer :: i
+      integer :: i,j,flag_g
 
       ! Per executar el programa cal fer >> main.x input_file. Si no, donara error.
       if (command_argument_count() == 0) stop "ERROR: Cridar fent >> ./main.x input_path"
@@ -44,7 +44,8 @@
 
       call writeXyz(D,N,pos,11)
 
-      call vvel_solver(5000,1.d-4,pos,vel,10.d0,10) ! AJ: Initialization of system.
+      flag_g = 0 ! DM: don't write g(r)
+      call vvel_solver(5000,1.d-4,pos,vel,10.d0,10,0,flag_g) ! AJ: Initialization of system.
 
       call writeXyz(D,N,pos,11) ! AJ: write initial configuration, check that it is random.
 
@@ -57,6 +58,10 @@
 
       open(unit=10,file="results/thermodynamics.dat")
       open(unit=11,file="results/trajectory.xyz")
+      open(unit=12,file="results/radial_distribution.dat")
+      ! Set the variables for computing g(r) (defined in rad_dist module)
+      Nshells = 100
+      call prepare_shells(Nshells)
       
 
       do i = 1,n_total
@@ -76,6 +81,12 @@
                   write(10,*) time, ekin, epot, ekin+epot, Tins, sum(vel,2)
                   !We sould also need pressure here.
                   call writeXyz(D,N,pos,11)
+                  ! Compute g(r) and write to file
+                  call rad_distr_fun(pos,Nshells)
+                  do j=1,Nshells
+                  	write(12,*) grid_shells*(j-1), g(j)
+                  enddo
+                  write(12,*) ! separation line
             endif
       enddo
 
