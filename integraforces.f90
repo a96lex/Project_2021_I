@@ -133,21 +133,25 @@
          end subroutine verlet_v_step
 
 
-         subroutine vvel_solver(Nt,dt,r,v,Temp,eunit) !Nt -- n_total?
+         subroutine vvel_solver(Nt,dt,r,v,Temp,eunit,eunit_g,flag_g) !Nt -- n_total?
    !     Performs Nt steps of the velocity verlet algorithm while computing
    !     different observables and writing to file.
-            ! use radial_distribution ! AJ: radial_distribution is broken
+   !     Set flag to different to a non-zero int to write files.
+            use radial_distribution
             implicit none
-            integer, intent(in) :: Nt, eunit
+            integer, intent(in) :: Nt, eunit, eunit_g
             real(8) :: dt, Temp
             real(8) :: r(D,N), v(D,N), f(D,N)
             real(8) :: ekin, U, t, Tins, Ppot, Ptot
-            integer :: i,j,Nshells,eunit_g
+            integer :: i,j
+            ! Flags for writing:
+            integer, intent(in) :: flag_g
             
             ! Initialization of the g(r) calculation:
-            ! Nshells = 100
-            ! call prepare_shells(Nshells)
-            ! eunit_g = 2*eunit ! Solucio temporal
+            if(flag_g.ne.0) then
+              Nshells = 100
+              call prepare_shells(Nshells)
+            endif
 
             t = 0.d0
             call compute_force_LJ(r,f,U,Ppot) !Initial force, energy and pressure
@@ -173,11 +177,12 @@
                write(eunit,*) t, ekin, U, ekin+U, Tins, sum(v,2)
                
                !Write snapshot of g(r)
-               !AJ: broken, uncomment when fixed
-            !    do j=1,Nshells
-            !      write(eunit_g,*) (j-1)*grid_shells, rad_distr(j)
-            !    enddo
-            !    write(eunit_g,*) ! separation line
+               if(flag_g.ne.0) then
+                 do j=1,Nshells
+                     write(eunit_g,*) (j-1)*grid_shells, g(j)
+                 enddo
+                 write(eunit_g,*) ! separation line
+               endif
                
             enddo
 
