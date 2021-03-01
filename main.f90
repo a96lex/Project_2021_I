@@ -16,6 +16,9 @@
       real*8 :: ekinMEAN,ekinVAR,etotMEAN,etotVAR,TinsMEAN,TinsVAR
       integer :: i,j,flag_g,k,cnt
 
+      integer :: Nshells
+      
+
       ! Per executar el programa cal fer >> main.x input_file. Si no, donara error.
       if (command_argument_count() == 0) stop "ERROR: Cridar fent >> ./main.x input_path"
       call get_command_argument(1, input_name)
