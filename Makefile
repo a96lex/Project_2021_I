@@ -22,7 +22,7 @@ pbc.o : pbc.f90 parameters.o
 rad_dist.o : rad_dist.f90 parameters.o pbc.o
 	$(compiler) -c $(opt) rad_dist.f90
 
-integraforces.o : integraforces.f90 parameters.o pbc.o
+integraforces.o : integraforces.f90 parameters.o pbc.o rad_dist.o
 	$(compiler) -c $(opt) integraforces.f90 
 
 statvis.o : statvis.f90 parameters.o
@@ -36,7 +36,7 @@ plots:
 	gnuplot plots.g
 
 trajectoryVideo:
-	python ./molecule_plotter/main.py $(filename)
+	python3 ./molecule_plotter/main.py $(filename)
 
 clean :
 	rm -f $(objects)
