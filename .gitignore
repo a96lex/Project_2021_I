@@ -1,3 +1,4 @@
 *.o
 *.mod
 *.x
+/results
