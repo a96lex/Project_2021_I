@@ -84,7 +84,7 @@
       PAUX = 0.d0
       do i = 1,n_total
       
-            call verlet_v_step(pos,vel,time,dt_sim)
+            call verlet_v_step(pos,vel,time,dt_sim,epot,P)
             call andersen_therm(vel,dt_sim,T_ref)
 
             k = k+1
@@ -108,7 +108,7 @@
 
                   call energy_kin(vel,ekin,Tins)
 
-                  write(10,*) time, ekin, epot, ekin+epot, Tins, sum(vel,2)
+                  write(10,*) time, ekin, epot, ekin+epot, Tins, sum(vel,2), P
                   !We sould also need pressure here.
                   call writeXyz(D,N,pos,11)
                   ! Compute g(r) and write to file
