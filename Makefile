@@ -39,6 +39,5 @@ trajectoryVideo:
 	python3 ./molecule_plotter/main.py $(filename)
 
 clean :
-	rm -f $(objects)
-	rm -f $(mods)
+	rm -f $(objects) $(mods)
 
