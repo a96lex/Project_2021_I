@@ -10,6 +10,7 @@
       character(len=50) :: input_name
       real*8, allocatable :: pos(:,:), vel(:,:)
       real*8, allocatable :: epotVEC(:), PVEC(:), ekinVEC(:), etotVEC(:), TinsVEC(:)
+      real*8, allocatable :: g_avg(:), g_squared_avg(:)
       
       real*8 :: time,ekin,epot,Tins,P,etot,mes
       real*8 :: epotAUX,PAUX,epotMEAN,PMEAN,epotVAR,PVAR
@@ -73,9 +74,15 @@
       open(unit=13,file="results/mean_epot.dat")
       open(unit=14,file="results/mean_press.dat")
       open(unit=15,file="results/averages.dat")
+      
       ! Set the variables for computing g(r) (defined in rad_dist module)
       Nshells = 100
       call prepare_shells(Nshells)
+      ! allocate averaging vectors for g
+      allocate(g_avg(Nshells))
+      allocate(g_squared_avg(Nshells))
+      g_avg = 0d0
+      g_squared_avg = 0d0
       
 
       k = 0
@@ -94,7 +101,6 @@
             if(mod(i,n_meas) == 0) then ! AJ : measure every n_meas steps
                   !AJ: TODO
                   !verlet_v_step (Laia) doesnt return epot or P, it should
-                  !g(r) also need to be done.
 
                   ! Average de epot i P cada n_meas. Ho escribim en un fitxer cada un
                   k = 0
@@ -113,10 +119,8 @@
                   call writeXyz(D,N,pos,11)
                   ! Compute g(r) and write to file
                   call rad_distr_fun(pos,Nshells)
-                  do j=1,Nshells
-                  	write(12,*) grid_shells*(j-1), g(j)
-                  enddo
-                  write(12,*) ! separation line
+                  g_avg = g_avg + g
+                  g_squared_avg = g_squared_avg + g**2
             endif
       enddo
 
@@ -124,6 +128,16 @@
       close(11)
       close(13)
       close(14)
+      
+      ! Average de la g(r)
+      g_avg = g_avg/(n_total/n_meas)
+      g_squared_avg = g_squared_avg/(n_total/n_meas)
+      write(12,*) " # position,   g,   std dev "
+      do i=1,Nshells
+        write(12,*) grid_shells*(i-1), g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
+      enddo
+      close(12)
+        
 
       ! Averages finals (faltarà la pressió)
       deallocate(epotVEC)
@@ -167,5 +181,8 @@
       deallocate(ekinVEC)
       deallocate(etotVEC)
       deallocate(TinsVEC)
+      deallocate(g_avg)
+      deallocate(g_squared_avg)
+      call deallocate_g_variables()
 
       end program main
