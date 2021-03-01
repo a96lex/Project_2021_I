@@ -98,7 +98,7 @@
          end subroutine energy_kin
 
 
-         subroutine verlet_v_step(r,v,t,dt)
+         subroutine verlet_v_step(r,v,t,dt,U,P)
          ! Computes one time step with velocity verlet algorithm 
             implicit none 
             integer :: i
@@ -167,7 +167,7 @@
             !enddo
       
             do i=1,Nt !Main time loop.
-               call verlet_v_step(r,v,t,dt) !Perform Verlet step.
+               call verlet_v_step(r,v,t,dt,U,Ppot) !Perform Verlet step.
                call andersen_therm(v,dt,Temp) !Apply thermostat
                call compute_force_LJ(r,f,U,Ppot)
                call energy_kin(v,ekin,Tins)
