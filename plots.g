@@ -5,6 +5,7 @@ set title "Energies respecte temps"
 set xlabel "Temps"
 set ylabel "Energia"
 set offsets 0, 0, 50, 0
+set key bmargin center horizontal spacing 3
 plot "./results/thermodynamics.dat" u 1:2 w l t "Energia cinètica","" u 1:3 w l t "Energia potencial","" u 1:4 w l t "Energia total"
 
 set terminal png size 800,600
