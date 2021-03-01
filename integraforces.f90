@@ -146,6 +146,7 @@
             integer :: i,j
             ! Flags for writing:
             integer, intent(in) :: flag_g
+            integer :: Nshells
             
             ! Initialization of the g(r) calculation:
             if(flag_g.ne.0) then
