@@ -20,5 +20,10 @@
 ## Installation and usage
 After cloning the repository with `git clone https://github.com/EIA-Master/Project_2021_I` you can generate an executable file with `make`, which will generate a an executable called main.x.
 
+### Additional Makefile recipes
+ - `make clean`: Removes all intermediate files created during the build
+ - `make plots`: Generates plots from the result data in the results/plots directory
+ - `make trajectoryVideo`: Generates an animated image (in gif format) with the resulting trajectory. The filename is defaulted to "trajectory.gif", but you can override it by passing an optional filename parameter: `make filename="your_filename" trajectoryVideo` 
+
 ### Contact
 Voice any concerns to the responsible of this github page: arnau-jr. 
