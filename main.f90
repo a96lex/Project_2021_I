@@ -127,25 +127,30 @@
 
       ! Averages finals (faltarà la pressió)
       deallocate(epotVEC)
+      deallocate(PVEC)
       allocate(epotVEC(n_total/n_meas))
+      allocate(PVEC(n_total/n_meas))
       open(10,file="results/thermodynamics.dat",status="old")
       do i=1,n_total/n_meas
-        read(10,*) time, ekin, epot, etot, Tins, mes
+        read(10,*) time, ekin, epot, etot, Tins, mes, P
         ekinVEC(i) = ekin
         epotVEC(i) = epot
         etotVEC(i) = etot
         TinsVEC(i) = Tins
+        PVEC(i) = P
       enddo
 
       call estad(n_total/n_meas,ekinVEC,ekinMEAN,ekinVAR)
       call estad(n_total/n_meas,epotVEC,epotMEAN,epotVAR)
       call estad(n_total/n_meas,etotVEC,etotMEAN,etotVAR)
       call estad(n_total/n_meas,TinsVEC,TinsMEAN,TinsVAR)
+      call estad(n_total/n_meas,PVEC,PMEAN,PVAR)
       write(15,*) "Sample mean and Variance"
       write(15,*) "Kinetic Energy", ekinMEAN, ekinVAR
       write(15,*) "Potential Energy", epotMEAN, epotVAR
       write(15,*) "Total Energy", etotMEAN, etotVAR
       write(15,*) "Instant Temperature", TinsMEAN, TinsVAR
+      write(15,*) "Pressure", PMEAN, PVAR
 
       ! Binning de les energies cinètica i potencial
       call binning(n_total/n_meas,ekinVEC,50,"results/ekinBIN.dat")
