@@ -6,7 +6,7 @@ compiler=gfortran
 opt=
 
 main.x : $(objects)
-	mkdir -p ./results
+	mkdir -p results
 	$(compiler) -o main.x $(opt) $(objects)
 
 $(mods) : $(dep_objects)  
@@ -38,13 +38,13 @@ plots:
 	gnuplot plots.g
 
 trajectory_video:
-	python3 ./molecule_plotter/main.py $(filename)
+	python3 molecule_plotter/main.py $(filename)
 
 clean :
 	rm -f $(objects) $(mods) 
 
 clean_all:
-	rm -rf -v ./results/
+	rm -rf -v results
 	rm -f $(objects) $(mods)
 
 backup : 
