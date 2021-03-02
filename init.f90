@@ -29,6 +29,7 @@ module init
             L = (N / rho) ** (1.d0 / D)
             rc = fact_rc * L / 2.d0
 
+            call reduced_units()
         end subroutine get_param
 
         subroutine init_sc(pos)
