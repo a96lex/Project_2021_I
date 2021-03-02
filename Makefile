@@ -6,6 +6,7 @@ compiler=gfortran
 opt=
 
 main.x : $(objects)
+	mkdir -p ./results
 	$(compiler) -o main.x $(opt) $(objects)
 
 $(mods) : $(dep_objects)  
@@ -31,7 +32,8 @@ statvis.o : statvis.f90 parameters.o
 main.o : main.f90 $(mods)
 	$(compiler) -c $(opt) main.f90
 
-.PHONY: plots trajectoryVideo clean backup removeResults
+
+.PHONY: plots trajectoryVideo clean backup clean_all
 plots:
 	gnuplot plots.g
 
@@ -39,11 +41,12 @@ trajectoryVideo:
 	python3 ./molecule_plotter/main.py $(filename)
 
 clean :
+	rm -f $(objects) $(mods) 
+
+clean_all:
+	rm -rf -v ./results/
 	rm -f $(objects) $(mods)
 
 backup : 
 	mkdir -p backups results
 	cp -a results "backups/results_$(shell date +"%Y-%m-%d_%H:%M:%S")"
-
-removeResults : 
-	rm -r -v results
