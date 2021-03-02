@@ -6,6 +6,7 @@ compiler=gfortran
 opt=
 
 main.x : $(objects)
+	mkdir -p ./results
 	$(compiler) -o main.x $(opt) $(objects)
 
 $(mods) : $(dep_objects)  
@@ -31,7 +32,7 @@ statvis.o : statvis.f90 parameters.o
 main.o : main.f90 $(mods)
 	$(compiler) -c $(opt) main.f90
 
-.PHONY: plots trajectoryVideo clean
+.PHONY: plots trajectoryVideo clean clean_all
 plots:
 	gnuplot plots.g
 
@@ -39,5 +40,9 @@ trajectoryVideo:
 	python3 ./molecule_plotter/main.py $(filename)
 
 clean :
+	rm -f $(objects) $(mods) 
+
+clean_all:
+	rm -rf ./results/
 	rm -f $(objects) $(mods)
 
