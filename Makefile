@@ -33,11 +33,11 @@ main.o : main.f90 $(mods)
 	$(compiler) -c $(opt) main.f90
 
 
-.PHONY: plots trajectoryVideo clean backup clean_all
+.PHONY: plots trajectory_video clean backup clean_all
 plots:
 	gnuplot plots.g
 
-trajectoryVideo:
+trajectory_video:
 	python3 ./molecule_plotter/main.py $(filename)
 
 clean :
