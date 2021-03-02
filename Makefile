@@ -31,7 +31,7 @@ statvis.o : statvis.f90 parameters.o
 main.o : main.f90 $(mods)
 	$(compiler) -c $(opt) main.f90
 
-.PHONY: plots trajectoryVideo clean
+.PHONY: plots trajectoryVideo clean backup removeResults
 plots:
 	gnuplot plots.g
 
@@ -41,3 +41,9 @@ trajectoryVideo:
 clean :
 	rm -f $(objects) $(mods)
 
+backup : 
+	mkdir -p backups results
+	cp -a results "backups/results_$(shell date +"%Y-%m-%d_%H:%M:%S")"
+
+removeResults : 
+	rm -r -v results
