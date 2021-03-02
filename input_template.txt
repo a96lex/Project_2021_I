@@ -17,8 +17,11 @@ dt_sim=0.01
 n_meas=1
 n_conf=1000
 
-! Lennard-Jones potential 
-sigma=1.0
-epsilon=1.0
+! Lennard-Jones potential
+!Source for sigma and epsilon:
+!DOI: 10.1007/s11099-012-0075-x 
+sigma=2.63 !Angstroms
+epsilon=3.78 !K
+mass=4.002 !g
 fact_rc=1.0  ! De 0 a 1
 /
