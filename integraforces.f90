@@ -4,6 +4,7 @@
          contains
 
          subroutine compute_force_LJ(r,f,U,P)
+         !Author: Arnau Jurado
          ! Computes the force, potential energy and pressure of a system
          ! of N particles. Needs the external parameters M,D,L,rc to work
                implicit none
@@ -11,15 +12,20 @@
                real*8,intent(out) :: f(D,N),U,P
                real*8 :: distv(D),dist
                integer :: i,j
+               !Initialize quantities.
                f = 0.d0
                U = 0.d0
                P = 0.d0
-               do i=1,N
+               do i=1,N !loop over i<j particles
                      do j=i+1,N
+                           !Compute distance and apply minimum image convention.
                            distv = r(:,i)-r(:,j)
                            call min_img_2(distv)
                            dist = sqrt(sum((distv)**2))
-                           if(dist<rc) then
+
+
+                           if(dist<rc) then !Cutoff
+                                 !Compute forces and pressure.
                                  f(:,i) = f(:,i)& 
                                  + (48.d0/dist**14 - 24.d0/dist**8)*distv
                                  f(:,j) = f(:,j)& 
@@ -32,11 +38,13 @@
                      enddo
                enddo
                ! P = P/(dble(N)*(dble(N)-1.d0)/2.d0)
-
+               
+               !Add 1/3V factor to potential pressure.
                P = 1.d0/(3.d0*L**3)*P
          end subroutine compute_force_LJ
 
          subroutine andersen_therm(v,dt,Temp)
+         !Author: Arnau Jurado
          !     Applies the Andersen thermostat to a system of N particles. Requires
          !     boxmuller subroutine.
          !           Input
@@ -63,6 +71,8 @@
                               x2 = rand()
                               call box_muller(std,x1,x2) !Modify the velocity.
                               v(i,j) = x1
+                              !Here we are effectively throwing away one of the
+                              !two gaussian numbers given by box_muller
                         enddo
                   endif
             enddo
@@ -70,6 +80,9 @@
                   
 
       subroutine box_muller(std, X1,X2)
+         !Author: Arnau Jurado
+         !Generates two gaussian distributed numbers from two uniform random numbers
+         !using the box muller method.
             implicit none
             real*8,intent(in) :: std
             real*8,intent(out) :: x1,x2
@@ -81,6 +94,7 @@
 
 
          subroutine energy_kin(v,ekin,Tins)
+         !Author: Laia Barjuan
          ! Computes the kinetic energy and instant temperature of the
          ! system
             implicit none
@@ -99,6 +113,7 @@
 
 
          subroutine verlet_v_step(r,v,t,dt,U,P)
+         !Author: Laia Barjuan
          ! Computes one time step with velocity verlet algorithm 
             implicit none 
             integer :: i
@@ -133,7 +148,9 @@
          end subroutine verlet_v_step
 
 
-         subroutine vvel_solver(Nt,dt,r,v,Temp,eunit,eunit_g,flag_g) !Nt -- n_total?
+         subroutine vvel_solver(Nt,dt,r,v,Temp,eunit,eunit_g,flag_g)
+         !Author: Laia Barjuan
+         !Co-Authors: David March (radial distribution), Arnau Jurado (interface with forces)
    !     Performs Nt steps of the velocity verlet algorithm while computing
    !     different observables and writing to file.
    !     Set flag to different to a non-zero int to write files.
@@ -162,9 +179,6 @@
             !Write intial results.
             write(eunit,*)"t","K","U","E","T","v_tot"
             write(eunit,*) t, ekin, U, ekin+U, Tins, sum(v,2)
-            !do i=1,N   !Writes initial configuration of particles
-              ! write(runit,*) r(:,i)
-            !enddo
       
             do i=1,Nt !Main time loop.
                call verlet_v_step(r,v,t,dt,U,Ppot) !Perform Verlet step.
@@ -172,7 +186,7 @@
                call compute_force_LJ(r,f,U,Ppot)
                call energy_kin(v,ekin,Tins)
                Ptot = rho*Tins + Ppot
-            !    call rad_distr_fun(r)
+               ! call rad_distr_fun(r)
 
                !Write to file.
                write(eunit,*) t, ekin, U, ekin+U, Tins, sum(v,2)
