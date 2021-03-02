@@ -34,19 +34,28 @@ main.o : main.f90 $(mods)
 
 
 .PHONY: plots trajectory_video clean backup clean_all
+## plots: Generates the plots of the observables found in results/
 plots:
 	gnuplot plots.g
 
+## trajectory_video: Creates the movie from results/trajectory.xyz
 trajectory_video:
 	python3 molecule_plotter/main.py $(filename)
 
+## clean: Removes the compilation files
 clean :
 	rm -f $(objects) $(mods) 
 
+## clean_all: Removes the compilation files and the results/ folder
 clean_all:
 	rm -rf -v results
 	rm -f $(objects) $(mods)
 
+## backup: Saves the contents from the results folder in the backup folder with a timestamp
 backup : 
 	mkdir -p backups results
 	cp -a results "backups/results_$(shell date +"%Y-%m-%d_%H:%M:%S")"
+
+## help: Shows information about the Makefile options
+help:
+	@grep '^##' Makefile
