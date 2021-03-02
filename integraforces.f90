@@ -186,13 +186,13 @@
                call compute_force_LJ(r,f,U,Ppot)
                call energy_kin(v,ekin,Tins)
                Ptot = rho*Tins + Ppot
-               ! call rad_distr_fun(r)
 
                !Write to file.
                write(eunit,*) t, ekin, U, ekin+U, Tins, sum(v,2)
                
                !Write snapshot of g(r)
                if(flag_g.ne.0) then
+                 call rad_distr_fun(r)
                  do j=1,Nshells
                      write(eunit_g,*) (j-1)*grid_shells, g(j)
                  enddo
