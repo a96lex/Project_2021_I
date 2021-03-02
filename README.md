@@ -17,6 +17,8 @@ After cloning the repository with `git clone https://github.com/EIA-Master/Proje
 - `make clean`: Removes all intermediate files created during the build
 - `make plots`: Generates plots from the result data in the results/plots directory
 - `make trajectoryVideo`: Generates an animated image (in gif format) with the resulting trajectory. The filename is defaulted to "trajectory.gif", but you can override it by passing an optional filename parameter: `make filename="your_filename" trajectoryVideo`
+- `make backup`: Generates a directory named `results_Y-M-D_H:M:S` and copies the contents of the results folder to it. Use this when you want to save the results obtained febore running the executable again.
+- `make removeResults`: removes the results directory and all its content
 
 ## Contributors
 
