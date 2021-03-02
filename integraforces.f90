@@ -161,7 +161,7 @@
             real(8) :: r(D,N), v(D,N), f(D,N)
             real(8) :: ekin, U, t, Tins, Ppot, Ptot
             integer :: i,j
-            ! Flags for writing:
+            ! Flags for writing g:
             integer, intent(in) :: flag_g
             integer :: Nshells
             
@@ -192,7 +192,7 @@
                
                !Write snapshot of g(r)
                if(flag_g.ne.0) then
-                 call rad_distr_fun(r)
+                 call rad_distr_fun(r,Nshells)
                  do j=1,Nshells
                      write(eunit_g,*) (j-1)*grid_shells, g(j)
                  enddo
