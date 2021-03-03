@@ -33,9 +33,14 @@ main.o : main.f90 $(mods)
 	$(compiler) -c $(opt) main.f90
 
 
-.PHONY: plots trajectory_video clean backup clean_all
+.PHONY: sim plots trajectory_video clean backup clean_all
+## sim: Compiles the program if needed and runs a simulation with the parameters specified with input=your_input.txt.
+## Results are generated at the directory "results"
+sim : main.x
+	./main.x $(input)	
+
 ## plots: Generates the plots of the observables found in results/
-plots:
+plots :
 	gnuplot plots.p
 
 ## trajectory_video: Creates the movie from results/trajectory.xyz
@@ -47,7 +52,7 @@ clean :
 	rm -f $(objects) $(mods) 
 
 ## clean_all: Removes the compilation files and the results/ folder
-clean_all:
+clean_all :
 	rm -rf -v results
 	rm -f $(objects) $(mods)
 
@@ -57,5 +62,5 @@ backup :
 	cp -a results "backups/results_$(shell date +"%Y-%m-%d_%H:%M:%S")"
 
 ## help: Shows information about the Makefile options
-help:
+help :
 	@grep '^##' Makefile
