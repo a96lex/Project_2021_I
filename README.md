@@ -10,7 +10,7 @@
 
 ## Installation and usage
 
-After cloning the repository with `git clone https://github.com/EIA-Master/Project_2021_I` you can generate an executable file with `make`, which will generate a an executable called main.x.
+After cloning the repository with `git clone https://github.com/EIA-Master/Project_2021_I` you can generate an executable file with `make`, which will generate an executable called main.x.
 
 You can run the program by executing `./main.x input.txt` with any proper input file (check the file input_template.txt to see the structure of the input file).
 Alternatively `make sim input="input.txt"` with any file as input.txt. 
