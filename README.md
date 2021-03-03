@@ -12,8 +12,12 @@
 
 After cloning the repository with `git clone https://github.com/EIA-Master/Project_2021_I` you can generate an executable file with `make`, which will generate a an executable called main.x.
 
+You can run the program by executing `./main.x input.txt` with any proper input file (check the file input_template.txt to see the structure of the input file).
+Alternatively `make sim input="input.txt"` with any file as input.txt. 
+
 ### Additional Makefile recipes
 
+- `make sim input="your_input.txt"`: Compiles the program if needed and runs a simulation with the parameters specified in `your_input.txt`
 - `make plots`: Generates plots from the result data in the results/plots directory
 - `make trajectory_video`: Generates an animated image (in gif format) with the resulting trajectory. The filename is defaulted to "trajectory.gif", but you can override it by passing an optional filename parameter: `make filename="your_filename" trajectory_video`
 - `make backup`: Generates a directory named `results_Y-M-D_H:M:S` and copies the contents of the results folder to it. Use this when you want to save the results obtained febore running the executable again.
