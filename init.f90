@@ -3,6 +3,7 @@ module init
     contains
 
         subroutine get_param(unit)
+            !Author: Eloi Sanchez
             ! Llegim de l'input els parametres del sistema i es calcula el
             ! nº d'iteracions i la longitud de la cel·la.
             ! Els propers llocs on es faci servir 'use parameters' tindran
@@ -33,6 +34,7 @@ module init
         end subroutine get_param
 
         subroutine init_sc(pos)
+            !Author: Eloi Sanchez
             ! Crea una xarxa cristal·lina ordenada (cuadrada en 2D i cubica en 3D)
             ! Està fet general per D dimensions. Es menys eficient que tenir nested loops pero
             ! no se m'ha acudit fer-ho d'altra forma.
@@ -66,6 +68,7 @@ module init
         end subroutine
 
         subroutine init_vel(vel, T)
+            !Author: Eloi Sanchez
             ! Torna el array de velocitats (aleatories) vel(D,N) consistent amb la T donada.
 
             use parameters, only : D, N
