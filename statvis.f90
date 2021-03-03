@@ -4,6 +4,7 @@
             ! en format xyz. L'arxiu s'ha d'obrir (amb action="write") 
             ! i tancar al programa des d'on es cridi la subrutina 
             subroutine writeXyz(D,N,r,unit)
+			!Author: Alex Párraga
                 implicit none
                 integer, intent(in)  :: D,N,unit
                 double precision, intent(in) :: r(D,N)
@@ -26,6 +27,7 @@
 	    ! Subrutina que retorna el valor esperat ('mean') i la variància ('var')
             ! d'un vector ('vec') de dimensió 'd'
 	    subroutine estad(d,vec,mean,var)
+		!Author: Jaume Ojer
 	    implicit none
 	    integer d,i
 	    double precision vec(d)
@@ -44,6 +46,7 @@
             ! input 'vec' de dimensió 'd' (com en la subrutina estad)
             ! Recomano numBINmin=50 (a MoMo em funcionava realment bé)
 	    subroutine binning(d,vec,numBINmin,filename)
+		!Author: Jaume Ojer
 	    implicit none
 	    integer numBINmin,m,i,j,c,numBIN,test,d
 	    double precision,allocatable :: binned(:),aux(:)
