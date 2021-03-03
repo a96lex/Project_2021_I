@@ -122,8 +122,13 @@
                   g_squared_avg = g_squared_avg + g**2
             endif
 
-            if(mod(i,int(0.1*n_total))==0) print"(A,F5.1,A)","Progress: ",i/dble(n_total)*100.,"%"
+            if(mod(i,int(0.1*n_total))==0) then
+                   write (*,"(A,F5.1,A)",advance="no") "Progress: ",i/dble(n_total)*100.,"%"
+                   if (i<n_total) call execute_command_line('echo "\033[A"')
+            endif
       enddo
+      write (*,*)
+      write (*,*) "----Simulation Completed----"
 
       close(10)
       close(11)
