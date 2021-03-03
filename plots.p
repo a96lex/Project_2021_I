@@ -1,3 +1,5 @@
+# Authonr: Alex
+
 set terminal png size 800,600
 system "mkdir -p ./results/plots"
 set output "./results/plots/Energies.png"

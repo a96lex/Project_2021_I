@@ -1,3 +1,4 @@
+# Author: Alex
 import sys
 import os
 from ase import io

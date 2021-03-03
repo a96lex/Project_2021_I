@@ -3,6 +3,7 @@
             ! subrutina per a escriure l'estat espaial del sistema 
             ! en format xyz. L'arxiu s'ha d'obrir (amb action="write") 
             ! i tancar al programa des d'on es cridi la subrutina 
+            ! Author: Alex 
             subroutine writeXyz(dimensions,n_particles,system_positions,file_unit)
                 implicit none
                 integer, intent(in)  :: dimensions,n_particles,file_unit
