@@ -15,7 +15,8 @@ set title "Pressió respecte temps"
 set xlabel "Temps"
 set ylabel "Pressió"
 set offsets 0, 0, 0, 0
-plot "./results/mean_press.dat" u 1:2 w l t "Pressió"
+unset key
+plot "./results/mean_press.dat" u 1:2 w l
 
 set terminal png size 800,600
 system "mkdir -p ./results/plots"
@@ -24,7 +25,8 @@ set title "Temperatura respecte temps"
 set xlabel "Temps"
 set ylabel "Temperatura"
 set offsets 0, 0, 0, 0
-plot "./results/thermodynamics.dat" u 1:5 w l t "Temperatura"
+unset key
+plot "./results/thermodynamics.dat" u 1:5 w l 
 
 set terminal png size 800,600
 system "mkdir -p ./results/plots"
