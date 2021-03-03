@@ -30,11 +30,11 @@
       close(10)
 
       print*,"------Parameters------"
-      print*, "N=",N,"D=",D
-      print*,"dt_sim=",dt_sim
-      print*,"rho=",rho,"T=",T_ref,"L=",L
-      print*,"eps=",epsilon,"sigma=",sigma,"rc=",rc
-      print*,"n_meas,n_conf,n_total=",n_meas,n_conf,n_total
+      print"(A,X,I5,2X,A,X,I1)", "N=",N,"D=",D
+      print"(A,X,E14.7)","dt_sim=",dt_sim
+      print"(A,X,F4.2,2X,A,X,F4.2)","rho=",rho,"T=",T_ref
+      print"(A,X,F7.4,2X,A,X,F4.2)","eps=",epsilon,"sigma=",sigma,"rc=",rc
+      print"(A,X,I3,2X,I5,2X,I5)","n_meas,n_conf,n_total=",n_meas,n_conf,n_total
       
       ! Allocates
       allocate(pos(D,N))
