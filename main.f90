@@ -29,12 +29,13 @@
       call get_param(10)
       close(10)
 
-      print*,"------Parameters------"
+      print*,"------------------------Parameters-------------------------------"
       print"(A,X,I5,2X,A,X,I1)", "N=",N,"D=",D
       print"(A,X,E14.7)","dt_sim=",dt_sim
       print"(A,X,F4.2,2X,A,X,F4.2)","rho=",rho,"T=",T_ref
       print"(A,X,F7.4,2X,A,X,F4.2)","eps=",epsilon,"sigma=",sigma,"rc=",rc
       print"(A,X,I3,2X,I5,2X,I5)","n_meas,n_conf,n_total=",n_meas,n_conf,n_total
+      print*,"-----------------------------------------------------------------"
       
       ! Allocates
       allocate(pos(D,N))
@@ -89,6 +90,7 @@
       cnt = 0
       epotAUX = 0.d0
       PAUX = 0.d0
+      print*,"------Simulation Start------"
       do i = 1,n_total
       
             call verlet_v_step(pos,vel,time,dt_sim,epot,P)
@@ -99,9 +101,6 @@
             PVEC(k) = P
 
             if(mod(i,n_meas) == 0) then ! AJ : measure every n_meas steps
-                  !AJ: TODO
-                  !verlet_v_step (Laia) doesnt return epot or P, it should
-
                   ! Average de epot i P cada n_meas. Ho escribim en un fitxer cada un
                   k = 0
                   cnt = cnt+1
@@ -122,6 +121,8 @@
                   g_avg = g_avg + g
                   g_squared_avg = g_squared_avg + g**2
             endif
+
+            if(mod(i,int(0.1*n_total))==0) print"(A,F5.1,A)","Progress: ",i/dble(n_total)*100.,"%"
       enddo
 
       close(10)
