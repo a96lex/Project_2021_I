@@ -4,7 +4,6 @@
             ! en format xyz. L'arxiu s'ha d'obrir (amb action="write") 
             ! i tancar al programa des d'on es cridi la subrutina 
             subroutine writeXyz(dimensions,n_particles,system_positions,file_unit)
-            !Author: Alex Párraga
                 implicit none
                 integer, intent(in)  :: dimensions,n_particles,file_unit
                 double precision, intent(in) :: system_positions(dimensions,n_particles)
