@@ -28,8 +28,10 @@ Alternatively `make sim input="input.txt"` with any file as input.txt.
 
 - Gnuplot: it is a requirement to use `make plots`. Available [here](http://www.gnuplot.info/)
 - Python version 3: is a requirement to use `make trajectory_video`
-  - The only required python package is ase ([documentation](https://wiki.fysik.dtu.dk/ase/)). It can be installed using pip: - `pip install ase`
-    or - `pip install molecule_plotter/requirements.txt` from the root directory
+  - The only required python package is ase ([documentation](https://wiki.fysik.dtu.dk/ase/)). It can be installed using pip:
+    - `pip install ase`
+or
+    - `pip install molecule_plotter/requirements.txt` from the root directory
 
 ## Contributors
 
