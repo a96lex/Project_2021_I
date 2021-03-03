@@ -45,3 +45,13 @@ set ylabel "Variància de la energia potencial"
 set offsets 1, 1, 0.1, 0
 unset key
 plot "./results/epotBIN.dat" u 1:3 w p ls 7 lc rgb "blue" ps 2 
+
+set terminal png size 800,600
+system "mkdir -p ./results/plots"
+set output "./results/plots/Distribucio_radial.png"
+set title "Distribució radial del sistema"
+set xlabel "Distància"
+set ylabel "Frequència"
+unset key
+unset offsets
+plot "./results/radial_distribution.dat" u 1:3 w l lc rgb "blue"
