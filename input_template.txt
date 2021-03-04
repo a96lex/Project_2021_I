@@ -1,7 +1,7 @@
 &input
 
 ! INPUT EN FORMAT NAMELIST. L'ordre de les variables es indiferent
-! Es important que no hi hagi vairables no declarades ni que faltin
+! Es important que no hi hagi variables no declarades ni que faltin
 ! variables declarades al codi (init.f90)
 ! El &input de la primera linia indica el nom del namelist i el \
 ! indica el final del namelist.
