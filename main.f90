@@ -66,9 +66,16 @@
       close(11)
 
       ! Start dynamics
+      ! Perform equilibration of the system
       call init_vel(vel, T_ref) ! AJ: reescale to target temperature
 
+      open(unit=10,file="results/thermodynamics_equilibration.dat")
 
+      call vvel_solver(n_equil,dt_sim,pos,vel,T_ref,10,0,flag_g)
+
+      close(10)
+
+      ! Once the system is equilibrated, start dynamics of the system
       open(unit=10,file="results/thermodynamics.dat")
       open(unit=11,file="results/trajectory.xyz")
       open(unit=12,file="results/radial_distribution.dat")

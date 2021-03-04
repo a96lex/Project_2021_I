@@ -7,22 +7,23 @@
 ! indica el final del namelist.
 
 ! System
-N=125
-D=3
-rho=0.6
-T_ref=2.00
+N=125           ! Number of atoms
+D=3             ! Number of dimensions
+rho=0.1         ! Redced density 
+T_ref=27.5      ! Reduced temperature 
 
 ! Dynamics
-dt_sim=0.01
-n_meas=1
-n_conf=1000
+dt_sim=0.0001   ! Time-step for equilibration and simulation
+n_meas=1        ! Measure every n_meas iterations
+n_conf=1000     ! Total number of iterations to be measured
+n_equil=1000    ! Number of equilibration steps after melting and before simulation
 
 ! Lennard-Jones potential
-!Source for sigma and epsilon:
-!https://www.researchgate.net/publication/234126376_Lennard-Jones_Energy_Parameter_for_Pure_Fluids_from_Scaled_Particle_Theory
+! Source for sigma and epsilon:
+! https://www.researchgate.net/publication/234126376_Lennard-Jones_Energy_Parameter_for_Pure_Fluids_from_Scaled_Particle_Theory
 
-sigma=2.63 !Angstroms
-epsilon=3.78 !K
-mass=4.002 !g
-fact_rc=1.0  ! De 0 a 1
+sigma=2.63      !Angstroms
+epsilon=3.78    !K
+mass=4.002      !g
+fact_rc=1.0     ! De 0 a 1
 /

@@ -3,7 +3,7 @@
 
       integer :: N,D
       real*8 :: dt_sim
-      integer :: n_meas, n_conf, n_total
+      integer :: n_meas, n_conf, n_total, n_equil
       real*8 :: rho, T_ref, L, rc, fact_rc
       real*8 :: sigma, epsilon, mass
 
