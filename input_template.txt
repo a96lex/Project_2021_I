@@ -10,7 +10,7 @@
 N=125
 D=3
 rho=0.6
-T_ref=1.0
+T_ref=79.37 !Around 300K
 
 ! Dynamics
 dt_sim=0.01
@@ -19,7 +19,8 @@ n_conf=1000
 
 ! Lennard-Jones potential
 !Source for sigma and epsilon:
-!DOI: 10.1007/s11099-012-0075-x 
+!https://www.researchgate.net/publication/234126376_Lennard-Jones_Energy_Parameter_for_Pure_Fluids_from_Scaled_Particle_Theory
+
 sigma=2.63 !Angstroms
 epsilon=3.78 !K
 mass=4.002 !g
