@@ -10,7 +10,7 @@
 N=125
 D=3
 rho=0.6
-T_ref=79.37 !Around 300K
+T_ref=2.00
 
 ! Dynamics
 dt_sim=0.01
