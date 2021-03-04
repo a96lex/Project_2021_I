@@ -129,7 +129,7 @@
                   g_squared_avg = g_squared_avg + g**2
             endif
 
-            if(mod(i,int(0.1*n_total))==0) then
+            if(mod(i,int(0.001*n_total))==0) then
                    write (*,"(A,F5.1,A)",advance="no") "Progress: ",i/dble(n_total)*100.,"%"
                    if (i<n_total) call execute_command_line('echo "\033[A"')
             endif
