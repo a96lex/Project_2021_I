@@ -120,8 +120,7 @@
 
                   call energy_kin(vel,ekin,Tins)
 
-                  write(10,*) time, ekin, epot, ekin+epot, Tins, sum(vel,2), P
-                  !We sould also need pressure here.
+                  write(10,*) time, ekin, epot, ekin+epot, Tins, dsqrt(sum(sum(vel,2)**2)), P
                   call writeXyz(D,N,pos,11)
                   ! Compute g(r) and write to file
                   call rad_distr_fun(pos,Nshells)

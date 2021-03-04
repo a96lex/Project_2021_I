@@ -54,8 +54,10 @@ set terminal png size 800,600
 system "mkdir -p ./results/plots"
 set output "./results/plots/Distribucio_radial.png"
 set title "Distribució radial del sistema"
-set xlabel "Distància"
+set xlabel "Distància reduida"
 set ylabel "Frequència"
 unset key
 unset offsets
-plot "./results/radial_distribution.dat" u 1:3 w l lc rgb "blue"
+plot "./results/radial_distribution.dat" u 1:3:4 w yerrorbars lc rgb "light-blue", \
+'' u 1:3 w l lc rgb "blue";
+
