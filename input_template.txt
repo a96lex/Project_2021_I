@@ -13,16 +13,17 @@ rho=0.6
 T_ref=2.00
 
 ! Dynamics
-dt_sim=0.0001
-n_meas=100
-n_conf=10000
+dt_sim=0.0001   ! Time-step for equilibration and simulation
+n_meas=1        ! Measure every n_meas iterations
+n_conf=1000     ! Total number of iterations to be measured
+n_equil=1000    ! Number of equilibration steps after melting and before simulation
 
 ! Lennard-Jones potential
 !Source for sigma and epsilon:
-!https://www.researchgate.net/publication/234126376_Lennard-Jones_Energy_Parameter_for_Pure_Fluids_from_Scaled_Particle_Theory
+! https://doi.org/10.1016/S0927-7757(01)00628-8
 
-sigma=4.1 !Angstroms
-epsilon=220.942 !K
-mass=131.29 !g
+sigma=2.640 !Angstroms
+epsilon=10.9 !K
+mass=4.002 !g
 fact_rc=1.0  ! De 0 a 1
 /
