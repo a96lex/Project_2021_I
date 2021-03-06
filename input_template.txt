@@ -1,16 +1,16 @@
 &input
 
 ! INPUT EN FORMAT NAMELIST. L'ordre de les variables es indiferent
-! Es important que no hi hagi vairables no declarades ni que faltin
+! Es important que no hi hagi variables no declarades ni que faltin
 ! variables declarades al codi (init.f90)
 ! El &input de la primera linia indica el nom del namelist i el \
 ! indica el final del namelist.
 
 ! System
-N=125
-D=3
-rho=0.6
-T_ref=2.00
+N=125           ! Number of atoms
+D=3             ! Number of dimensions
+rho=0.1         ! Redced density 
+T_ref=27.5      ! Reduced temperature 
 
 ! Dynamics
 dt_sim=0.0001   ! Time-step for equilibration and simulation
