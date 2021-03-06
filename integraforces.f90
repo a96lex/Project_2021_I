@@ -154,7 +154,7 @@
    !     Performs Nt steps of the velocity verlet algorithm while computing
    !     different observables and writing to file.
    !     Set flag to different to a non-zero int to write files.
-            use radial_distribution
+            use rad_dist
             implicit none
             integer, intent(in) :: Nt, eunit, eunit_g
             real(8) :: dt, Temp

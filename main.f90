@@ -4,7 +4,7 @@
       use pbc
       use integraforces
       use statvis
-      use radial_distribution
+      use rad_dist
 
       implicit none
       character(len=50) :: input_name

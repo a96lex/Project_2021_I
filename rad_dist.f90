@@ -1,6 +1,6 @@
 ! AUTHOR: David March
 
-module radial_distribution
+module rad_dist
   real(8), parameter :: pi = 4d0*datan(1d0)
   ! grid_shells will save the width of the spherical shells:
   real(8) :: grid_shells
@@ -78,5 +78,5 @@ module radial_distribution
     deallocate(shells_vect)
   end subroutine
 
-end module radial_distribution
+end module rad_dist
   
