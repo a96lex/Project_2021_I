@@ -63,7 +63,7 @@
             real*8 :: std,nu,x1,x2
             integer :: i,j
             std = sqrt(Temp) !Standard deviation of the gaussian.
-            nu = 0.1*dt
+            nu = 0.1
             do i=1,N
                   if (rand()<nu) then ! Check if collision happens.
                         do j=1,D
@@ -85,11 +85,14 @@
          !using the box muller method.
             implicit none
             real*8,intent(in) :: std
-            real*8,intent(out) :: x1,x2
+            real*8,intent(inout) :: x1,x2
+            real*8 :: x1aux,x2aux
             real*8 :: PI
             PI = 4d0*datan(1d0)
-            x1 = std*dsqrt(-2d0*dlog(1.d0-x1))*dcos(2d0*PI*x2)
-            x2 = std*dsqrt(-2d0*dlog(1.d0-x1))*dsin(2d0*PI*x2)
+            x1aux = x1
+            x2aux = x2
+            x1 = std*dsqrt(-2d0*dlog(1.d0-x1aux))*dcos(2d0*PI*x2aux)
+            x2 = std*dsqrt(-2d0*dlog(1.d0-x1aux))*dsin(2d0*PI*x2aux)
       end subroutine box_muller
 
 
