@@ -13,7 +13,7 @@
       real*8, allocatable :: g_avg(:), g_squared_avg(:)
       
       real*8 :: time,ekin,epot,Tins,P,etot,mes
-      real*8 :: epotAUX,PAUX,epotMEAN,PMEAN,epotVAR,PVAR
+      real*8 :: epotAUX,epotMEAN,PMEAN,epotVAR,PVAR
       real*8 :: ekinMEAN,ekinVAR,etotMEAN,etotVAR,TinsMEAN,TinsVAR
       integer :: i,j,flag_g,k,cnt
 
@@ -41,7 +41,7 @@
       allocate(pos(D,N))
       allocate(vel(D,N))   
       allocate(epotVEC(n_meas))
-      allocate(PVEC(n_meas))
+      allocate(PVEC(n_total/n_meas))
       allocate(ekinVEC(n_total/n_meas))
       allocate(etotVEC(n_total/n_meas))
       allocate(TinsVEC(n_total/n_meas))
@@ -80,7 +80,6 @@
       open(unit=11,file="results/trajectory.xyz")
       open(unit=12,file="results/radial_distribution.dat")
       open(unit=13,file="results/mean_epot.dat")
-      open(unit=14,file="results/mean_press.dat")
       open(unit=15,file="results/averages.dat")
       
       ! Set the variables for computing g(r) (defined in rad_dist module)
@@ -96,7 +95,6 @@
       k = 0
       cnt = 0
       epotAUX = 0.d0
-      PAUX = 0.d0
       print*,"------Simulation Start------"
       do i = 1,n_total
       
@@ -105,22 +103,18 @@
 
             k = k+1
             epotVEC(k) = epot
-            PVEC(k) = P
 
             if(mod(i,n_meas) == 0) then ! AJ : measure every n_meas steps
-                  ! Average de epot i P cada n_meas. Ho escribim en un fitxer cada un
+                  ! Average de epot cada n_meas. Ho escribim en un fitxer
                   k = 0
                   cnt = cnt+1
                   call estad(n_meas,epotVEC,epotMEAN,epotVAR)
-                  call estad(n_meas,PVEC,PMEAN,PVAR)
                   write(13,*) i, (epotMEAN+epotAUX*dble(cnt-1))/dble(cnt)
-                  write(14,*) i, (PMEAN+PAUX*dble(cnt-1))/dble(cnt)
                   epotAUX = (epotMEAN+epotAUX*dble(cnt-1))/dble(cnt)
-                  PAUX = (PMEAN+PAUX*dble(cnt-1))/dble(cnt)
 
                   call energy_kin(vel,ekin,Tins)
 
-                  write(10,*) time, ekin, epot, ekin+epot, Tins, dsqrt(sum(sum(vel,2)**2)), P
+                  write(10,*) time, ekin, epot, ekin+epot, Tins, dsqrt(sum(sum(vel,2)**2)), P+rho*Tins
                   call writeXyz(D,N,pos,11)
                   ! Compute g(r) and write to file
                   call rad_distr_fun(pos,Nshells)
@@ -139,7 +133,6 @@
       close(10)
       close(11)
       close(13)
-      close(14)
       
       ! Average de la g(r)
       g_avg = g_avg/(n_total/n_meas)
@@ -151,11 +144,9 @@
       close(12)
         
 
-      ! Averages finals (faltarà la pressió)
+      ! Averages finals
       deallocate(epotVEC)
-      deallocate(PVEC)
       allocate(epotVEC(n_total/n_meas))
-      allocate(PVEC(n_total/n_meas))
       open(10,file="results/thermodynamics.dat",status="old")
       do i=1,n_total/n_meas
         read(10,*) time, ekin, epot, etot, Tins, mes, P
