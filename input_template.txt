@@ -7,11 +7,10 @@
 ! indica el final del namelist.
 
 ! System
-N=512           ! Number of atoms
+N=125           ! Number of atoms
 D=3             ! Number of dimensions
-rho=0.3         ! Redced density 
+rho=0.1         ! Redced density 
 T_ref=27.5      ! Reduced temperature 
-!T_ref=1.5
 
 ! Dynamics
 dt_sim=0.0001   ! Time-step for equilibration and simulation
