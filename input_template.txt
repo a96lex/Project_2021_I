@@ -7,14 +7,15 @@
 ! indica el final del namelist.
 
 ! System
-N=125           ! Number of atoms
+N=512           ! Number of atoms
 D=3             ! Number of dimensions
-rho=0.1         ! Redced density 
+rho=0.3         ! Redced density 
 T_ref=27.5      ! Reduced temperature 
+!T_ref=1.5
 
 ! Dynamics
 dt_sim=0.0001   ! Time-step for equilibration and simulation
-n_meas=1        ! Measure every n_meas iterations
+n_meas=10       ! Measure every n_meas iterations
 n_conf=1000     ! Total number of iterations to be measured
 n_equil=1000    ! Number of equilibration steps after melting and before simulation
 
@@ -22,8 +23,15 @@ n_equil=1000    ! Number of equilibration steps after melting and before simulat
 !Source for sigma and epsilon:
 ! https://doi.org/10.1016/S0927-7757(01)00628-8
 
+! Helium:
 sigma=2.640 !Angstroms
 epsilon=10.9 !K
 mass=4.002 !g
+
+! Xenon:
+!sigma=4.10
+!epsilon=220.942
+!mass=131.29
+
 fact_rc=1.0  ! De 0 a 1
 /

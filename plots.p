@@ -56,6 +56,7 @@ set output "./results/plots/Distribucio_radial.png"
 set title "Distribució radial del sistema"
 set xlabel "Distància reduida"
 set ylabel "Frequència"
+set yrange[0:]
 unset key
 unset offsets
 plot "./results/radial_distribution.dat" u 1:3:4 w yerrorbars lc rgb "light-blue", \
