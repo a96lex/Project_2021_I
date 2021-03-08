@@ -135,8 +135,8 @@
       close(13)
       
       ! Average de la g(r)
-      g_avg = g_avg/(n_total/n_meas)
-      g_squared_avg = g_squared_avg/(n_total/n_meas)
+      g_avg = g_avg/dble(n_conf)
+      g_squared_avg = g_squared_avg/dble(n_conf)
       write(12,*) " # r (reduced units), r (Angstroms),   g(r),   std dev "
       do i=1,Nshells
         write(12,*) grid_shells*(i-1), grid_shells*(i-1)*sigma, g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
