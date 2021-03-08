@@ -37,7 +37,7 @@
                            endif
                      enddo
                enddo
-               ! P = P/(dble(N)*(dble(N)-1.d0)/2.d0)
+               P = P/(dble(N)*(dble(N)-1.d0)/2.d0)
                
                !Add 1/3V factor to potential pressure.
                P = 1.d0/(3.d0*L**3)*P
