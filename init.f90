@@ -76,7 +76,7 @@ module init
             end do
 
             if (check > 10.d-6) print *, "WARNING: Check that the initial conditions are correct!"
-            if (abs(M_check - M) > 1.d-3) print *, "The number of atoms per dimension is approximated", raux, "->", M
+            if (abs(M_check - M) > 1.d-3) print *, "The number of atoms per dimension is approximated", M_check, "->", M
 
         end subroutine
 
