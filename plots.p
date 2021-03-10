@@ -18,7 +18,7 @@ set xlabel "Temps"
 set ylabel "Pressió"
 set offsets 0, 0, 0, 0
 unset key
-plot "./results/mean_press.dat" u 1:2 w l
+plot "./results/thermodynamics.dat" u 1:7 w l 
 
 set terminal png size 800,600
 system "mkdir -p ./results/plots"
@@ -54,8 +54,11 @@ set terminal png size 800,600
 system "mkdir -p ./results/plots"
 set output "./results/plots/Distribucio_radial.png"
 set title "Distribució radial del sistema"
-set xlabel "Distància"
+set xlabel "Distància reduida"
 set ylabel "Frequència"
+set yrange[0:]
 unset key
 unset offsets
-plot "./results/radial_distribution.dat" u 1:3 w l lc rgb "blue"
+plot "./results/radial_distribution.dat" u 1:3:4 w yerrorbars lc rgb "light-blue", \
+'' u 1:3 w l lc rgb "blue";
+
