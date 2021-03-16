@@ -1,5 +1,5 @@
 *.o
 *.mod
 *.x
-/results
-/backups
+*/results
+*/backups
