@@ -3,7 +3,7 @@ dep_objects= parameters.o init.o integraforces.o statvis.o
 mods= parameters.mod init.mod integraforces.mod statvis.mod
 compiler=mpif90
 # opt=-Wall
-opt=-g
+opt=-g -Wall
 
 main.x : $(objects)
 	mkdir -p results

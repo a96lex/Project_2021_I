@@ -13,14 +13,11 @@ program main
 
     integer :: ierror
     
-    !Init MPI
+    ! Init MPI
     call MPI_INIT(ierror)
     call MPI_COMM_RANK(MPI_COMM_WORLD,taskid,ierror)
     call MPI_COMM_SIZE(MPI_COMM_WORLD,numproc,ierror)
 
-    !Allocates
-    allocate(pos(D,N))
-    allocate(vel(D,N)) 
 
     ! Per executar el programa cal fer >> main.x input_file. Si no, donara error.
     if (command_argument_count() == 0) stop "ERROR: Cridar fent >> ./main.x input_path"
@@ -31,6 +28,10 @@ program main
     call get_param(10)
     close(10)
 
+    ! Allocates
+    allocate(pos(D,N))
+    allocate(vel(D,N)) 
+    
     if(taskid==master) then
         print*,"------------------------Parameters-------------------------------"
         print"(A,X,I5,2X,A,X,I1)", "N=",N,"D=",D
@@ -43,8 +44,8 @@ program main
     call MPI_BARRIER(MPI_COMM_WORLD,ierror)
 
     ! Initialize positions and velocities
-    if (taskid == master) call init_sc(pos)
     ! call init_sc_paralel(pos)
+    if (taskid == master) call init_sc(pos)
 
     if(taskid==master) open(1,file="results/init_conf.xyz")
 
@@ -52,5 +53,8 @@ program main
         call writeXyz(D,N,pos,1)
     end if
 
-    call MPI_FINALIZE(ierror);
+    if (allocated(pos)) deallocate(pos)
+    if (allocated(vel)) deallocate(vel)
+
+    call MPI_FINALIZE(ierror)
 end program main

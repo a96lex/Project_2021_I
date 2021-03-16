@@ -43,7 +43,7 @@ module init
             ! En la dimensio 2 farem 000111222000111222000111222
             ! En la dimensio 3 farem 012012012012012012012012012
             ! Així, cada columna indica les 3 coord de un atom. Al final es centra la grid.
-            ! Funciona per N^(1/D) no exactes, però la densitat NO sera la requerida.
+            ! Funciona per N^(1/D) no exactes
 
             use parameters, only : D, N, L
             implicit none
@@ -70,16 +70,7 @@ module init
             end do
             pos = pos - (L - a) / 2.d0 ! Centrem el sistema al (0,0,0)
             
-            ! Sanity check. Les coord de l'ultim atom han de ser totes iguals!
-            check = 0.d0
-            do i = 1, D - 1
-                check = check + abs(pos(i,N) - pos(i+1,N))
-            end do
-
-            if (check > 10.d-6) print *, "WARNING: Check that the initial conditions are correct!"
-            if (abs(M_check - M) > 1.d-3) print *, "The number of atoms per dimension is approximated", M_check, "->", M
-
-        end subroutine
+        end subroutine init_sc
 
         subroutine init_sc_paralel(pos)
             ! Author: Eloi Sanchez
@@ -90,7 +81,7 @@ module init
             ! En la dimensio 2 farem 000111222000111222000111222
             ! En la dimensio 3 farem 012012012012012012012012012
             ! Així, cada columna indica les 3 coord de un atom. Al final es centra la grid.
-            ! Funciona per N^(1/D) no exactes, però la densitat NO sera la requerida.
+            ! Funciona per N^(1/D) no exactes
 
             use parameters, only : D, N, L, taskid, numproc, master
             use mpi
@@ -149,15 +140,6 @@ module init
             ! end do
             ! pos = pos - (L - a) / 2.d0 ! Centrem el sistema al (0,0,0)
             
-            ! ! Sanity check. Les coord de l'ultim atom han de ser totes iguals!
-            ! check = 0.d0
-            ! do i = 1, D - 1
-            !     check = check + abs(pos(i,N) - pos(i+1,N))
-            ! end do
-
-            ! if (check > 10.d-6) print *, "WARNING: Check that the initial conditions are correct!"
-            ! if (abs(M_check - M) > 1.d-3) print *, "The number of atoms per dimension is approximated", M_check, "->", M
-
         end subroutine
 
         ! subroutine init_vel(vel, T)
