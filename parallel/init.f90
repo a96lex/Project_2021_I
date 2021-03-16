@@ -45,6 +45,56 @@ module init
             ! Així, cada columna indica les 3 coord de un atom. Al final es centra la grid.
             ! Funciona per N^(1/D) no exactes, però la densitat NO sera la requerida.
 
+            use parameters, only : D, N, L
+            implicit none
+            
+            real*8, intent(out):: pos(D,N)
+            integer :: M    ! Nº atoms en cada dimensio.
+            real*8 :: a, r  ! Distancia interatomica i variable per assignar posicions al loop
+            integer :: i, j, index_reset
+            real*8 :: M_check, check
+            
+            if (taskid == master) then
+
+                M_check = N ** (1.d0 / D)
+                M = ceiling(M_check)
+                a = L / dble(M)
+
+                r = - a  ! Necessari per que comenci pel 0 en el i=1 j=1.
+                do i = 1, D
+                    index_reset = M ** (D - i)
+                    do j = 1, N
+                        if (mod(j - 1, index_reset) == 0) r = r + a
+                        ! Si la posicio correspon al final de la caixa, reiniciem r
+                        if (abs(r - L) < 1.d-6) r = 0.d0
+                        pos(i,j) = r
+                    end do
+                end do
+                pos = pos - (L - a) / 2.d0 ! Centrem el sistema al (0,0,0)
+                
+                ! Sanity check. Les coord de l'ultim atom han de ser totes iguals!
+                check = 0.d0
+                do i = 1, D - 1
+                    check = check + abs(pos(i,N) - pos(i+1,N))
+                end do
+
+                if (check > 10.d-6) print *, "WARNING: Check that the initial conditions are correct!"
+                if (abs(M_check - M) > 1.d-3) print *, "The number of atoms per dimension is approximated", M_check, "->", M
+
+            end if
+        end subroutine
+
+        subroutine init_sc_paralel(pos)
+            ! Author: Eloi Sanchez
+            ! Crea una xarxa cristal·lina ordenada (cuadrada en 2D i cubica en 3D)
+            ! Està fet general per D dimensions.
+            ! P. ex. N=27 i L=3 tindrem atoms amb coords a 0, 1 i 2.
+            ! En la dimensio 1 farem 000000000111111111222222222
+            ! En la dimensio 2 farem 000111222000111222000111222
+            ! En la dimensio 3 farem 012012012012012012012012012
+            ! Així, cada columna indica les 3 coord de un atom. Al final es centra la grid.
+            ! Funciona per N^(1/D) no exactes, però la densitat NO sera la requerida.
+
             use parameters, only : D, N, L, taskid, numproc, master
             use mpi
             implicit none
