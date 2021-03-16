@@ -44,13 +44,12 @@ program main
     call MPI_BARRIER(MPI_COMM_WORLD,ierror)
 
     ! Initialize positions and velocities
-    ! call init_sc_paralel(pos)
-    if (taskid == master) call init_sc(pos)
-
-    if(taskid==master) open(1,file="results/init_conf.xyz")
+    call init_sc_inner(pos)
 
     if(taskid==master) then
-        call writeXyz(D,N,pos,1)
+        open(10,file="results/init_conf.xyz")
+        call writeXyz(D,N,pos,10)
+        close(10)
     end if
 
     if (allocated(pos)) deallocate(pos)
