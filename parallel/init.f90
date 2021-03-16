@@ -54,34 +54,31 @@ module init
             integer :: i, j, index_reset
             real*8 :: M_check, check
             
-            if (taskid == master) then
+            M_check = N ** (1.d0 / D)
+            M = ceiling(M_check)
+            a = L / dble(M)
 
-                M_check = N ** (1.d0 / D)
-                M = ceiling(M_check)
-                a = L / dble(M)
-
-                r = - a  ! Necessari per que comenci pel 0 en el i=1 j=1.
-                do i = 1, D
-                    index_reset = M ** (D - i)
-                    do j = 1, N
-                        if (mod(j - 1, index_reset) == 0) r = r + a
-                        ! Si la posicio correspon al final de la caixa, reiniciem r
-                        if (abs(r - L) < 1.d-6) r = 0.d0
-                        pos(i,j) = r
-                    end do
+            r = - a  ! Necessari per que comenci pel 0 en el i=1 j=1.
+            do i = 1, D
+                index_reset = M ** (D - i)
+                do j = 1, N
+                    if (mod(j - 1, index_reset) == 0) r = r + a
+                    ! Si la posicio correspon al final de la caixa, reiniciem r
+                    if (abs(r - L) < 1.d-6) r = 0.d0
+                    pos(i,j) = r
                 end do
-                pos = pos - (L - a) / 2.d0 ! Centrem el sistema al (0,0,0)
-                
-                ! Sanity check. Les coord de l'ultim atom han de ser totes iguals!
-                check = 0.d0
-                do i = 1, D - 1
-                    check = check + abs(pos(i,N) - pos(i+1,N))
-                end do
+            end do
+            pos = pos - (L - a) / 2.d0 ! Centrem el sistema al (0,0,0)
+            
+            ! Sanity check. Les coord de l'ultim atom han de ser totes iguals!
+            check = 0.d0
+            do i = 1, D - 1
+                check = check + abs(pos(i,N) - pos(i+1,N))
+            end do
 
-                if (check > 10.d-6) print *, "WARNING: Check that the initial conditions are correct!"
-                if (abs(M_check - M) > 1.d-3) print *, "The number of atoms per dimension is approximated", M_check, "->", M
+            if (check > 10.d-6) print *, "WARNING: Check that the initial conditions are correct!"
+            if (abs(M_check - M) > 1.d-3) print *, "The number of atoms per dimension is approximated", M_check, "->", M
 
-            end if
         end subroutine
 
         subroutine init_sc_paralel(pos)
