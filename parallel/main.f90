@@ -3,7 +3,7 @@
       use init
       ! use pbc
       use integraforces
-      ! use statvis
+      use statvis
       ! use rad_dist
 
       implicit none
@@ -17,6 +17,10 @@
       call MPI_INIT(ierror)
       call MPI_COMM_RANK(MPI_COMM_WORLD,taskid,ierror)
       call MPI_COMM_SIZE(MPI_COMM_WORLD,numproc,ierror)
+
+      !Allocates
+      allocate(pos(D,N))
+      allocate(vel(D,N)) 
 
       ! Per executar el programa cal fer >> main.x input_file. Si no, donara error.
       if (command_argument_count() == 0) stop "ERROR: Cridar fent >> ./main.x input_path"
@@ -41,6 +45,11 @@
       ! Initialize positions and velocities
       call init_sc(pos)
 
+      if(taskid==master) open(1,file="results/init_conf.xyz")
+
+      if(taskid==master) then
+            call writeXyz(D,N,pos,1)
+      end if
 
       call MPI_FINALIZE(ierror);
       end program main

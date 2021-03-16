@@ -1,6 +1,6 @@
-objects= main.o parameters.o init.o integraforces.o 
-dep_objects= parameters.o init.o integraforces.o 
-mods= parameters.mod init.mod integraforces.mod
+objects= main.o parameters.o init.o integraforces.o statvis.o
+dep_objects= parameters.o init.o integraforces.o statvis.o
+mods= parameters.mod init.mod integraforces.mod statvis.mod
 compiler=mpif90
 # opt=-Wall
 opt=-g
@@ -19,6 +19,9 @@ init.o : init.f90 parameters.o integraforces.o
 
 integraforces.o : integraforces.f90 parameters.o
 	$(compiler) -c $(opt) integraforces.f90 
+
+statvis.o : statvis.f90
+	$(compiler) -c $(opt) statvis.f90 
 
 main.o : main.f90 $(mods)
 	$(compiler) -c $(opt) main.f90
