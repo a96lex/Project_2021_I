@@ -183,7 +183,7 @@
             write(eunit,*) t, ekin, U, ekin+U, Tins, sum(v,2)
       
             do i=1,Nt !Main time loop.
-               call verlet_v_step(r,v,t,dt,U,Ppot) !Perform Verlet step.
+               call verlet_v_step(r,v,t,i,dt,U,Ppot) !Perform Verlet step.
                call andersen_therm(v,dt,Temp) !Apply thermostat
                call compute_force_LJ(r,f,U,Ppot)
                call energy_kin(v,ekin,Tins)
