@@ -101,7 +101,130 @@ module init
                                 MPI_COMM_WORLD, ierror)
             end do
 
+            deallocate(pos_local)
         end subroutine init_sc_inner
+
+        subroutine init_sc_outer(pos)
+            ! Author: Eloi Sanchez
+            ! Crea una xarxa cristal·lina ordenada (cuadrada en 2D i cubica en 3D)
+            ! Està fet general per D dimensions.
+            ! P. ex. N=27 i L=3 tindrem atoms amb coords a 0, 1 i 2.
+            ! En la dimensio 1 farem 000000000111111111222222222
+            ! En la dimensio 2 farem 000111222000111222000111222
+            ! En la dimensio 3 farem 012012012012012012012012012
+            ! Així, cada columna indica les 3 coord de un atom. Al final es centra la grid.
+            ! Paralelització en el outer loop (les N particules) de la assignacio
+            ! Fins a un ordre de magnitud millor que la versio inner i outer_red
+
+            use parameters, only : D, N, L, taskid, numproc, master
+            use mpi
+            implicit none
+            
+            real*8, intent(out):: pos(D,N)
+            integer :: M    ! Nº atoms en cada dimensio.
+            real*8 :: a, r  ! Distancia interatomica i variable per assignar posicions al loop
+            integer :: i, j, index_reset, index_control
+            real*8 :: M_check, check
+
+            real*8, allocatable:: pos_local(:,:)
+            integer :: j_0, j_f, ierror
+            integer :: local_size, all_size(numproc), all_position(numproc)
+
+            ! Aixo ho fan totes les tasks
+            M_check = N ** (1.d0 / D)
+            M = ceiling(M_check)
+            a = L / dble(M)
+            
+            ! Paralelitzem nomes el LOOP INTERN
+            j_0 = taskid * N / numproc + 1
+            j_f = (taskid + 1) * N / numproc
+
+            ! Creem les variables locals de cada task
+            allocate(pos_local(D,j_0:j_f))
+            local_size = j_f - j_0 + 1
+
+            ! Cada task dona valor a la posició local
+            pos_local = 0.d0
+            do j = j_0, j_f
+                do i = 1, D 
+                    pos_local(i,j) = a * (mod(j - 1, M ** (D - i + 1)) / M ** (D - i))
+                end do
+            end do
+            pos_local = pos_local - (L - a) / 2.d0  ! Centrem el sistema al (0,0,0)
+
+            ! El master ha de saber quanta informació rebra de cada core
+            call MPI_Gather(local_size, 1, MPI_INTEGER, all_size, 1, MPI_INTEGER, &
+                            master, MPI_COMM_WORLD, ierror)
+
+            if (taskid == master) then
+                all_position(1) = 0  ! Ha de començar al 0 per coses del OpenMPI
+                do i = 1, numproc - 1
+                    all_position(i+1) = all_position(i) + all_size(i)
+                end do
+            end if
+
+            ! Es guarda al master la posicio total a partir de les locals
+            do i = 1, D
+                call MPI_Gatherv(pos_local(i,:), local_size, MPI_DOUBLE_PRECISION, pos(i,:), &
+                                all_size, all_position, MPI_DOUBLE_PRECISION, master, &
+                                MPI_COMM_WORLD, ierror)
+            end do
+
+            deallocate(pos_local)
+        end subroutine init_sc_outer
+
+        subroutine init_sc_outer_red(pos)
+            ! Author: Eloi Sanchez
+            ! Crea una xarxa cristal·lina ordenada (cuadrada en 2D i cubica en 3D)
+            ! Està fet general per D dimensions.
+            ! P. ex. N=27 i L=3 tindrem atoms amb coords a 0, 1 i 2.
+            ! En la dimensio 1 farem 000000000111111111222222222
+            ! En la dimensio 2 farem 000111222000111222000111222
+            ! En la dimensio 3 farem 012012012012012012012012012
+            ! Així, cada columna indica les 3 coord de un atom. Al final es centra la grid.
+            ! Paralelització en el outer loop (les N particules) i reduce enlloc de gather
+            ! Per N petits es millor que inner pero pitjor que outer. Per N grans (N=1000000)
+            ! es torna del nivell de inner
+
+            use parameters, only : D, N, L, taskid, numproc, master
+            use mpi
+            implicit none
+            
+            real*8, intent(out):: pos(D,N)
+            integer :: M    ! Nº atoms en cada dimensio.
+            real*8 :: a, r  ! Distancia interatomica i variable per assignar posicions al loop
+            integer :: i, j, index_reset, index_control
+            real*8 :: M_check, check
+
+            real*8 :: pos_local(D,N)
+            integer :: j_0, j_f, ierror
+
+            ! Aixo ho fan totes les tasks
+            M_check = N ** (1.d0 / D)
+            M = ceiling(M_check)
+            a = L / dble(M)
+            
+            ! Paralelitzem nomes el LOOP INTERN
+            j_0 = taskid * N / numproc + 1
+            j_f = (taskid + 1) * N / numproc
+
+            ! Cada task dona valor a la posició local
+            pos_local = 0.d0
+            do j = j_0, j_f
+                do i = 1, D 
+                    pos_local(i,j) = a * (mod(j - 1, M ** (D - i + 1)) / (M ** (D - i)))
+                end do
+            end do
+            
+            ! El master rep la info al vector pos
+            if (taskid == master) pos = 0.d0
+            do i = 1, D
+                call MPI_Reduce(pos_local(i,:), pos(i,:), N, MPI_DOUBLE_PRECISION, &
+                MPI_SUM, master, MPI_COMM_WORLD, ierror)
+            end do
+            if (taskid == master) pos = pos - (L - a) / 2.d0  ! Centrem el sistema al (0,0,0)
+
+        end subroutine init_sc_outer_red
 
         ! subroutine init_vel(vel, T)
         !     !Author: Eloi Sanchez
