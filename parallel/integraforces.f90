@@ -22,13 +22,19 @@
 
                !Initialize quantities.
                f = 0.d0
-               flocal = 0.d0
                U = 0.d0
                P = 0.d0
 
+               flocal = 0.d0
+               Ulocal = 0.d0
+               Plocal = 0.d0
+               rlocal = r
+
                particles_per_proc = int(N/float(numproc))
+               ! print*,"taskid:",taskid,particles_per_proc
                imin = (particles_per_proc* taskid)     + 1
                imax = (particles_per_proc*(taskid+1))
+               ! print*,"taskid:",taskid,imin,imax
 
                allocate(fi(D,particles_per_proc)) !Not used in first version of this
                !subroutine
@@ -42,6 +48,7 @@
 
                do i=imin,imax !Loop over assigned particles
                      do j=1,N !We do the full double loop
+                        if(i /= j) then
                            !Compute distance and apply minimum image convention.
                            distv = rlocal(:,i)-rlocal(:,j)
                         !    call min_img_2(distv) !Commented until pbc is added again
@@ -57,16 +64,16 @@
    
                                  Ulocal = Ulocal + 4.d0*((1.d0/dist)**12-(1.d0/dist)**6)-&
                                          4.d0*((1.d0/rc)**12-(1.d0/rc)**6)
-                                 Plocal = Plocal + sum(distv * f(:,i))
+                                 Plocal = Plocal + sum(distv * flocal(:,i))
                            end if
+                        end if
                      end do
                end do
                call MPI_BARRIER(MPI_COMM_WORLD,ierror)
 
-               do i=1,N
-                  do j=1,D
-                     call MPI_REDUCE(flocal(j,i),f(j,i),1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
-                  end do
+               do i=1,D
+                  coord = flocal(i,:)
+                  call MPI_REDUCE(coord,f(i,:),N,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
                end do
 
                call MPI_REDUCE(Ulocal,U,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
