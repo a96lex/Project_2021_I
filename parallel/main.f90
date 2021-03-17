@@ -11,7 +11,11 @@ program main
     character(len=50)   :: input_name
     real*8, allocatable :: pos(:,:), vel(:,:)
 
-    integer :: ierror
+    !For force tests, remove for non-testing version
+    real*8,allocatable  :: f(:,:)
+    real*8              :: U,P
+
+    integer :: i,ierror
     
     ! Init MPI
     call MPI_INIT(ierror)
@@ -51,6 +55,20 @@ program main
         call writeXyz(D,N,pos,10)
         close(10)
     end if
+
+    !Start force test
+    allocate(f(D,N))
+    call compute_force_LJ(pos,f,U,P)
+    if(taskid==master) then
+        open(50,file="results/force_test.dat")
+        write(50,"(2(E14.7,2X))")U,P
+        do i=1,N
+            write(50,"(I3,3(E14.7,2X))")i,f(:,i)
+        end do
+        close(50)
+    end if
+    deallocate(f)
+    !End force test
 
     if (allocated(pos)) deallocate(pos)
     if (allocated(vel)) deallocate(vel)
