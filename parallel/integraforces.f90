@@ -1,6 +1,6 @@
 module integraforces
       use parameters
-   !    use pbc
+      use pbc
       contains
 
       subroutine compute_force_LJ(r,f,U,P)
@@ -36,9 +36,7 @@ module integraforces
                imin = (particles_per_proc * taskid) + 1
                imax = (particles_per_proc *(taskid+1))
             else 
-               !If not last cpu gets less particles, this gets more inefficient
-               !the more cpus you have
-               particles_per_proc = ceiling(N/real(numproc))
+               particles_per_proc = floor(N/real(numproc))
                if(taskid /= numproc-1) then
                   imin = (particles_per_proc * taskid) + 1
                   imax = (particles_per_proc *(taskid+1))
@@ -48,7 +46,7 @@ module integraforces
                end if
             end if
             ! print*,"taskid:",taskid,particles_per_proc
-            ! print*,"taskid:",taskid,imin,imax
+            ! print*,"taskid:",taskid,imin,imax,imax-imin+1
 
             allocate(fi(D,particles_per_proc)) !Not used in first version of this
             !subroutine
@@ -65,7 +63,7 @@ module integraforces
                      if(i /= j) then
                         !Compute distance and apply minimum image convention.
                         distv = rlocal(:,i)-rlocal(:,j)
-                     !    call min_img_2(distv) !Commented until pbc is added again
+                        call min_img_2(distv)
                         dist = sqrt(sum((distv)**2))
 
 
