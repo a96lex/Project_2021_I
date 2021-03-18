@@ -30,10 +30,24 @@ module integraforces
             Plocal = 0.d0
             rlocal = r
 
-            particles_per_proc = int(N/float(numproc))
+            !If divisible everything ok
+            if(mod(N,numproc)==0) then
+               particles_per_proc = N/numproc
+               imin = (particles_per_proc * taskid) + 1
+               imax = (particles_per_proc *(taskid+1))
+            else 
+               !If not last cpu gets less particles, this gets more inefficient
+               !the more cpus you have
+               particles_per_proc = ceiling(N/real(numproc))
+               if(taskid /= numproc-1) then
+                  imin = (particles_per_proc * taskid) + 1
+                  imax = (particles_per_proc *(taskid+1))
+               else
+                  imin = (particles_per_proc * taskid) + 1
+                  imax = N
+               end if
+            end if
             ! print*,"taskid:",taskid,particles_per_proc
-            imin = (particles_per_proc* taskid)     + 1
-            imax = (particles_per_proc*(taskid+1))
             ! print*,"taskid:",taskid,imin,imax
 
             allocate(fi(D,particles_per_proc)) !Not used in first version of this
@@ -59,8 +73,6 @@ module integraforces
                               !Compute forces and pressure.
                               flocal(:,i) = flocal(:,i)& 
                               + (48.d0/dist**14 - 24.d0/dist**8)*distv
-                              flocal(:,j) = flocal(:,j)& 
-                              - (48.d0/dist**14 - 24.d0/dist**8)*distv
 
                               Ulocal = Ulocal + 4.d0*((1.d0/dist)**12-(1.d0/dist)**6)-&
                                       4.d0*((1.d0/rc)**12-(1.d0/rc)**6)
@@ -70,6 +82,7 @@ module integraforces
                   end do
             end do
             call MPI_BARRIER(MPI_COMM_WORLD,ierror)
+            print*,taskid,flocal(:,1)
 
             do i=1,D
                coord = flocal(i,:)
@@ -80,7 +93,9 @@ module integraforces
             call MPI_REDUCE(Plocal,P,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
 
             if(taskid==master) then
-               P = P/(dble(N)*(dble(N)-1.d0)/2.d0)
+               U = U/2.d0
+               ! P = P/2.d0
+               P = P/(dble(N)*(dble(N)-1.d0))
                !Add 1/3V factor to potential pressure.
                P = 1.d0/(3.d0*L**3)*P
             end if
