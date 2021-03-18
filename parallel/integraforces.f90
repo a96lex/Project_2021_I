@@ -76,13 +76,12 @@ module integraforces
 
                               Ulocal = Ulocal + 4.d0*((1.d0/dist)**12-(1.d0/dist)**6)-&
                                       4.d0*((1.d0/rc)**12-(1.d0/rc)**6)
-                              Plocal = Plocal + sum(distv * flocal(:,i))
                         end if
                      end if
                   end do
+                  Plocal = Plocal + sum(rlocal(:,i) * flocal(:,i))
             end do
             call MPI_BARRIER(MPI_COMM_WORLD,ierror)
-            print*,taskid,flocal(:,1)
 
             do i=1,D
                coord = flocal(i,:)
@@ -93,9 +92,8 @@ module integraforces
             call MPI_REDUCE(Plocal,P,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
 
             if(taskid==master) then
+               !Remove double counting on pot energy
                U = U/2.d0
-               ! P = P/2.d0
-               P = P/(dble(N)*(dble(N)-1.d0))
                !Add 1/3V factor to potential pressure.
                P = 1.d0/(3.d0*L**3)*P
             end if
