@@ -30,10 +30,24 @@ module integraforces
             Plocal = 0.d0
             rlocal = r
 
-            particles_per_proc = int(N/float(numproc))
+            !If divisible everything ok
+            if(mod(N,numproc)==0) then
+               particles_per_proc = N/numproc
+               imin = (particles_per_proc * taskid) + 1
+               imax = (particles_per_proc *(taskid+1))
+            else 
+               !If not last cpu gets less particles, this gets more inefficient
+               !the more cpus you have
+               particles_per_proc = ceiling(N/real(numproc))
+               if(taskid /= numproc-1) then
+                  imin = (particles_per_proc * taskid) + 1
+                  imax = (particles_per_proc *(taskid+1))
+               else
+                  imin = (particles_per_proc * taskid) + 1
+                  imax = N
+               end if
+            end if
             ! print*,"taskid:",taskid,particles_per_proc
-            imin = (particles_per_proc* taskid)     + 1
-            imax = (particles_per_proc*(taskid+1))
             ! print*,"taskid:",taskid,imin,imax
 
             allocate(fi(D,particles_per_proc)) !Not used in first version of this
