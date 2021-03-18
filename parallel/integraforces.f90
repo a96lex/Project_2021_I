@@ -138,7 +138,7 @@ module integraforces
                do i=1,N
                      if (rand()<nu) then ! Check if collision happens.
                            do j=1,D
-                                 call MPI_RECV(v(i,j),1,MPI_DOUBLE_PRECISION,master,1,MPI_COMM_WORLD,stat,ierror)
+                                 call MPI_RECV(v(i,j),1,MPI_DOUBLE_PRECISION,mod(i,numproc),1,MPI_COMM_WORLD,stat,ierror)
                                  x1 = rand()
                                  x2 = rand()
                                  v(i,j) = std*dsqrt(-2d0*dlog(1.d0-x1))*dcos(2d0*PI*x2)
