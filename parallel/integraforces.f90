@@ -134,7 +134,7 @@ module integraforces
                enddo
             endif
 
-            do k=1,numproc
+            do k=0,numproc-1
                do i=1,N
                      if (rand()<nu) then ! Check if collision happens.
                            do j=1,D
