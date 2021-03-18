@@ -20,7 +20,7 @@
                      do j=i+1,N
                            !Compute distance and apply minimum image convention.
                            distv = r(:,i)-r(:,j)
-                           ! call min_img_2(distv)
+                           call min_img_2(distv)
                            dist = sqrt(sum((distv)**2))
 
 
