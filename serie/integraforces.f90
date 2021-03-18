@@ -115,11 +115,11 @@
          end subroutine energy_kin
 
 
-         subroutine verlet_v_step(r,v,t,dt,U,P)
+         subroutine verlet_v_step(r,v,t,time_i,dt,U,P)
          !Author: Laia Barjuan
          ! Computes one time step with velocity verlet algorithm 
             implicit none 
-            integer :: i
+            integer :: i, time_i
             real(8) :: r(D,N), v(D,N), U, f(D,N), t, dt, P
             ! --------------------------------------------------
             ! input: r and v
@@ -145,8 +145,7 @@
                v(:,i)=v(:,i)+f(:,i)*dt*0.5d0
             enddo 
 
-            t=t+dt !Update time
-            !AJ : this is not a good way to update time, prone to carry over errors.
+            t=(time_i-1)*dt !Update time
             return
          end subroutine verlet_v_step
 
@@ -184,7 +183,7 @@
             write(eunit,*) t, ekin, U, ekin+U, Tins, sum(v,2)
       
             do i=1,Nt !Main time loop.
-               call verlet_v_step(r,v,t,dt,U,Ppot) !Perform Verlet step.
+               call verlet_v_step(r,v,t,i,dt,U,Ppot) !Perform Verlet step.
                call andersen_therm(v,dt,Temp) !Apply thermostat
                call compute_force_LJ(r,f,U,Ppot)
                call energy_kin(v,ekin,Tins)
