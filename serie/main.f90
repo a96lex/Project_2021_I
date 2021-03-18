@@ -10,9 +10,9 @@
       character(len=50) :: input_name
       real*8, allocatable :: pos(:,:), vel(:,:)
       real*8, allocatable :: epotVEC(:), PVEC(:), ekinVEC(:), etotVEC(:), TinsVEC(:)
-      real*8, allocatable :: g_avg(:), g_squared_avg(:)
+      real*8, allocatable :: epotVECins(:), g_avg(:), g_squared_avg(:)
       
-      real*8 :: time,ekin,epot,Tins,P,etot,mes
+      real*8 :: time,ekin,epot,Tins,P,etot
       real*8 :: epotAUX,epotMEAN,PMEAN,epotVAR,PVAR
       real*8 :: ekinMEAN,ekinVAR,etotMEAN,etotVAR,TinsMEAN,TinsVAR
       integer :: i,j,flag_g,k,cnt
@@ -40,9 +40,10 @@
       ! Allocates
       allocate(pos(D,N))
       allocate(vel(D,N))   
-      allocate(epotVEC(n_meas))
+      allocate(epotVECins(n_meas))
       allocate(PVEC(n_total/n_meas))
       allocate(ekinVEC(n_total/n_meas))
+      allocate(epotVEC(n_total/n_meas))
       allocate(etotVEC(n_total/n_meas))
       allocate(TinsVEC(n_total/n_meas))
 
@@ -102,20 +103,25 @@
             call andersen_therm(vel,dt_sim,T_ref)
 
             k = k+1
-            epotVEC(k) = epot
+            epotVECins(k) = epot
 
             if(mod(i,n_meas) == 0) then ! AJ : measure every n_meas steps
                   ! Average de epot cada n_meas. Ho escribim en un fitxer
                   k = 0
                   cnt = cnt+1
-                  call estad(n_meas,epotVEC,epotMEAN,epotVAR)
+                  call estad(n_meas,epotVECins,epotMEAN,epotVAR)
                   write(13,*) i, (epotMEAN+epotAUX*dble(cnt-1))/dble(cnt)
                   epotAUX = (epotMEAN+epotAUX*dble(cnt-1))/dble(cnt)
 
                   call energy_kin(vel,ekin,Tins)
-
                   write(10,*) time, ekin, epot, ekin+epot, Tins, dsqrt(sum(sum(vel,2)**2)), P+rho*Tins
+                  ekinVEC(cnt) = ekin
+                  epotVEC(cnt) = epot
+                  etotVEC(cnt) = ekin+epot
+                  TinsVEC(cnt) = Tins
+                  PVEC(cnt) = P+rho*Tins
                   call writeXyz(D,N,pos,11)
+
                   ! Compute g(r) and write to file
                   call rad_distr_fun(pos,Nshells)
                   g_avg = g_avg + g
@@ -145,17 +151,7 @@
         
 
       ! Averages finals
-      deallocate(epotVEC)
-      allocate(epotVEC(n_total/n_meas))
-      open(10,file="results/thermodynamics.dat",status="old")
-      do i=1,n_total/n_meas
-        read(10,*) time, ekin, epot, etot, Tins, mes, P
-        ekinVEC(i) = ekin
-        epotVEC(i) = epot
-        etotVEC(i) = etot
-        TinsVEC(i) = Tins
-        PVEC(i) = P
-      enddo
+      deallocate(epotVECins)
 
       call estad(n_total/n_meas,ekinVEC,ekinMEAN,ekinVAR)
       call estad(n_total/n_meas,epotVEC,epotMEAN,epotVAR)
@@ -173,7 +169,6 @@
       call binning(n_total/n_meas,ekinVEC,50,"results/ekinBIN.dat")
       call binning(n_total/n_meas,epotVEC,50,"results/epotBIN.dat")
 
-      close(10)
       close(15)
 
       ! Deallocates
