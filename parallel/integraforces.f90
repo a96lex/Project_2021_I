@@ -105,17 +105,19 @@ module integraforces
 !      !Author: Laia Barjuan
 !      ! Computes the kinetic energy and instant temperature of the
 !      ! system
+!         ! --------------------------------------------------
+!         !  input: 
+!         !          v  --> velocities of the system
+!         !  output: 
+!         !          ekin --> kinetic energy of the system 
+!         !          Tins --> instant temperature of the system
+!         ! --------------------------------------------------
 !         implicit none
 !         real(8), intent(in)   :: v(D,N), vlocal(D,N), vec(N)
 !         real(8), intent (out) :: ekin, ekinlocal, Tins
 !         integer :: i
 !         integer :: part_per_proc, imin, imax
 !         integer :: reques, ierror
-!         ! --------------------------------------------------
-!           input: v  --> velocities of the system
-!           output: ekin --> kinetic energy of the system 
-!                   Tins --> instant temperature of the system
-!         ! --------------------------------------------------
 !
 !         !Initialization
 !         ekin=0.0d0
@@ -151,17 +153,24 @@ module integraforces
 !      subroutine verlet_v_step(r,v,t,time_i,dt,U,P)
 !      !Author: Laia Barjuan
 !      ! Computes one time step with velocity verlet algorithm 
+!         ! --------------------------------------------------
+!         ! input: 
+!         !        r --> positions of the particles
+!         !        v  --> velocities of the system
+!         !        time_i --> number of step
+!         !        dt --> time step
+!         ! output: 
+!         !         modified r and v
+!         !         t --> final time
+!         !         U --> potential energy 
+!         !         P --> potential pressure
+!         ! --------------------------------------------------
 !         implicit none 
 !         integer :: i, time_i
 !         real(8) :: r(D,N), v(D,N), U, f(D,N), t, dt, P
 !         real(8) :: flocal(D,N), vlocal(D,N), rlocal(D,N)
 !         real(8) :: vec1(N), vec2(N), vec3(N)
 !         integer :: request, reques2, request3, ierror1, ierror2, ierror3
-!         ! --------------------------------------------------
-!         ! input: r --> positions of the particles
-!         !        v  --> velocities of the system
-!         ! output: modified r and v
-!         ! --------------------------------------------------
 !
 !         !Assign number of particles to processor
 !         part_per_proc=int(dble(N)/dble(numproc)) 
