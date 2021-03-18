@@ -1,10 +1,10 @@
 program main
     use parameters
     use init
-    ! use pbc
+    use pbc
     use integraforces
     use statvis
-    ! use rad_dist
+    use rad_dist
 
     implicit none
     include 'mpif.h'
@@ -15,7 +15,7 @@ program main
     real*8,allocatable  :: f(:,:)
     real*8              :: U,P
 
-    integer :: i,ierror
+    integer :: i,ierror,Nshells
     
     ! Init MPI
     call MPI_INIT(ierror)
@@ -69,6 +69,19 @@ program main
     end if
     deallocate(f)
     !End force test
+    
+    !Start g(r) test
+    Nshells = 100
+    call prepare_shells_and_procs(Nshells,numproc)
+    call rad_distr_fun(pos,Nshells)
+    if(taskid == master) then
+        open(11, file="results/radial_distribution.dat")
+        do i=1,Nshells
+            write(11,*) (i-1)*grid_shells+grid_shells/2d0,g(i)
+        enddo
+    endif
+    call deallocate_g_variables()
+    !End g(r) test
 
     if (allocated(pos)) deallocate(pos)
     if (allocated(vel)) deallocate(vel)
