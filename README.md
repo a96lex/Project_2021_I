@@ -1,5 +1,12 @@
 # Project_2021_I
 
+## Project description
+The code of this github page performs a molecular dynamics simulation of an atomic gas/liquid from the parameters defined on an input file (see `input_template.txt` for a template) and outputs different observables from the simulation. The results include:
+- Time series and averages of kinetic, potential and total energy of the system.
+- Time series and averages of the instanteous temperature and pressure.
+- Radial distribution function.
+
+Scripts for generating plots of the results are also included.
 ## Main files
 
 - init.f90 : initialization subroutines. Responsible: Eloi Sanchez.
@@ -14,6 +21,10 @@ After cloning the repository with `git clone https://github.com/EIA-Master/Proje
 
 You can run the program by executing `./main.x input.txt` with any proper input file (check the file input_template.txt to see the structure of the input file).
 Alternatively `make sim input="input.txt"` with any file as input.txt.
+
+After performing a simulation the results will be present in the `results` directory. You can generate plots from the simulation data by running the gnuplot script (`gnuplot plots.p`) or by the Makefile rule `plots`.
+
+Warning: if you run another simulation the results from will be erased. You can back them up manually or by using the `backup` Makefile rule.
 
 ### Additional Makefile recipes
 
