@@ -11,10 +11,12 @@
       real*8, allocatable :: pos(:,:), vel(:,:)
       real*8, allocatable :: epotVEC(:), PVEC(:), ekinVEC(:), etotVEC(:), TinsVEC(:)
       real*8, allocatable :: epotVECins(:), g_avg(:), g_squared_avg(:)
+      real*8, allocatable :: Xpos(:), Ypos(:), Zpos(:)
       
       real*8 :: time,ekin,epot,Tins,P,etot
       real*8 :: epotAUX,epotMEAN,PMEAN,epotVAR,PVAR
       real*8 :: ekinMEAN,ekinVAR,etotMEAN,etotVAR,TinsMEAN,TinsVAR
+      real*8 :: Xmean,Ymean,Zmean,Xvar,Yvar,Zvar
       integer :: i,j,flag_g,k,cnt
 
       integer :: Nshells
@@ -46,6 +48,9 @@
       allocate(epotVEC(n_total/n_meas))
       allocate(etotVEC(n_total/n_meas))
       allocate(TinsVEC(n_total/n_meas))
+      allocate(Xpos(N))
+      allocate(Ypos(N))
+      allocate(Zpos(N))
 
       ! Initialize positions and velocities
       call init_sc(pos)
@@ -81,6 +86,7 @@
       open(unit=11,file="results/trajectory.xyz")
       open(unit=12,file="results/radial_distribution.dat")
       open(unit=13,file="results/mean_epot.dat")
+      open(unit=14,file="results/diffcoeff.dat")
       open(unit=15,file="results/averages.dat")
       
       ! Set the variables for computing g(r) (defined in rad_dist module)
@@ -101,6 +107,15 @@
       
             call verlet_v_step(pos,vel,time,i,dt_sim,epot,P)
             call andersen_therm(vel,dt_sim,T_ref)
+
+            ! Càlcul del coeficient de difusió per cada dimensió
+            Xpos(:) = pos(1,:)
+            Ypos(:) = pos(2,:)
+            Zpos(:) = pos(3,:)
+            call estad(N,Xpos,Xmean,Xvar)
+            call estad(N,Ypos,Ymean,Yvar)
+            call estad(N,Zpos,Zmean,Zvar)
+            write(14,*) 2.d0*dble(i), Xvar*dble(N), Yvar*dble(N), Zvar*dble(N)
 
             k = k+1
             epotVECins(k) = epot
@@ -139,6 +154,7 @@
       close(10)
       close(11)
       close(13)
+      close(14)
       
       ! Average de la g(r)
       g_avg = g_avg/dble(n_conf)
@@ -181,6 +197,9 @@
       deallocate(TinsVEC)
       deallocate(g_avg)
       deallocate(g_squared_avg)
+      deallocate(Xpos)
+      deallocate(Ypos)
+      deallocate(Zpos)
       call deallocate_g_variables()
 
       end program main
