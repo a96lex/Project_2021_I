@@ -98,7 +98,7 @@
       print*,"------Simulation Start------"
       do i = 1,n_total
       
-            call verlet_v_step(pos,vel,time,dt_sim,epot,P)
+            call verlet_v_step(pos,vel,time,i,dt_sim,epot,P)
             call andersen_therm(vel,dt_sim,T_ref)
 
             k = k+1

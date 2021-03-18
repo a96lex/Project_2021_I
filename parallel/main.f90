@@ -1,17 +1,21 @@
 program main
     use parameters
     use init
-    ! use pbc
+    use pbc
     use integraforces
     use statvis
-    ! use rad_dist
+    use rad_dist
 
     implicit none
     include 'mpif.h'
     character(len=50)   :: input_name
     real*8, allocatable :: pos(:,:), vel(:,:)
 
-    integer :: ierror
+    !For force tests, remove for non-testing version
+    real*8,allocatable  :: f(:,:)
+    real*8              :: U,P
+
+    integer :: i,ierror,Nshells
     
     ! Init MPI
     call MPI_INIT(ierror)
@@ -44,14 +48,40 @@ program main
     call MPI_BARRIER(MPI_COMM_WORLD,ierror)
 
     ! Initialize positions and velocities
-    ! call init_sc_paralel(pos)
-    if (taskid == master) call init_sc(pos)
-
-    if(taskid==master) open(1,file="results/init_conf.xyz")
+    call init_sc_outer(pos)
 
     if(taskid==master) then
-        call writeXyz(D,N,pos,1)
+        open(10,file="results/init_conf.xyz")
+        call writeXyz(D,N,pos,10)
+        close(10)
     end if
+
+    !Start force test
+    allocate(f(D,N))
+    call compute_force_LJ(pos,f,U,P)
+    if(taskid==master) then
+        open(50,file="results/force_test.dat")
+        write(50,"(2(E14.7,2X))")U,P
+        do i=1,N
+            write(50,"(I3,3(E14.7,2X))")i,f(:,i)
+        end do
+        close(50)
+    end if
+    deallocate(f)
+    !End force test
+    
+    !Start g(r) test
+    Nshells = 100
+    call prepare_shells_and_procs(Nshells,numproc)
+    call rad_distr_fun(pos,Nshells)
+    if(taskid == master) then
+        open(11, file="results/radial_distribution.dat")
+        do i=1,Nshells
+            write(11,*) (i-1)*grid_shells+grid_shells/2d0,g(i)
+        enddo
+    endif
+    call deallocate_g_variables()
+    !End g(r) test
 
     if (allocated(pos)) deallocate(pos)
     if (allocated(vel)) deallocate(vel)
