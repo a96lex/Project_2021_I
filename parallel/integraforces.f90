@@ -101,6 +101,59 @@ module integraforces
             end if
       end subroutine compute_force_LJ
 
+      subroutine andersen_therm(v,Temp)
+         !Author: Arnau Jurado
+         !     Applies the Andersen thermostat to a system of N particles. Requires
+         !     boxmuller subroutine.
+         !           Input
+         !           -----
+         !                 v : real*8,dimension(D,N)
+         !                       Velocities of the system.
+         !                 T : real*8
+         !                       Target temperature of the thermostat.
+         !           Output
+         !           ------
+         !                 v : real*8,dimension(D,N)
+         !                       Velocities of the system after the thermostat application.
+            implicit none
+            include 'mpif.h'
+            real*8,intent(inout) :: v(D,N)
+            real*8,intent(in) :: Temp
+            real*8 :: std,nu,x1,x2,PI
+            integer :: i,j,k,stat
+
+            std = sqrt(Temp) !Standard deviation of the gaussian.
+            nu = 0.1
+            PI = 4d0*datan(1d0)
+
+            if (taskid.eq.master) then
+               do i=1,N
+                  do j=1,D
+                     call MPI_SEND(v(i,j),1,MPI_DOUBLE_PRECISION,mod(i,numproc),1,MPI_COMM_WORLD,ierror)
+                  enddo
+               enddo
+            endif
+
+            do k=1,numproc
+               do i=1,N
+                     if (rand()<nu) then ! Check if collision happens.
+                           do j=1,D
+                                 call MPI_RECV(v(i,j),1,MPI_DOUBLE_PRECISION,master,1,MPI_COMM_WORLD,stat,ierror)
+                                 x1 = rand()
+                                 x2 = rand()
+                                 v(i,j) = std*dsqrt(-2d0*dlog(1.d0-x1))*dcos(2d0*PI*x2)
+                                 !Here we are effectively throwing away one of the
+                                 !two gaussian numbers given by box_muller
+                           enddo
+                     endif
+               enddo
+            enddo
+
+            call MPI_BARRIER(MPI_COMM_WORLD,ierror)
+            
+
+         end subroutine andersen_therm  
+                  
 
 
 !      subroutine energy_kin(v,ekin,Tins)
