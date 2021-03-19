@@ -12,7 +12,6 @@ module integraforces
             real*8,intent(in)  :: r(D,N)
             real*8,intent(out) :: f(D,N),U,P
             real*8             :: flocal(D,N),Ulocal,Plocal
-            real*8,allocatable :: fi(:,:)
             real*8             :: distv(D),dist
             real*8             :: rlocal(D,N),coord(N)
             integer            :: i,j
@@ -47,9 +46,6 @@ module integraforces
             end if
             ! print*,"taskid:",taskid,particles_per_proc
             ! print*,"taskid:",taskid,imin,imax,imax-imin+1
-
-            allocate(fi(D,particles_per_proc)) !Not used in first version of this
-            !subroutine
 
             do i=1,D
                coord = rlocal(i,:)

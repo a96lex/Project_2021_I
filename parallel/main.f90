@@ -11,16 +11,14 @@ program main
     character(len=50)   :: input_name
     real*8, allocatable :: pos(:,:), vel(:,:)
 
-    !For force tests, remove for non-testing version
-    real*8,allocatable  :: f(:,:)
-    real*8              :: U,P
-
-    integer :: i,ierror,Nshells
+    integer             :: i,ierror,Nshells
+    real*8              :: ti_global,tf_global,elapsed_time !AJ: collective timing of program.
     
     ! Init MPI
     call MPI_INIT(ierror)
     call MPI_COMM_RANK(MPI_COMM_WORLD,taskid,ierror)
     call MPI_COMM_SIZE(MPI_COMM_WORLD,numproc,ierror)
+    ti_global = MPI_WTIME()
 
 
     ! Per executar el programa cal fer >> main.x input_file. Si no, donara error.
@@ -55,20 +53,6 @@ program main
         call writeXyz(D,N,pos,10)
         close(10)
     end if
-
-    !Start force test
-    allocate(f(D,N))
-    call compute_force_LJ(pos,f,U,P)
-    if(taskid==master) then
-        open(50,file="results/force_test.dat")
-        write(50,"(2(E14.7,2X))")U,P
-        do i=1,N
-            write(50,"(I3,3(E14.7,2X))")i,f(:,i)
-        end do
-        close(50)
-    end if
-    deallocate(f)
-    !End force test
     
     !Start g(r) test
     Nshells = 100
@@ -85,6 +69,12 @@ program main
 
     if (allocated(pos)) deallocate(pos)
     if (allocated(vel)) deallocate(vel)
+
+    tf_global = MPI_WTIME()
+    call MPI_REDUCE(tf_global-ti_global,elapsed_time,1,MPI_DOUBLE_PRECISION,MPI_MAX,master,MPI_COMM_WORLD,ierror)
+    if(taskid==master) then
+        print"(A,X,F14.7,X,A)","End program, time elapsed:",elapsed_time,"seconds"
+    end if
 
     call MPI_FINALIZE(ierror)
 end program main
