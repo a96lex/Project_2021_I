@@ -95,52 +95,54 @@ module integraforces
 
 
 
-!      subroutine energy_kin(v,ekin,Tins)
-!      !Author: Laia Barjuan
-!      ! Computes the kinetic energy and instant temperature of the
-!      ! system
-!         ! --------------------------------------------------
-!         !  input: 
-!         !          v  --> velocities of the system
-!         !  output: 
-!         !          ekin --> kinetic energy of the system 
-!         !          Tins --> instant temperature of the system
-!         ! --------------------------------------------------
-!         implicit none
-!         real(8), intent(in)   :: v(D,N), vlocal(D,N), vec(N)
-!         real(8), intent (out) :: ekin, ekinlocal, Tins
-!         integer :: i
-!         integer :: part_per_proc, imin, imax
-!         integer :: reques, ierror
-!
-!         !Initialization
-!         ekin=0.0d0
-!         ekinlocal=0.d0
-!
-!         !Assign number of particles to processor
-!         part_per_proc=int(dble(N)/dble(numproc)) 
-!             !Warning: leaves behind particles if the division is not exact
-!         imin=taskid*part_per_proc + 1
-!         imax=(taskid+1)*part_per_proc
-!
-!         do i=1,D
-!            if (taskid==master) vec = v(i,:)
-!            call MPI_BCAST(vec,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
-!            vlocal(i,:) = vec
-!         end do
-!
-!         do i=imin,imax
-!            ekinlocal=ekinlocal+sum(vlocal(:,i)**2)/2.0d0  
-!         enddo
-!
-!         call MPI_BARRIER(MPI_COMM_WORLD,ierror)
-!         call MPI_REDUCE(ekinlocal,ekin,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
-!      
-!         !Store instant temperature information in master
-!         if (taskid==master) Tins=2.0d0*ekin/(3.0d0*N)
-!
-!         return 
-!      end subroutine energy_kin
+     subroutine energy_kin(v,ekin,Tins)
+     !Author: Laia Barjuan
+     ! Computes the kinetic energy and instant temperature of the
+     ! system
+        ! --------------------------------------------------
+        !  input: 
+        !          v  --> velocities of the system
+        !  output: 
+        !          ekin --> kinetic energy of the system 
+        !          Tins --> instant temperature of the system
+        ! --------------------------------------------------
+      implicit none
+      include 'mpif.h'
+        real(8), intent(in)   :: v(D,N)
+        real(8) :: vlocal(D,N), vec(N), ekinlocal
+        real(8), intent (out) :: ekin, Tins
+        integer :: i
+        integer :: part_per_proc, imin, imax
+        integer :: request, ierror
+
+        !Initialization
+        ekin=0.0d0
+        ekinlocal=0.d0
+
+        !Assign number of particles to processor
+        part_per_proc=int(dble(N)/dble(numproc)) 
+            !Warning: leaves behind particles if the division is not exact
+        imin=taskid*part_per_proc + 1
+        imax=(taskid+1)*part_per_proc
+
+        do i=1,D
+           if (taskid==master) vec = v(i,:)
+           call MPI_BCAST(vec,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
+           vlocal(i,:) = vec
+        end do
+
+        do i=imin,imax
+           ekinlocal=ekinlocal+sum(vlocal(:,i)**2)/2.0d0  
+        enddo
+
+        call MPI_BARRIER(MPI_COMM_WORLD,ierror)
+        call MPI_REDUCE(ekinlocal,ekin,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
+     
+        !Store instant temperature information in master
+        if (taskid==master) Tins=2.0d0*ekin/(3.0d0*N)
+
+        return 
+     end subroutine energy_kin
 
 
 
