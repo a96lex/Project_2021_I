@@ -43,11 +43,11 @@
       allocate(pos(D,N))
       allocate(vel(D,N))   
       allocate(epotVECins(n_meas))
-      allocate(PVEC(n_total/n_meas))
-      allocate(ekinVEC(n_total/n_meas))
-      allocate(epotVEC(n_total/n_meas))
-      allocate(etotVEC(n_total/n_meas))
-      allocate(TinsVEC(n_total/n_meas))
+      allocate(PVEC(n_conf))
+      allocate(ekinVEC(n_conf))
+      allocate(epotVEC(n_conf))
+      allocate(etotVEC(n_conf))
+      allocate(TinsVEC(n_conf))
       allocate(Xpos(N))
       allocate(Ypos(N))
       allocate(Zpos(N))
@@ -169,11 +169,11 @@
       ! Averages finals
       deallocate(epotVECins)
 
-      call estad(n_total/n_meas,ekinVEC,ekinMEAN,ekinVAR)
-      call estad(n_total/n_meas,epotVEC,epotMEAN,epotVAR)
-      call estad(n_total/n_meas,etotVEC,etotMEAN,etotVAR)
-      call estad(n_total/n_meas,TinsVEC,TinsMEAN,TinsVAR)
-      call estad(n_total/n_meas,PVEC,PMEAN,PVAR)
+      call estad(n_conf,ekinVEC,ekinMEAN,ekinVAR)
+      call estad(n_conf,epotVEC,epotMEAN,epotVAR)
+      call estad(n_conf,etotVEC,etotMEAN,etotVAR)
+      call estad(n_conf,TinsVEC,TinsMEAN,TinsVAR)
+      call estad(n_conf,PVEC,PMEAN,PVAR)
       write(15,*) "Sample mean and Variance"
       write(15,*) "Kinetic Energy", ekinMEAN, ekinVAR
       write(15,*) "Potential Energy", epotMEAN, epotVAR
@@ -182,8 +182,11 @@
       write(15,*) "Pressure", PMEAN, PVAR
 
       ! Binning de les energies cinètica i potencial
-      call binning(n_total/n_meas,ekinVEC,50,"results/ekinBIN.dat")
-      call binning(n_total/n_meas,epotVEC,50,"results/epotBIN.dat")
+      call binning(n_conf,ekinVEC,50,"results/ekinBIN.dat")
+      call binning(n_conf,epotVEC,50,"results/epotBIN.dat")
+      
+      ! Funció d'autocorrelació per l'energia total
+      call corrtime(n_conf,etotVEC,"results/correlation_energy.dat")
 
       close(15)
 
