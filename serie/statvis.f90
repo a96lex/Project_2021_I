@@ -24,7 +24,7 @@
             end subroutine writeXyz
 
         ! Subrutina que retorna el valor esperat ('mean') i la variància ('var')
-            ! d'un vector ('vec') de dimensió 'd'
+        ! d'un vector ('vec') de dimensió 'd'
         subroutine estad(d,vec,mean,var)
         !Author: Jaume Ojer
         implicit none
@@ -41,9 +41,9 @@
         end subroutine estad
 
         ! Subrutina que escriu en un fitxer output (de nom 'filename', que és un input)
-            ! el valor esperat i la desviació quadràtica a partir de binnejar el vector
-            ! input 'vec' de dimensió 'd' (com en la subrutina estad)
-            ! Recomano numBINmin=50 (a MoMo em funcionava realment bé)
+        ! el valor esperat i la desviació quadràtica a partir de binnejar el vector
+        ! input 'vec' de dimensió 'd' (com en la subrutina estad)
+        ! Recomano numBINmin=50 (a MoMo em funcionava realment bé)
         subroutine binning(d,vec,numBINmin,filename)
         !Author: Jaume Ojer
         implicit none
@@ -111,4 +111,34 @@
           close(10)
         return
         end subroutine binning
+        
+        ! Construcció de la funció i temps d'autocorrelació (específic per tau = 500)
+        ! El vector 'vec' a analitzar de dimensió 'd' és l'input.
+        ! La subrutina escriu en un fitxer de nom 'filename' la funció i temps d'autocorrelació
+	subroutine corrtime(d,vec,filename)
+	!Author: Jaume Ojer
+	implicit none
+	integer d,tau,n
+	character(len=*) :: filename
+	double precision vec(d),mean,var,corr(500),corsum,time
+  	  open(50,file=filename)
+  	  call estad(size(vec),vec,mean,var)
+  	  do tau=1,500
+    	    corsum=0.d0
+    	    do n=1,d-tau
+              corsum=corsum+(vec(n)-mean)*(vec(n+tau)-mean)
+    	    enddo
+    	  !  if (mod(tau,200).eq.(0)) then
+	  !    write(*,*) tau
+    	  !  endif
+    	    corr(tau)=corsum/(dble(d-tau)*var)
+    	    write(50,*) tau,corr(tau)
+  	  enddo
+  	  time=1.d0+2.d0*sum(corr)
+  	  write(50,*)
+  	  write(50,*)
+  	  write(50,*) "Integrated Autocorrelation Time =", time
+  	  close(50)
+	return
+	end subroutine corrtime
     end module statvis
