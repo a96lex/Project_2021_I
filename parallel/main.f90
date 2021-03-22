@@ -46,7 +46,8 @@ program main
     call MPI_BARRIER(MPI_COMM_WORLD,ierror)
 
     ! Initialize positions and velocities
-    call init_sc_outer(pos)
+    call init_sc_gather(pos)
+    call init_vel_gather(vel, 10.d0)
 
     if(taskid==master) then
         open(10,file="results/init_conf.xyz")
