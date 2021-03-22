@@ -12,7 +12,8 @@
 
       !Parallelization params
       integer           :: numproc, taskid
-      integer,parameter :: master=0 
+      integer,parameter :: master=0
+      integer           :: particles_per_proc,imin,imax 
 
       contains
 
