@@ -31,7 +31,7 @@ module integraforces
                do i=1,N
                   proc = proc + 1
                   aux_size(proc) = aux_size(proc) + 1 
-                  if(proc==4) proc = 0
+                  if(proc==numproc) proc = 0
                end do
                aux_imin(1) = 1
                aux_imax(1) = aux_size(1)
