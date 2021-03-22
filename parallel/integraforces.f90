@@ -162,6 +162,7 @@ module integraforces
 !         !         P --> potential pressure
 !         ! --------------------------------------------------
 !         implicit none 
+!         include 'mpif.h'
 !         integer :: i, time_i
 !         real(8) :: r(D,N), v(D,N), U, f(D,N), t, dt, P
 !         real(8) :: flocal(D,N), vlocal(D,N), rlocal(D,N)
