@@ -1,7 +1,53 @@
 module integraforces
       use parameters
       use pbc
+      integer :: particles_per_proc,imin,imax
+
       contains
+
+      subroutine divide_particles()
+      !Author: Arnau Jurado
+      !Divides the work among the processors by assigning each one an "imin" and
+      !a "imax", which are the indexes of the first and last particle they have
+      !to process e.g. with forces, each processor computes the forces
+      !from the imin-th particle to the imax-th particles, both included.
+         implicit none
+         include 'mpif.h'
+         integer :: aux_size(numproc),aux_imin(numproc),aux_imax(numproc),proc
+         integer :: i
+
+         integer :: ierror,request
+
+         proc = 0
+         aux_size = 0
+         aux_imin = 0
+         aux_imax = 0
+         if(mod(N,numproc)==0) then
+            particles_per_proc = N/numproc
+            imin = (particles_per_proc * taskid) + 1
+            imax = (particles_per_proc *(taskid+1))
+         else 
+            if(taskid==master) then
+               do i=1,N
+                  proc = proc + 1
+                  aux_size(proc) = aux_size(proc) + 1 
+                  if(proc==4) proc = 0
+               end do
+               aux_imin(1) = 1
+               aux_imax(1) = aux_size(1)
+               do i=2,numproc
+                  aux_imin(i) = aux_imax(i-1) + 1
+                  aux_imax(i) = aux_imin(i) - 1 + aux_size(i)
+               end do
+            end if
+            call MPI_BCAST(aux_imin,numproc,MPI_INTEGER,master,MPI_COMM_WORLD,request,ierror)
+            call MPI_BCAST(aux_imax,numproc,MPI_INTEGER,master,MPI_COMM_WORLD,request,ierror)
+            imin = aux_imin(taskid+1)
+            imax = aux_imax(taskid+1)
+         end if
+         ! print*,taskid,imin,imax,imax-imin+1
+      end subroutine divide_particles
+
 
       subroutine compute_force_LJ(r,f,U,P)
       !Author: Arnau Jurado
@@ -28,24 +74,6 @@ module integraforces
             Ulocal = 0.d0
             Plocal = 0.d0
             rlocal = r
-
-            !If divisible everything ok
-            if(mod(N,numproc)==0) then
-               particles_per_proc = N/numproc
-               imin = (particles_per_proc * taskid) + 1
-               imax = (particles_per_proc *(taskid+1))
-            else 
-               particles_per_proc = floor(N/real(numproc))
-               if(taskid /= numproc-1) then
-                  imin = (particles_per_proc * taskid) + 1
-                  imax = (particles_per_proc *(taskid+1))
-               else
-                  imin = (particles_per_proc * taskid) + 1
-                  imax = N
-               end if
-            end if
-            ! print*,"taskid:",taskid,particles_per_proc
-            ! print*,"taskid:",taskid,imin,imax,imax-imin+1
 
             do i=1,D
                coord = rlocal(i,:)
