@@ -49,8 +49,6 @@ program main
     call init_sc_gather(pos)
     call init_vel_gather(vel, 1000.d0)
 
-    !Divide labor for forces.
-    call divide_particles()
 
     if(taskid==master) then
         open(10,file="results/init_conf.xyz")
