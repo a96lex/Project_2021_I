@@ -94,7 +94,7 @@ module integraforces
             real*8,intent(inout) :: v(D,N)
             real*8,intent(in) :: Temp
             real*8 :: std,nu,x1,x2,PI,v_tmp(N)
-            integer :: i,j,k,request, ierror
+            integer :: i,j,request, ierror
 
             std = sqrt(Temp) !Standard deviation of the gaussian.
             nu = 0.1 ! probability of collision
@@ -106,16 +106,14 @@ module integraforces
                v(i,:) = v_tmp
             end do
 
-            do k=0,numproc-1
-               do i=1,N
-                     if (rand()<nu) then ! Check if collision happens.
-                           do j=1,D
-                                 x1 = rand()
-                                 x2 = rand()
-                                 v(i,j) = std*dsqrt(-2d0*dlog(1.d0-x1))*dcos(2d0*PI*x2)
-                           enddo
-                     endif
-               enddo
+            do i=1,N
+               if (rand()<nu) then ! Check if collision happens.
+                  do j=1,D
+                     x1 = rand()
+                     x2 = rand()
+                     v(i,j) = std*dsqrt(-2d0*dlog(1.d0-x1))*dcos(2d0*PI*x2)
+                  enddo
+               endif
             enddo
 
             call MPI_BARRIER(MPI_COMM_WORLD,ierror)
