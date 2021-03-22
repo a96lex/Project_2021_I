@@ -17,7 +17,7 @@ module init
             integer :: errstat
 
             namelist /input/ N, D, rho, dt_sim, n_meas, n_conf, n_equil, T_ref, &
-                            fact_rc, sigma, epsilon, mass
+                            fact_rc, sigma, epsilon, mass, seed
 
             ! Llegim els parametres del input
             read(unit=unit, nml=input, iostat=errstat)
@@ -31,6 +31,9 @@ module init
             n_total = n_meas * n_conf
             L = (N / rho) ** (1.d0 / D)
             rc = fact_rc * L / 2.d0
+
+            seed = seed + taskid
+            call srand(seed)
 
             call reduced_units()
             call divide_particles()
@@ -181,19 +184,12 @@ module init
             real*8, intent(in) :: T
 
             real*8, allocatable :: vel_local(:,:)
-
-            integer :: seed
           
             real*8 :: vel_CM_local(D)
             real*8 :: dummy_T, kin
             integer :: i, j, ierror
           
             allocate(vel_local(D,imin:imax))
-
-            ! Fem una seed per cada task
-            seed = int(MPI_Wtime() * 1000000 * (taskid * 2 + 1))
-            ! print*, "taskid", taskid, "has seed", seed
-            call srand(seed)
 
             ! Inicialitza les velocitats de manera random entre -1 i 1
             vel_CM_local = 0.d0
