@@ -16,7 +16,7 @@ parameters.o : parameters.f90
 init.o : init.f90 parameters.o integraforces.o
 	$(compiler) -c $(opt) init.f90 
 
-integraforces.o : integraforces.f90 parameters.o
+integraforces.o : integraforces.f90 parameters.o pbc.o
 	$(compiler) -c $(opt) integraforces.f90 
 
 statvis.o : statvis.f90

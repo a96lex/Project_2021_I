@@ -10,7 +10,7 @@
                implicit none
                real*8,intent(in) :: r(D,N)
                real*8,intent(out) :: f(D,N),U,P
-               real*8 :: distv(D),dist
+               real*8 :: distv(D),dist,fij(D)
                integer :: i,j
                !Initialize quantities.
                f = 0.d0
@@ -26,19 +26,16 @@
 
                            if(dist<rc) then !Cutoff
                                  !Compute forces and pressure.
-                                 f(:,i) = f(:,i)& 
-                                 + (48.d0/dist**14 - 24.d0/dist**8)*distv
-                                 f(:,j) = f(:,j)& 
-                                 - (48.d0/dist**14 - 24.d0/dist**8)*distv
+                                 fij = (48.d0/dist**14 - 24.d0/dist**8)*distv
+                                 f(:,i) = f(:,i) + fij
+                                 f(:,j) = f(:,j) - fij
    
                                  U = U + 4.d0*((1.d0/dist)**12-(1.d0/dist)**6)-&
                                          4.d0*((1.d0/rc)**12-(1.d0/rc)**6)
-                                 P = P + sum(distv * f(:,i))
+                                 P = P + sum(distv * fij)
                            endif
                      enddo
                enddo
-               P = P/(dble(N)*(dble(N)-1.d0)/2.d0)
-               
                !Add 1/3V factor to potential pressure.
                P = 1.d0/(3.d0*L**3)*P
          end subroutine compute_force_LJ
@@ -100,11 +97,18 @@
          !Author: Laia Barjuan
          ! Computes the kinetic energy and instant temperature of the
          ! system
+            ! --------------------------------------------------
+            !  input: 
+            !          v  --> velocities of the system
+            !  output: 
+            !          ekin --> kinetic energy of the system 
+            !          Tins --> instant temperature of the system
+            ! --------------------------------------------------
             implicit none
             real(8), intent(in) :: v(D,N)
             real(8), intent (out) :: ekin,Tins
             integer :: i
-            
+     
             ekin=0.0d0
             do i=1,N
                ekin=ekin+sum(v(:,i)**2)/2.0d0  
@@ -118,13 +122,21 @@
          subroutine verlet_v_step(r,v,t,time_i,dt,U,P)
          !Author: Laia Barjuan
          ! Computes one time step with velocity verlet algorithm 
+            ! --------------------------------------------------
+            ! input: 
+            !        r --> positions of the particles
+            !        v  --> velocities of the system
+            !        time_i --> number of step
+            !        dt --> time step
+            ! output: 
+            !         modified r and v
+            !         t --> final time
+            !         U --> potential energy 
+            !         P --> potential pressure
+            ! --------------------------------------------------
             implicit none 
             integer :: i, time_i
             real(8) :: r(D,N), v(D,N), U, f(D,N), t, dt, P
-            ! --------------------------------------------------
-            ! input: r and v
-            ! output: modified r and v
-            ! --------------------------------------------------
 
             !forces at t
             call compute_force_LJ(r,f,U,P)
@@ -155,7 +167,19 @@
          !Co-Authors: David March (radial distribution), Arnau Jurado (interface with forces)
    !     Performs Nt steps of the velocity verlet algorithm while computing
    !     different observables and writing to file.
-   !     Set flag to different to a non-zero int to write files.
+            ! --------------------------------------------------
+            ! input: 
+            !        Nt --> number of time steps
+            !        dt  --> time step
+            !        r --> positions of the particles
+            !        v  --> velocities of the system
+            !        T --> temperature of the system
+            !        eunit --> unit of file to write energies and temperature
+            !        eunit_g --> unit of file to write g(r)
+            !        flag_g --> different to a non-zero int to write files
+            ! output: 
+            !         modified r and v
+            ! --------------------------------------------------
             use rad_dist
             implicit none
             integer, intent(in) :: Nt, eunit, eunit_g
