@@ -187,7 +187,7 @@ module init
 
             ! Fem una seed per cada task
             seed = int(MPI_Wtime() * 1000000 * (taskid * 2 + 1))
-            print*, "taskid", taskid, "has seed", seed
+            ! print*, "taskid", taskid, "has seed", seed
             call srand(seed)
 
             ! Inicialitza les velocitats de manera random entre -1 i 1
