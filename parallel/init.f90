@@ -47,8 +47,8 @@ module init
             ! Fins a un ordre de magnitud millor que la versio inner i outer_red
 
             use parameters, only : D, N, L, taskid, numproc, master
-            use mpi
             implicit none
+            include 'mpif.h'
             
             real*8, intent(out):: pos(D,N)
             integer :: M    ! Nº atoms en cada dimensio.
@@ -117,8 +117,8 @@ module init
             ! es torna del nivell de inner
 
             use parameters, only : D, N, L, taskid, numproc, master
-            use mpi
             implicit none
+            include 'mpif.h'
             
             real*8, intent(out):: pos(D,N)
             integer :: M    ! Nº atoms en cada dimensio.
@@ -157,13 +157,15 @@ module init
         end subroutine init_sc_reduce
 
         subroutine init_vel_gather(vel, T)
-            !Author: Eloi Sanchez
+            ! Author: Eloi Sanchez
             ! Torna el array de velocitats (aleatories) vel(D,N) consistent amb la T donada.
-
+            ! --- VARIABLES ---
+            ! vel(D,N) -> Array on es tornaran les velocitats de les part.
+            !        T -> Temp. a la que s'inicialitzara la velocitat de les part.
             use parameters, only : D, N, taskid, numproc, master
             use integraforces, only : energy_kin
-            use mpi
             implicit none
+            include 'mpif.h'
 
             real*8, intent(inout) :: vel(D,N)
             real*8, intent(in) :: T
@@ -177,16 +179,15 @@ module init
             real*8 :: dummy_T, kin
             integer :: i, j, i_0, i_f, ierror
           
+            ! Creem les variables locals de cada task
             i_0 = taskid * N / numproc + 1
             i_f = (taskid + 1) * N / numproc
-
-            ! Creem les variables locals de cada task
             allocate(vel_local(D,i_0:i_f))
             local_size = i_f - i_0 + 1
 
             ! Fem una seed per cada task
-            seed = int(MPI_Wtime() * 100000 * (taskid * 2 + 1))
-            print*, "taskid", taskid, "has seed", seed
+            seed = int(MPI_Wtime() * 1000000 * (taskid * 2 + 1))
+            ! print*, "taskid", taskid, "has seed", seed
             call srand(seed)
 
             ! Inicialitza les velocitats de manera random entre -1 i 1
@@ -214,7 +215,7 @@ module init
                 end do
             end if
 
-            ! Es guarda al master la posicio total a partir de les locals
+            ! Es guarda al master la velocitat total a partir de les locals
             do i = 1, D
                 call MPI_Gatherv(vel_local(i,:), local_size, MPI_DOUBLE_PRECISION, vel(i,:), &
                                 all_size, all_position, MPI_DOUBLE_PRECISION, master, &
@@ -223,15 +224,23 @@ module init
             
             ! Reescalem les velocitats a la temperatura objectiu
             call energy_kin(vel, kin, dummy_T)  
-            if (taskid == master) then
-                print *, dummy_T
-                vel = vel * sqrt(dble(3*N)*T/(2.d0*kin))
-            end if
-            call energy_kin(vel, kin, dummy_T)  
-            if (taskid == master) print *, dummy_T
+            do i = 1, D
+                call MPI_Bcast(vel(i,:), N, MPI_DOUBLE_PRECISION, master, &
+                                MPI_COMM_WORLD, ierror)
+            end do
+            call MPI_Bcast(kin, 1, MPI_DOUBLE_PRECISION, master, &
+                            MPI_COMM_WORLD, ierror)
             
-            call MPI_Finalize(ierror)
-            stop
+            do i = i_0, i_f
+                vel_local(:,i) = vel(:,i) * sqrt(dble(3*N)*T/(2.d0*kin))
+            end do
+
+            do i = 1, D
+                call MPI_Gatherv(vel_local(i,:), local_size, MPI_DOUBLE_PRECISION, vel(i,:), &
+                                all_size, all_position, MPI_DOUBLE_PRECISION, master, &
+                                MPI_COMM_WORLD, ierror)
+            end do
+
         end subroutine
 
 end module init

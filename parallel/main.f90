@@ -47,7 +47,7 @@ program main
 
     ! Initialize positions and velocities
     call init_sc_gather(pos)
-    call init_vel_gather(vel, 10.d0)
+    call init_vel_gather(vel, 1000.d0)
 
     if(taskid==master) then
         open(10,file="results/init_conf.xyz")
