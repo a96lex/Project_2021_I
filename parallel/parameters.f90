@@ -6,14 +6,16 @@
       integer :: n_meas, n_conf, n_total, n_equil
       real*8  :: rho, T_ref, L, rc, fact_rc
       real*8  :: sigma, epsilon, mass
+      integer :: seed
 
       real*8           :: unit_of_time,unit_of_energy,unit_of_length,unit_of_pressure
       real*8,parameter :: boltzmann_k = 8.31446261815324 !J/mol, technically R.
 
       !Parallelization params
-      integer           :: numproc, taskid
-      integer,parameter :: master=0
-      integer           :: particles_per_proc,imin,imax 
+      integer              :: numproc, taskid
+      integer,parameter    :: master=0
+      integer              :: imin,imax,local_size
+      integer, allocatable :: aux_size(:), aux_pos(:)
 
       contains
 

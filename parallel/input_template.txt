@@ -11,6 +11,7 @@ N=125           ! Number of atoms
 D=3             ! Number of dimensions
 rho=0.1         ! Redced density 
 T_ref=27.5      ! Reduced temperature 
+seed=12345
 
 ! Dynamics
 dt_sim=0.0001   ! Time-step for equilibration and simulation

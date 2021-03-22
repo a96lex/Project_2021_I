@@ -20,6 +20,10 @@ program main
     call MPI_COMM_SIZE(MPI_COMM_WORLD,numproc,ierror)
     ti_global = MPI_WTIME()
 
+    if (taskid == master) then
+        allocate(aux_pos(numproc))
+        allocate(aux_size(numproc))
+    end if
 
     ! Per executar el programa cal fer >> main.x input_file. Si no, donara error.
     if (command_argument_count() == 0) stop "ERROR: Cridar fent >> ./main.x input_path"
@@ -38,6 +42,7 @@ program main
         print*,"------------------------Parameters-------------------------------"
         print"(A,X,I5,2X,A,X,I1)", "N=",N,"D=",D
         print"(A,X,E14.7)","dt_sim=",dt_sim
+        print"(A,X,I8)","seed=",seed
         print"(A,X,F4.2,2X,A,X,F5.2)","rho=",rho,"T=",T_ref
         print"(A,X,F7.4,2X,A,X,F4.2)","eps=",epsilon,"sigma=",sigma,"rc=",rc
         print"(A,X,I3,2X,I5,2X,I5)","n_meas,n_conf,n_total=",n_meas,n_conf,n_total
@@ -71,6 +76,8 @@ program main
 
     if (allocated(pos)) deallocate(pos)
     if (allocated(vel)) deallocate(vel)
+    if (allocated(aux_pos)) deallocate(aux_pos)
+    if (allocated(aux_size)) deallocate(aux_size)
 
     tf_global = MPI_WTIME()
     call MPI_REDUCE(tf_global-ti_global,elapsed_time,1,MPI_DOUBLE_PRECISION,MPI_MAX,master,MPI_COMM_WORLD,ierror)
