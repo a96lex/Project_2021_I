@@ -13,7 +13,7 @@
       !Parallelization params
       integer              :: numproc, taskid
       integer,parameter    :: master=0
-      integer              :: imin,imax
+      integer              :: imin,imax,local_size
       integer, allocatable :: aux_size(:), aux_pos(:)
 
       contains

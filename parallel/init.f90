@@ -42,10 +42,11 @@ module init
         !a "imax", which are the indexes of the first and last particle they have
         !to process e.g. with forces, each processor computes the forces
         !from the imin-th particle to the imax-th particles, both included.
+        !aux_pos and aux_size are stored in master to be used in Gatherv calls
             use parameters
             implicit none
             include 'mpif.h'
-            integer :: i, local_size
+            integer :: i
   
             integer :: ierror
             
@@ -79,61 +80,42 @@ module init
             ! Paralelització en el outer loop (les N particules) de la assignacio
             ! Fins a un ordre de magnitud millor que la versio del reduce
 
-            use parameters, only : D, N, L, taskid, numproc, master
+            use parameters
             implicit none
             include 'mpif.h'
             
             real*8, intent(out):: pos(D,N)
             integer :: M    ! Nº atoms en cada dimensio.
-            real*8 :: a, r  ! Distancia interatomica i variable per assignar posicions al loop
-            integer :: i, j, index_reset, index_control
-            real*8 :: M_check, check
+            real*8 :: a     ! Distancia interatomica i variable per assignar posicions al loop
+            integer :: i, j
+            real*8 :: M_check
 
             real*8, allocatable:: pos_local(:,:)
-            integer :: j_0, j_f, ierror
-            integer :: local_size, all_size(numproc), all_position(numproc)
+            integer :: ierror
 
             ! Aixo ho fan totes les tasks
             M_check = N ** (1.d0 / D)
             M = ceiling(M_check)
             a = L / dble(M)
-            
-            ! Paralelitzem nomes el LOOP INTERN
-            j_0 = taskid * N / numproc + 1
-            j_f = (taskid + 1) * N / numproc
-
-            ! Creem les variables locals de cada task
-            allocate(pos_local(D,j_0:j_f))
-            local_size = j_f - j_0 + 1
+            allocate(pos_local(D,imin:imax))
 
             ! Cada task dona valor a la posició local
             pos_local = 0.d0
-            do j = j_0, j_f
-                do i = 1, D 
-                    pos_local(i,j) = a * (mod(j - 1, M ** (D - i + 1)) / M ** (D - i))
+            do i = imin, imax
+                do j = 1, D 
+                    pos_local(j,i) = a * (mod(i - 1, M ** (D - j + 1)) / M ** (D - j))
                 end do
             end do
             pos_local = pos_local - (L - a) / 2.d0  ! Centrem el sistema al (0,0,0)
 
-            ! El master ha de saber quanta informació rebra de cada core
-            call MPI_Gather(local_size, 1, MPI_INTEGER, all_size, 1, MPI_INTEGER, &
-                            master, MPI_COMM_WORLD, ierror)
-
-            if (taskid == master) then
-                all_position(1) = 0  ! Ha de començar al 0 per coses del OpenMPI
-                do i = 1, numproc - 1
-                    all_position(i+1) = all_position(i) + all_size(i)
-                end do
-            end if
-
             ! Es guarda al master la posicio total a partir de les locals
             do i = 1, D
                 call MPI_Gatherv(pos_local(i,:), local_size, MPI_DOUBLE_PRECISION, pos(i,:), &
-                                all_size, all_position, MPI_DOUBLE_PRECISION, master, &
+                                aux_size, aux_pos, MPI_DOUBLE_PRECISION, master, &
                                 MPI_COMM_WORLD, ierror)
             end do
 
-            deallocate(pos_local)
+            deallocate(pos_local)           
         end subroutine init_sc_gather
 
         subroutine init_sc_reduce(pos)
@@ -148,33 +130,29 @@ module init
             ! Paralelització en el outer loop (les N particules) i reduce enlloc de gather
             ! Del ordre del gatherv pero una mica mes lenta.
 
-            use parameters, only : D, N, L, taskid, numproc, master
+            use parameters
             implicit none
             include 'mpif.h'
             
             real*8, intent(out):: pos(D,N)
             integer :: M    ! Nº atoms en cada dimensio.
-            real*8 :: a, r  ! Distancia interatomica i variable per assignar posicions al loop
-            integer :: i, j, index_reset, index_control
-            real*8 :: M_check, check
+            real*8 :: a     ! Distancia interatomica i variable per assignar posicions al loop
+            integer :: i, j
+            real*8 :: M_check
 
             real*8 :: pos_local(D,N)
-            integer :: j_0, j_f, ierror
+            integer :: ierror
 
             ! Aixo ho fan totes les tasks
             M_check = N ** (1.d0 / D)
             M = ceiling(M_check)
             a = L / dble(M)
-            
-            ! Paralelitzem nomes el LOOP INTERN
-            j_0 = taskid * N / numproc + 1
-            j_f = (taskid + 1) * N / numproc
 
             ! Cada task dona valor a la posició local
             pos_local = 0.d0
-            do j = j_0, j_f
-                do i = 1, D 
-                    pos_local(i,j) = a * (mod(j - 1, M ** (D - i + 1)) / (M ** (D - i)))
+            do i = imin, imax
+                do j = 1, D 
+                    pos_local(j,i) = a * (mod(i - 1, M ** (D - j + 1)) / (M ** (D - j)))
                 end do
             end do
             
@@ -194,7 +172,7 @@ module init
             ! --- VARIABLES ---
             ! vel(D,N) -> Array on es tornaran les velocitats de les part.
             !        T -> Temp. a la que s'inicialitzara la velocitat de les part.
-            use parameters, only : D, N, taskid, numproc, master
+            use parameters
             use integraforces, only : energy_kin
             implicit none
             include 'mpif.h'
@@ -203,19 +181,14 @@ module init
             real*8, intent(in) :: T
 
             real*8, allocatable :: vel_local(:,:)
-            integer :: local_size, all_size(numproc), all_position(numproc)
 
             integer :: seed
           
-            real*8 :: vel_CM_local(D), aux_CM(D), vel_CM(D)
+            real*8 :: vel_CM_local(D)
             real*8 :: dummy_T, kin
-            integer :: i, j, i_0, i_f, ierror
+            integer :: i, j, ierror
           
-            ! Creem les variables locals de cada task
-            i_0 = taskid * N / numproc + 1
-            i_f = (taskid + 1) * N / numproc
-            allocate(vel_local(D,i_0:i_f))
-            local_size = i_f - i_0 + 1
+            allocate(vel_local(D,imin:imax))
 
             ! Fem una seed per cada task
             seed = int(MPI_Wtime() * 1000000 * (taskid * 2 + 1))
@@ -224,7 +197,7 @@ module init
 
             ! Inicialitza les velocitats de manera random entre -1 i 1
             vel_CM_local = 0.d0
-            do i = i_0, i_f
+            do i = imin, imax
                 do j = 1, D
                     vel_local(j,i) = 2.*rand() - 1.
                 end do
@@ -233,24 +206,14 @@ module init
             vel_CM_local = vel_CM_local/dble(local_size)
             
             ! Eliminem la velocitat neta del sistema
-            do i = i_0, i_f
+            do i = imin, imax
                 vel_local(:,i) = vel_local(:,i) - vel_CM_local
             end do
-            
-            call MPI_Gather(local_size, 1, MPI_INTEGER, all_size, 1, MPI_INTEGER, &
-                            master, MPI_COMM_WORLD, ierror)
-
-            if (taskid == master) then
-                all_position(1) = 0  ! Ha de començar al 0 per coses del OpenMPI
-                do i = 1, numproc - 1
-                    all_position(i+1) = all_position(i) + all_size(i)
-                end do
-            end if
 
             ! Es guarda al master la velocitat total a partir de les locals
             do i = 1, D
                 call MPI_Gatherv(vel_local(i,:), local_size, MPI_DOUBLE_PRECISION, vel(i,:), &
-                                all_size, all_position, MPI_DOUBLE_PRECISION, master, &
+                                aux_size, aux_pos, MPI_DOUBLE_PRECISION, master, &
                                 MPI_COMM_WORLD, ierror)
             end do
             
@@ -263,13 +226,13 @@ module init
             call MPI_Bcast(kin, 1, MPI_DOUBLE_PRECISION, master, &
                             MPI_COMM_WORLD, ierror)
             
-            do i = i_0, i_f
+            do i = imin, imax
                 vel_local(:,i) = vel(:,i) * sqrt(dble(3*N)*T/(2.d0*kin))
             end do
 
             do i = 1, D
                 call MPI_Gatherv(vel_local(i,:), local_size, MPI_DOUBLE_PRECISION, vel(i,:), &
-                                all_size, all_position, MPI_DOUBLE_PRECISION, master, &
+                                aux_size, aux_pos, MPI_DOUBLE_PRECISION, master, &
                                 MPI_COMM_WORLD, ierror)
             end do
 
