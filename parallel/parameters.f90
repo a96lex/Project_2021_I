@@ -11,9 +11,10 @@
       real*8,parameter :: boltzmann_k = 8.31446261815324 !J/mol, technically R.
 
       !Parallelization params
-      integer           :: numproc, taskid
-      integer,parameter :: master=0
-      integer           :: particles_per_proc,imin,imax 
+      integer              :: numproc, taskid
+      integer,parameter    :: master=0
+      integer              :: imin,imax
+      integer, allocatable :: aux_size(:), aux_pos(:)
 
       contains
 

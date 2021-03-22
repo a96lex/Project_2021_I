@@ -16,7 +16,8 @@ module init
             integer, intent(in):: unit
             integer :: errstat
 
-            namelist /input/ N, D, rho, dt_sim, n_meas, n_conf, n_equil, T_ref, fact_rc, sigma, epsilon, mass
+            namelist /input/ N, D, rho, dt_sim, n_meas, n_conf, n_equil, T_ref, &
+                            fact_rc, sigma, epsilon, mass
 
             ! Llegim els parametres del input
             read(unit=unit, nml=input, iostat=errstat)
@@ -35,48 +36,35 @@ module init
             call divide_particles()
         end subroutine get_param
 
-      subroutine divide_particles()
-        !Author: Arnau Jurado
+        subroutine divide_particles()
+        !Author: Arnau Jurado & Eloi Sanchez
         !Divides the work among the processors by assigning each one an "imin" and
         !a "imax", which are the indexes of the first and last particle they have
         !to process e.g. with forces, each processor computes the forces
         !from the imin-th particle to the imax-th particles, both included.
-           use parameters
-           implicit none
-           include 'mpif.h'
-           integer :: aux_size(numproc),aux_imin(numproc),aux_imax(numproc),proc
-           integer :: i
+            use parameters
+            implicit none
+            include 'mpif.h'
+            integer :: i, local_size
   
-           integer :: ierror,request
-  
-           proc = 0
-           aux_size = 0
-           aux_imin = 0
-           aux_imax = 0
-           if(mod(N,numproc)==0) then
-              particles_per_proc = N/numproc
-              imin = (particles_per_proc * taskid) + 1
-              imax = (particles_per_proc *(taskid+1))
-           else 
-              if(taskid==master) then
-                 do i=1,N
-                    proc = proc + 1
-                    aux_size(proc) = aux_size(proc) + 1 
-                    if(proc==numproc) proc = 0
-                 end do
-                 aux_imin(1) = 1
-                 aux_imax(1) = aux_size(1)
-                 do i=2,numproc
-                    aux_imin(i) = aux_imax(i-1) + 1
-                    aux_imax(i) = aux_imin(i) - 1 + aux_size(i)
-                 end do
-              end if
-              call MPI_BCAST(aux_imin,numproc,MPI_INTEGER,master,MPI_COMM_WORLD,request,ierror)
-              call MPI_BCAST(aux_imax,numproc,MPI_INTEGER,master,MPI_COMM_WORLD,request,ierror)
-              imin = aux_imin(taskid+1)
-              imax = aux_imax(taskid+1)
-           end if
-           ! print*,taskid,imin,imax,imax-imin+1
+            integer :: ierror
+            
+            imin = taskid * N / numproc + 1
+            imax = (taskid + 1) * N / numproc
+            local_size = imax - imin + 1
+            ! print*,taskid,imin,imax,imax-imin+1
+            
+            ! We create aux_size(numproc) and aux_pos(numproc) only in master
+            call MPI_Gather(local_size, 1, MPI_INTEGER, aux_size, 1, MPI_INTEGER, &
+            master, MPI_COMM_WORLD, ierror)
+            
+            if (taskid == master) then
+                aux_pos(1) = 0  ! Ha de començar al 0 per coses del OpenMPI
+                do i = 1, numproc - 1
+                    aux_pos(i+1) = aux_pos(i) + aux_size(i)
+                end do
+            end if
+
         end subroutine divide_particles
 
         subroutine init_sc_gather(pos)
@@ -89,7 +77,7 @@ module init
             ! En la dimensio 3 farem 012012012012012012012012012
             ! Així, cada columna indica les 3 coord de un atom. Al final es centra la grid.
             ! Paralelització en el outer loop (les N particules) de la assignacio
-            ! Fins a un ordre de magnitud millor que la versio inner i outer_red
+            ! Fins a un ordre de magnitud millor que la versio del reduce
 
             use parameters, only : D, N, L, taskid, numproc, master
             implicit none
@@ -158,8 +146,7 @@ module init
             ! En la dimensio 3 farem 012012012012012012012012012
             ! Així, cada columna indica les 3 coord de un atom. Al final es centra la grid.
             ! Paralelització en el outer loop (les N particules) i reduce enlloc de gather
-            ! Per N petits es millor que inner pero pitjor que outer. Per N grans (N=1000000)
-            ! es torna del nivell de inner
+            ! Del ordre del gatherv pero una mica mes lenta.
 
             use parameters, only : D, N, L, taskid, numproc, master
             implicit none
