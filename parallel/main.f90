@@ -10,7 +10,7 @@ program main
     include 'mpif.h'
     character(len=50)   :: input_name
     real*8, allocatable :: pos(:,:), vel(:,:)
-
+    real*8              :: time,epot,P
     integer             :: i,ierror,Nshells
     real*8              :: ti_global,tf_global,elapsed_time !AJ: collective timing of program.
     
@@ -54,13 +54,17 @@ program main
     call init_sc_gather(pos)
     call init_vel_gather(vel, 1000.d0)
 
-
     if(taskid==master) then
         open(10,file="results/init_conf.xyz")
         call writeXyz(D,N,pos,10)
         close(10)
     end if
-    
+   
+   !Test v_verlet
+    do i=1,1000
+      call verlet_v_step(pos,vel,time,i,dt_sim,epot,P)
+    enddo
+ 
     !Start g(r) test
     Nshells = 100
     call prepare_shells_and_procs(Nshells,numproc)
