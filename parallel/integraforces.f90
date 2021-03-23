@@ -15,8 +15,6 @@ module integraforces
             real*8             :: distv(D),dist
             real*8             :: rlocal(D,N),coord(N)
             integer            :: i,j
-            integer            :: imin,imax,particles_per_proc
-
             integer            :: ierror,request
 
             !Initialize quantities.
@@ -94,7 +92,6 @@ module integraforces
         real(8) :: vlocal(D,N), vec(N), ekinlocal
         real(8), intent (out) :: ekin, Tins
         integer :: i
-        integer :: part_per_proc, imin, imax
         integer :: request, ierror
 
         !Initialization
@@ -122,94 +119,94 @@ module integraforces
 
 
 
-!      subroutine verlet_v_step(r,v,t,time_i,dt,U,P)
-!      !Author: Laia Barjuan
-!      ! Computes one time step with velocity verlet algorithm 
-!         ! --------------------------------------------------
-!         ! input: 
-!         !        r --> positions of the particles
-!         !        v  --> velocities of the system
-!         !        time_i --> number of step
-!         !        dt --> time step
-!         ! output: 
-!         !         modified r and v
-!         !         t --> final time
-!         !         U --> potential energy 
-!         !         P --> potential pressure
-!         ! --------------------------------------------------
-!         implicit none 
-!         include 'mpif.h'
-!         integer :: i, time_i
-!         real(8) :: r(D,N), v(D,N), U, f(D,N), t, dt, P
-!         real(8) :: flocal(D,N), vlocal(D,N), rlocal(D,N)
-!         real(8) :: vec1(N), vec2(N), vec3(N)
-!         integer :: request, reques2, request3, ierror1, ierror2, ierror3
-!
-!         !Compute forces at t
-!         call compute_force_LJ(r,f,U,P)
-!
-!         !Get information from master
-!         do i=1,D
-!            if (taskid==master) then
-!               vec1 = f(i,:)
-!               vec2 = v(i,:)
-!               vec3 = r(i,:)
-!            endif
-!            call MPI_BCAST(vec1,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request1,ierror1)
-!            call MPI_BCAST(vec2,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request2,ierror2)
-!            call MPI_BCAST(vec3,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request3,ierror3)
-!            flocal(i,:) = vec1
-!            vlocal(i,:) = vec2
-!            rlocal(i,:) = vec3
-!         end do
-!
-!
-!         !Change of positions
-!         do i=imin,imax
-!            rlocal(:,i)=rlocal(:,i)+vlocal(:,i)*dt +flocal(:,i)*dt**2/2.0d0
-!            !Apply PBC
-!            ! call min_img_2(r(:,i)) !Commented until added again
-!
-!            vlocal(:,i)=vlocal(:,i)+flocal(:,i)*dt*0.5d0
-!         enddo
-!
-!         !Save new positions information in master
-!         do i=1,D
-!            vec3 = rlocal(i,:)
-!            call MPI_REDUCE(vec3,r(i,:),N,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror3)
-!         end do
-!
-!         ! The new calculation of forces requires all new positions, we
-!         ! must ensure they are all updated before computing forces again
-!         call MPI_BARRIER(MPI_COMM_WORLD,ierror)
-!
-!         !forces at t+dt
-!         call compute_force_LJ(r,f,U,P)
-!
-!
-!         !Get force information from master
-!         do i=1,D
-!            if (taskid==master) then
-!               vec1 = f(i,:)
-!            endif
-!            call MPI_BCAST(vec1,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request1,ierror1)
-!            flocal(i,:) = vec1
-!         end do
-!
-!
-!         do i=imin,imax
-!            vlocal(:,i)=vlocal(:,i)+flocal(:,i)*dt*0.5d0
-!         enddo 
-!
-!
-!         !Save new velocities information in master
-!         do i=1,D
-!            vec2 = vlocal(i,:)
-!            call MPI_REDUCE(vec2,v(i,:),N,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror2)
-!         end do
-!
-!         if (taskid==master) t=(time_i-1)*dt !Update time
-!         return
-!      end subroutine verlet_v_step
+      subroutine verlet_v_step(r,v,t,time_i,dt,U,P)
+      !Author: Laia Barjuan
+      ! Computes one time step with velocity verlet algorithm 
+         ! --------------------------------------------------
+         ! input: 
+         !        r --> positions of the particles
+         !        v  --> velocities of the system
+         !        time_i --> number of step
+         !        dt --> time step
+         ! output: 
+         !         modified r and v
+         !         t --> final time
+         !         U --> potential energy 
+         !         P --> potential pressure
+         ! --------------------------------------------------
+         implicit none 
+         include 'mpif.h'
+         integer :: i, time_i
+         real(8) :: r(D,N), v(D,N), U, f(D,N), t, dt, P
+         real(8) :: flocal(D,N), vlocal(D,N), rlocal(D,N)
+         real(8) :: vec1(N), vec2(N), vec3(N)
+         integer :: request, request1, request2, request3, ierror, ierror1, ierror2, ierror3
+
+         !Compute forces at t
+         call compute_force_LJ(r,f,U,P)
+
+         !Get information from master
+         do i=1,D
+            if (taskid==master) then
+               vec1 = f(i,:)
+               vec2 = v(i,:)
+               vec3 = r(i,:)
+            endif
+            call MPI_BCAST(vec1,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request1,ierror1)
+            call MPI_BCAST(vec2,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request2,ierror2)
+            call MPI_BCAST(vec3,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request3,ierror3)
+            flocal(i,:) = vec1
+            vlocal(i,:) = vec2
+            rlocal(i,:) = vec3
+         end do
+
+
+         !Change of positions
+         do i=imin,imax
+            rlocal(:,i)=rlocal(:,i)+vlocal(:,i)*dt +flocal(:,i)*dt**2/2.0d0
+            !Apply PBC
+            ! call min_img_2(r(:,i)) !Commented until added again
+
+            vlocal(:,i)=vlocal(:,i)+flocal(:,i)*dt*0.5d0
+         enddo
+
+         !Save new positions information in master
+         do i=1,D
+            vec3 = rlocal(i,:)
+            call MPI_REDUCE(vec3,r(i,:),N,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror3)
+         end do
+
+         ! The new calculation of forces requires all new positions, we
+         ! must ensure they are all updated before computing forces again
+         call MPI_BARRIER(MPI_COMM_WORLD,ierror)
+
+         !forces at t+dt
+         call compute_force_LJ(r,f,U,P)
+
+
+         !Get force information from master
+         do i=1,D
+            if (taskid==master) then
+               vec1 = f(i,:)
+            endif
+            call MPI_BCAST(vec1,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request1,ierror1)
+            flocal(i,:) = vec1
+         end do
+
+
+         do i=imin,imax
+            vlocal(:,i)=vlocal(:,i)+flocal(:,i)*dt*0.5d0
+         enddo 
+
+
+         !Save new velocities information in master
+         do i=1,D
+            vec2 = vlocal(i,:)
+            call MPI_REDUCE(vec2,v(i,:),N,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror2)
+         end do
+
+         if (taskid==master) t=(time_i-1)*dt !Update time
+         return
+      end subroutine verlet_v_step
 
 end module integraforces
