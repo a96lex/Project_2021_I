@@ -209,4 +209,78 @@ module integraforces
          return
       end subroutine verlet_v_step
 
+
+      subroutine vvel_solver(Nt,dt,r,v,Temp,eunit,eunit_g,flag_g)
+      !Author: Laia Barjuan
+      !Co-Authors: David March (radial distribution), Arnau Jurado (interface
+      !with forces)
+!     Performs Nt steps of the velocity verlet algorithm while computing
+!     different observables and writing to file.
+         ! --------------------------------------------------
+         ! input: 
+         !        Nt --> number of time steps
+         !        dt  --> time step
+         !        r --> positions of the particles
+         !        v  --> velocities of the system
+         !        T --> temperature of the system
+         !        eunit --> unit of file to write energies and temperature
+         !        eunit_g --> unit of file to write g(r)
+         !        flag_g --> different to a non-zero int to write files
+         ! output: 
+         !         modified r and v
+         ! --------------------------------------------------
+         !use rad_dist
+         implicit none
+         include 'mpif.h'
+         integer, intent(in) :: Nt, eunit, eunit_g
+         real(8) :: dt, Temp
+         real(8) :: r(D,N), v(D,N), f(D,N)
+         real(8) :: ekin, U, t, Tins, Ppot, Ptot
+         integer :: i,j
+         ! Flags for writing g:
+         integer, intent(in) :: flag_g
+         integer :: Nshells
+         
+         ! Initialization of the g(r) calculation:
+         !if(flag_g.ne.0) then
+         !  Nshells = 100
+         !  call prepare_shells_and_procs(Nshells,numproc) !LB: numproc not necessary (already in param)
+         !endif
+
+         t = 0.d0
+         call compute_force_LJ(r,f,U,Ppot) !Initial force, energy and pressure
+         call energy_kin(v,ekin,Tins) !Compute initial kinetic energy
+         if (taskid==master) Ptot = rho*Tins + Ppot !AJ: modifed to use the rho in parameters.
+
+         !Write intial results.
+         if (taskid==master) then
+             write(eunit,*)"t","K","U","E","T","v_tot"
+             write(eunit,*) t, ekin, U, ekin+U, Tins, sum(v,2)
+         endif
+             
+         do i=1,Nt !Main time loop.
+            call verlet_v_step(r,v,t,i,dt,U,Ppot) !Perform Verlet step.
+            !call andersen_therm(v,dt,Temp) !Apply thermostat !Uncomment when applied 
+            call compute_force_LJ(r,f,U,Ppot)
+            call energy_kin(v,ekin,Tins)
+            if (taskid==master) Ptot = rho*Tins + Ppot
+
+            !Write to file.
+            if (taskid==master) write(eunit,*) t, ekin, U, ekin+U, Tins, sum(v,2)
+            
+            !Write snapshot of g(r)
+            !if(flag_g.ne.0) then
+            !  call rad_distr_fun(r,Nshells)
+            !  do j=1,Nshells
+            !      write(eunit_g,*) (j-1)*grid_shells, g(j)
+            !  enddo
+            !  write(eunit_g,*) ! separation line
+            !endif
+            
+         enddo
+
+         return
+      end subroutine vvel_solver
+
+
 end module integraforces
