@@ -101,12 +101,6 @@ module integraforces
         ekin=0.0d0
         ekinlocal=0.d0
 
-        !Assign number of particles to processor
-        part_per_proc=int(dble(N)/dble(numproc)) 
-            !Warning: leaves behind particles if the division is not exact
-        imin=taskid*part_per_proc + 1
-        imax=(taskid+1)*part_per_proc
-
         do i=1,D
            if (taskid==master) vec = v(i,:)
            call MPI_BCAST(vec,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
@@ -150,12 +144,6 @@ module integraforces
 !         real(8) :: flocal(D,N), vlocal(D,N), rlocal(D,N)
 !         real(8) :: vec1(N), vec2(N), vec3(N)
 !         integer :: request, reques2, request3, ierror1, ierror2, ierror3
-!
-!         !Assign number of particles to processor
-!         part_per_proc=int(dble(N)/dble(numproc)) 
-!             !Warning: leaves behind particles if the division is not exact
-!         imin=taskid*part_per_proc + 1
-!         imax=(taskid+1)*part_per_proc
 !
 !         !Compute forces at t
 !         call compute_force_LJ(r,f,U,P)
