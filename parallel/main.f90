@@ -10,7 +10,7 @@ program main
     include 'mpif.h'
     character(len=50)   :: input_name
     real*8, allocatable :: pos(:,:), vel(:,:)
-
+    real*8              :: time,epot,P
     integer             :: i,ierror,Nshells
     real*8              :: ti_global,tf_global,elapsed_time !AJ: collective timing of program.
     
@@ -25,11 +25,11 @@ program main
         allocate(aux_size(numproc))
     end if
 
-    ! Per executar el programa cal fer >> main.x input_file. Si no, donara error.
-    if (command_argument_count() == 0) stop "ERROR: Cridar fent >> ./main.x input_path"
+    ! To execute the program >> main.x input_file. Otherwise, an error will occur.
+    if (command_argument_count() == 0) stop "ERROR: call using >> ./main.x input_path"
     call get_command_argument(1, input_name)
     
-    ! Obrim input i el llegim
+    ! Open and read input 
     open(unit=10, file=input_name)
     call get_param(10)
     close(10)
@@ -48,19 +48,23 @@ program main
         print"(A,X,I3,2X,I5,2X,I5)","n_meas,n_conf,n_total=",n_meas,n_conf,n_total
         print*,"-----------------------------------------------------------------"
     end if
-    call MPI_BARRIER(MPI_COMM_WORLD,ierror)
+    call MPI_BARRIER(MPI_COMM_WORLD,ierror) 
 
     ! Initialize positions and velocities
     call init_sc_gather(pos)
     call init_vel_gather(vel, 1000.d0)
-
 
     if(taskid==master) then
         open(10,file="results/init_conf.xyz")
         call writeXyz(D,N,pos,10)
         close(10)
     end if
-    
+   
+   !Test v_verlet
+    do i=1,1000
+      call verlet_v_step(pos,vel,time,i,dt_sim,epot,P)
+    enddo
+ 
     !Start g(r) test
     Nshells = 100
     call prepare_shells_and_procs(Nshells,numproc)
