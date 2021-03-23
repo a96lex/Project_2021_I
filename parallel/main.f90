@@ -25,11 +25,11 @@ program main
         allocate(aux_size(numproc))
     end if
 
-    ! Per executar el programa cal fer >> main.x input_file. Si no, donara error.
-    if (command_argument_count() == 0) stop "ERROR: Cridar fent >> ./main.x input_path"
+    ! To execute the program >> main.x input_file. Otherwise, an error will occur.
+    if (command_argument_count() == 0) stop "ERROR: call using >> ./main.x input_path"
     call get_command_argument(1, input_name)
     
-    ! Obrim input i el llegim
+    ! Open and read input 
     open(unit=10, file=input_name)
     call get_param(10)
     close(10)
@@ -48,7 +48,7 @@ program main
         print"(A,X,I3,2X,I5,2X,I5)","n_meas,n_conf,n_total=",n_meas,n_conf,n_total
         print*,"-----------------------------------------------------------------"
     end if
-    call MPI_BARRIER(MPI_COMM_WORLD,ierror)
+    call MPI_BARRIER(MPI_COMM_WORLD,ierror) 
 
     ! Initialize positions and velocities
     call init_sc_gather(pos)
