@@ -94,19 +94,21 @@ module integraforces
             real*8,intent(inout) :: v(D,N)
             real*8,intent(in) :: Temp
             real*8 :: std,nu,x1,x2,PI,v_tmp(N)
-            integer :: i,j,request, ierror
+            integer :: im,i,j,request, ierror
 
             std = sqrt(Temp) !Standard deviation of the gaussian.
             nu = 0.1 ! probability of collision
             PI = 4d0*datan(1d0)
 
-            do i=1,D
-               if (taskid.eq.master) v_tmp = v(i,:)
-               call MPI_BCAST(v_tmp,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
-               v(i,:) = v_tmp
-            end do
+            if (taskid.eq.master) then
+               do i=1,D
+                  v_tmp = v(i,:)
+                  call MPI_BCAST(v_tmp,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
+                  v(i,:) = v_tmp
+               end do
+            endif
 
-            do i=1,N
+            do i=imin,imax
                if (rand()<nu) then ! Check if collision happens.
                   do j=1,D
                      x1 = rand()
@@ -117,6 +119,11 @@ module integraforces
             enddo
 
             call MPI_BARRIER(MPI_COMM_WORLD,ierror)
+
+            do i=1,D
+               v_tmp = v(i,:)
+               call MPI_REDUCE(v_tmp,v(i,:),N,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
+            end do
             
       end subroutine andersen_therm  
                   
