@@ -73,6 +73,58 @@ module integraforces
             end if
       end subroutine compute_force_LJ
 
+      subroutine andersen_therm(v,Temp)
+         !Author: Arnau Jurado
+         !     Applies the Andersen thermostat to a system of N particles. Requires
+         !     boxmuller subroutine.
+         !           Input
+         !           -----
+         !                 v : real*8,dimension(D,N)
+         !                       Velocities of the system.
+         !                 T : real*8
+         !                       Target temperature of the thermostat.
+         !           Output
+         !           ------
+         !                 v : real*8,dimension(D,N)
+         !                       Velocities of the system after the thermostat application.
+            implicit none
+            include 'mpif.h'
+            real*8,intent(inout) :: v(D,N)
+            real*8,intent(in) :: Temp
+            real*8 :: std,nu,x1,x2,PI,v_tmp(N)
+            integer :: im,i,j,request, ierror
+
+            std = sqrt(Temp) !Standard deviation of the gaussian.
+            nu = 0.1 ! probability of collision
+            PI = 4d0*datan(1d0)
+
+            if (taskid.eq.master) then
+               do i=1,D
+                  v_tmp = v(i,:)
+                  call MPI_BCAST(v_tmp,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
+                  v(i,:) = v_tmp
+               end do
+            endif
+
+            do i=imin,imax
+               if (rand()<nu) then ! Check if collision happens.
+                  do j=1,D
+                     x1 = rand()
+                     x2 = rand()
+                     v(i,j) = std*dsqrt(-2d0*dlog(1.d0-x1))*dcos(2d0*PI*x2)
+                  enddo
+               endif
+            enddo
+
+            call MPI_BARRIER(MPI_COMM_WORLD,ierror)
+
+            do i=1,D
+               v_tmp = v(i,:)
+               call MPI_REDUCE(v_tmp,v(i,:),N,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
+            end do
+            
+      end subroutine andersen_therm  
+                  
 
 
      subroutine energy_kin(v,ekin,Tins)
