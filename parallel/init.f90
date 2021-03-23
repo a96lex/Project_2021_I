@@ -1,6 +1,6 @@
 module init
+    use parameters
     implicit none
-
     contains
 
         subroutine get_param(unit)
@@ -9,13 +9,9 @@ module init
             ! nº d'iteracions i la longitud de la cel·la.
             ! Els propers llocs on es faci servir 'use parameters' tindran
             ! les variables acualitzades
-            
-            use parameters
             implicit none
-
             integer, intent(in):: unit
             integer :: errstat
-
             namelist /input/ N, D, rho, dt_sim, n_meas, n_conf, n_equil, T_ref, &
                             fact_rc, sigma, epsilon, mass, seed
 
@@ -40,17 +36,15 @@ module init
         end subroutine get_param
 
         subroutine divide_particles()
-        !Author: Arnau Jurado & Eloi Sanchez
-        !Divides the work among the processors by assigning each one an "imin" and
-        !a "imax", which are the indexes of the first and last particle they have
-        !to process e.g. with forces, each processor computes the forces
-        !from the imin-th particle to the imax-th particles, both included.
-        !aux_pos and aux_size are stored in master to be used in Gatherv calls
-            use parameters
+           !Author: Arnau Jurado & Eloi Sanchez
+           !Divides the work among the processors by assigning each one an "imin" and
+           !a "imax", which are the indexes of the first and last particle they have
+           !to process e.g. with forces, each processor computes the forces
+           !from the imin-th particle to the imax-th particles, both included.
+           !aux_pos and aux_size are stored in master to be used in Gatherv calls
             implicit none
             include 'mpif.h'
             integer :: i
-  
             integer :: ierror
             
             imin = taskid * N / numproc + 1
@@ -63,7 +57,7 @@ module init
             master, MPI_COMM_WORLD, ierror)
             
             if (taskid == master) then
-                aux_pos(1) = 0  ! Ha de començar al 0 per coses del OpenMPI
+                aux_pos(1) = 0  ! Must start at 0 for OpenMPI issues
                 do i = 1, numproc - 1
                     aux_pos(i+1) = aux_pos(i) + aux_size(i)
                 end do
@@ -83,16 +77,13 @@ module init
             ! Paralelització en el outer loop (les N particules) de la assignacio
             ! Fins a un ordre de magnitud millor que la versio del reduce
 
-            use parameters
             implicit none
             include 'mpif.h'
-            
             real*8, intent(out):: pos(D,N)
             integer :: M    ! Nº atoms en cada dimensio.
             real*8 :: a     ! Distancia interatomica i variable per assignar posicions al loop
             integer :: i, j
             real*8 :: M_check
-
             real*8, allocatable:: pos_local(:,:)
             integer :: ierror
 
@@ -132,8 +123,6 @@ module init
             ! Així, cada columna indica les 3 coord de un atom. Al final es centra la grid.
             ! Paralelització en el outer loop (les N particules) i reduce enlloc de gather
             ! Del ordre del gatherv pero una mica mes lenta.
-
-            use parameters
             implicit none
             include 'mpif.h'
             
@@ -142,7 +131,6 @@ module init
             real*8 :: a     ! Distancia interatomica i variable per assignar posicions al loop
             integer :: i, j
             real*8 :: M_check
-
             real*8 :: pos_local(D,N)
             integer :: ierror
 
@@ -175,7 +163,6 @@ module init
             ! --- VARIABLES ---
             ! vel(D,N) -> Array on es tornaran les velocitats de les part.
             !        T -> Temp. a la que s'inicialitzara la velocitat de les part.
-            use parameters
             use integraforces, only : energy_kin
             implicit none
             include 'mpif.h'
