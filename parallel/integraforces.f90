@@ -165,7 +165,7 @@ module integraforces
          do i=imin,imax
             rlocal(:,i)=rlocal(:,i)+vlocal(:,i)*dt +flocal(:,i)*dt**2/2.0d0
             !Apply PBC
-            ! call min_img_2(r(:,i)) !Commented until added again
+            call min_img_2(r(:,i)) 
 
             vlocal(:,i)=vlocal(:,i)+flocal(:,i)*dt*0.5d0
          enddo
