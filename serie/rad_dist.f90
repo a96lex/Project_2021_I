@@ -55,7 +55,7 @@ module rad_dist
         if(i.ne.j) then
           ! Check in wich cell particle j falls repsective from particle i:
           distv = pos(:,i) - pos(:,j)
-          call min_img_2(distv)
+          call min_img(distv)
           dist = sqrt(sum((distv)**2))
           ! Given dist, add contribution to g(r):
           do k=1,Nshells

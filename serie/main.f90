@@ -13,14 +13,17 @@
       real*8, allocatable :: epotVECins(:), g_avg(:), g_squared_avg(:)
       real*8, allocatable :: Xpos(:), Ypos(:), Zpos(:)
       
-      real*8 :: time,ekin,epot,Tins,P,etot
-      real*8 :: epotAUX,epotMEAN,PMEAN,epotVAR,PVAR
-      real*8 :: ekinMEAN,ekinVAR,etotMEAN,etotVAR,TinsMEAN,TinsVAR
-      real*8 :: Xmean,Ymean,Zmean,Xvar,Yvar,Zvar
+      real*8  :: time,ekin,epot,Tins,P,etot
+      real*8  :: epotAUX,epotMEAN,PMEAN,epotVAR,PVAR
+      real*8  :: ekinMEAN,ekinVAR,etotMEAN,etotVAR,TinsMEAN,TinsVAR
+      real*8  :: Xmean,Ymean,Zmean,Xvar,Yvar,Zvar
       integer :: i,j,flag_g,k,cnt
 
       integer :: Nshells
+      real*8  :: ti,tf,elapsed_time !AJ: collective timing of program.
       
+      
+      call cpu_time(ti)
 
       ! Per executar el programa cal fer >> main.x input_file. Si no, donara error.
       if (command_argument_count() == 0) stop "ERROR: Cridar fent >> ./main.x input_path"
@@ -204,5 +207,9 @@
       deallocate(Ypos)
       deallocate(Zpos)
       call deallocate_g_variables()
+
+      call cpu_time(tf)
+      elapsed_time = tf-ti
+      print"(A,X,F14.7,X,A)","End program, time elapsed:",elapsed_time,"seconds"
 
       end program main
