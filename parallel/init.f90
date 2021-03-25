@@ -64,6 +64,51 @@ module init
             end if
 
         end subroutine divide_particles
+        
+        subroutine divide_particles_pairs()
+           ! TESTING. Author: David March
+           ! Distribute particles so they each processor computes an approx. equal number of pairs in a nested loop such as:
+           ! do i=imin_p,imax_p
+           !    do j=i+1,N
+           implicit none
+           !include 'mpif.h'
+           integer :: i,j
+           integer, dimension(N) :: num_pairs
+           integer, dimension(:,:), allocatable :: ranges_proc
+           real(8) total_pairs, pairs_per_proc, sum_pairs
+           
+           do i=1,N
+              num_pairs(i) = N-i
+           enddo
+           total_pairs = dble(N*(N-1))/dble(2)
+           pairs_per_proc = total_pairs/dble(numproc)
+           
+           allocate(ranges_proc(numproc,2)) ! inferior limit at (:,1), superior at (:,2) for each processor
+           ranges_proc(1,1) = 1
+           ranges_proc(numproc,2) = N-1
+           do i=1,numproc-1
+              sum_pairs = 0d0
+              limits: do j=ranges_proc(i,1),N
+                 sum_pairs = sum_pairs + dble(num_pairs(j))
+                 if(sum_pairs.gt.pairs_per_proc) then
+                    ranges_proc(i,2) = j
+                    ranges_proc(i+1,1) = j+1
+                    exit limits
+                 endif
+              enddo limits
+           enddo
+         
+          ! Check lines below: could be erased  
+          !do i=1,numproc
+          !   print*, "Limits for proc ",i,":", ranges_proc(i,:), "Num paris: ",sum(num_pairs(ranges_proc(i,1):ranges_proc(i,2)))
+          !enddo
+          ! End check lines
+          
+          ! Finally, assignate the min and max index to the global variables:
+          imin_p = ranges_proc(taskid+1,1)
+          imax_p = ranges_proc(taskid+1,2)
+          !print*, "task ",taskid, " with particle ranges ", imin_p, imax_p
+       end subroutine divide_particles_pairs
 
         subroutine init_sc_gather(pos)
             ! Author: Eloi Sanchez

@@ -16,6 +16,9 @@
       integer,parameter    :: master=0
       integer              :: imin,imax,local_size
       integer, allocatable :: aux_size(:), aux_pos(:)
+      
+      ! Other parallel params (testing)
+      integer :: imin_p, imax_p
 
       contains
 
