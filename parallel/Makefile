@@ -32,7 +32,7 @@ main.o : main.f90 $(mods)
 	$(compiler) -c $(opt) main.f90
 
 
-.PHONY: sim plots trajectory_video clean backup clean_all
+.PHONY: sim plots trajectory_video clean backup clean_all strong_speed_up
 ## sim: Compiles the program if needed and runs a simulation with the parameters specified with input=your_input.txt.
 ## Results are generated at the directory "results"
 sim : main.x
@@ -59,6 +59,10 @@ clean_all :
 backup : 
 	mkdir -p backups results
 	cp -a results "backups/results_$(shell date +"%Y-%m-%d_%H:%M:%S")"
+
+## strong_speed_up: Executes the script for different processor number
+strong_speed_up :
+	bash scripts/strong_speed_up.sh
 
 ## help: Shows information about the Makefile options
 help :
