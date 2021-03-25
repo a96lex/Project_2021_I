@@ -209,7 +209,7 @@ module integraforces
          do i=imin,imax
             rlocal(:,i)=rlocal(:,i)+vlocal(:,i)*dt +flocal(:,i)*dt**2/2.0d0
             !Apply PBC
-            call min_img(rlocal(:,i)) 
+            call min_img(r(:,i)) 
 
             vlocal(:,i)=vlocal(:,i)+flocal(:,i)*dt*0.5d0
          enddo
@@ -225,7 +225,7 @@ module integraforces
          end do
 
          !forces at t+dt
-         call compute_force_LJ(rlocal,f,U,P)
+         call compute_force_LJ(r,f,U,P)
 
          !Get force information from master
          do i=1,D
