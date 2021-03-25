@@ -223,19 +223,18 @@ module integraforces
             vlocal(:,i)=vlocal(:,i)+flocal(:,i)*dt*0.5d0
          enddo
 
+         ! The new calculation of forces requires all new positions, we
+         ! must ensure they are all updated before computing forces again
+         call MPI_BARRIER(MPI_COMM_WORLD,ierror)
+
          !Save new positions information in master
          do i=1,D
             vec3 = rlocal(i,:)
             call MPI_REDUCE(vec3,r(i,:),N,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror3)
          end do
 
-         ! The new calculation of forces requires all new positions, we
-         ! must ensure they are all updated before computing forces again
-         call MPI_BARRIER(MPI_COMM_WORLD,ierror)
-
          !forces at t+dt
          call compute_force_LJ(r,f,U,P)
-
 
          !Get force information from master
          do i=1,D
@@ -246,11 +245,11 @@ module integraforces
             flocal(i,:) = vec1
          end do
 
-
          do i=imin,imax
             vlocal(:,i)=vlocal(:,i)+flocal(:,i)*dt*0.5d0
          enddo 
 
+         call MPI_BARRIER(MPI_COMM_WORLD,ierror)
 
          !Save new velocities information in master
          do i=1,D

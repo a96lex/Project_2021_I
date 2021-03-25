@@ -65,14 +65,24 @@ program main
       call verlet_v_step(pos,vel,time,i,dt_sim,epot,P)
     enddo
  
-    !Start g(r) test
+    ! Start g(r) test: david: torno a cridar init_sc perque amb 2 processadors el resultat de verlet em dona problemes
+    call init_sc_gather(pos)
     Nshells = 100
-    call prepare_shells_and_procs(Nshells,numproc)
-    call rad_distr_fun(pos,Nshells)
+    call prepare_shells(Nshells)
+    call rad_dist_fun(pos,Nshells)
+    
+    ! BARRIER FOR TESTING
+    !call sleep(floor(2d0))
+    !call MPI_BARRIER(MPI_COMM_WORLD,ierror)
+    
+    call divide_particles_pairs()
+    call rad_dist_fun_pairs(pos,Nshells)
     if(taskid == master) then
         open(11, file="results/radial_distribution.dat")
+        open(111, file="results/radial_distribution_pairs.dat")
         do i=1,Nshells
             write(11,*) (i-1)*grid_shells+grid_shells/2d0,g(i)
+            write(111,*) (i-1)*grid_shells+grid_shells/2d0,g_p(i)
         enddo
     endif
     call deallocate_g_variables()
