@@ -98,15 +98,6 @@ module integraforces
             nu = 0.1 ! probability of collision
             PI = 4d0*datan(1d0)
 
-            do i=1,D
-               if (taskid==master) then
-                  tmp_aux_pos = aux_pos
-                  tmp_aux_size = aux_size
-               endif
-               call MPI_BCAST(tmp_aux_pos,numproc,MPI_INTEGER,master,MPI_COMM_WORLD,request,ierror)
-               call MPI_BCAST(tmp_aux_size,numproc,MPI_INTEGER,master,MPI_COMM_WORLD,request,ierror)
-            end do
-
             do i=imin,imax
                if (rand()<nu) then ! Check if collision happens.
                   do j=1,D
@@ -117,14 +108,14 @@ module integraforces
                endif
             enddo
 
-            do i=1,D
-               call MPI_GATHERV(v(i,imin:imax),tmp_aux_size(taskid+1),MPI_DOUBLE_PRECISION, & 
-               v(i,imin:imax),tmp_aux_size(taskid+1),tmp_aux_pos(taskid+1),MPI_DOUBLE_PRECISION, &
-               master,MPI_COMM_WORLD, request,ierror)
-            enddo
+            do i = 1, D
+               call MPI_Gatherv(v(i,:), local_size, MPI_DOUBLE_PRECISION, v(i,:), &
+                               aux_size, aux_pos, MPI_DOUBLE_PRECISION, master, &
+                               MPI_COMM_WORLD, request, ierror)
+           end do
+                       
             
-            
-      end subroutine andersen_therm  
+      end subroutine andersen_therm  º
                   
 
 
