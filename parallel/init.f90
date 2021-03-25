@@ -97,17 +97,12 @@ module init
                  endif
               enddo limits
            enddo
-         
-          ! Check lines below: could be erased  
-          !do i=1,numproc
-          !   print*, "Limits for proc ",i,":", ranges_proc(i,:), "Num paris: ",sum(num_pairs(ranges_proc(i,1):ranges_proc(i,2)))
-          !enddo
-          ! End check lines
           
           ! Finally, assignate the min and max index to the global variables:
           imin_p = ranges_proc(taskid+1,1)
           imax_p = ranges_proc(taskid+1,2)
           !print*, "task ",taskid, " with particle ranges ", imin_p, imax_p
+          deallocate(ranges_proc)
        end subroutine divide_particles_pairs
 
         subroutine init_sc_gather(pos)
