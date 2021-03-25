@@ -20,7 +20,7 @@
                      do j=i+1,N
                            !Compute distance and apply minimum image convention.
                            distv = r(:,i)-r(:,j)
-                           call min_img_2(distv)
+                           call min_img(distv)
                            dist = sqrt(sum((distv)**2))
 
 
@@ -145,7 +145,7 @@
             do i=1,N
                r(:,i)=r(:,i)+v(:,i)*dt +f(:,i)*dt**2/2.0d0
                !Apply PBC
-               call min_img_2(r(:,i)) 
+               call min_img(r(:,i)) 
 
                v(:,i)=v(:,i)+f(:,i)*dt*0.5d0
             enddo

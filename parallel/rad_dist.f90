@@ -75,7 +75,7 @@ module rad_dist
        do j=1,N
           if(j.ne.i) then
              distv = pos_local(:,i) - pos_local(:,j)
-             call min_img_2(distv)
+             call min_img(distv)
              dist = dsqrt(sum((distv)**2))
              do k=1,Nshells
                 outer_radius = k*grid_shells
@@ -137,7 +137,7 @@ module rad_dist
     do i=imin_p,imax_p
        do j=i+1,N
           distv = pos_local(:,i) - pos_local(:,j)
-          call min_img_2(distv)
+          call min_img(distv)
           dist = dsqrt(sum((distv)**2))
           do k=1,Nshells
              outer_radius = k*grid_shells

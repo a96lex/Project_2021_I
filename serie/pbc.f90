@@ -3,7 +3,7 @@
 module pbc
   use parameters
   contains  
-  subroutine min_img_2(distv)
+  subroutine min_img(distv)
   ! finds the closest image of a particle further from L/2 applying PBC:
   ! INPUT: 
   !      distv:    distance vector (x,y,z) between particles
@@ -16,7 +16,7 @@ module pbc
               if(distv(i).gt.(L/2d0)) distv(i) = distv(i) - L
               if(distv(i).lt.(-L/2d0)) distv(i) = distv(i) + L
         enddo
-  end subroutine min_img_2
+  end subroutine min_img
             
 ! (currently unused)  		    
   subroutine apply_pbc(pos)
