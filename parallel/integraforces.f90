@@ -92,7 +92,7 @@ module integraforces
             real*8,intent(inout) :: v(D,N)
             real*8,intent(in) :: Temp
             real*8 :: std,nu,x1,x2,PI,v_tmp(N)
-            integer :: im,i,j,request, ierror,tmp_aux_pos(numproc),tmp_aux_size(numproc),local_aux_pos(numproc)
+            integer :: im,i,j,request, ierror,
 
             std = sqrt(Temp) !Standard deviation of the gaussian.
             nu = 0.1 ! probability of collision
@@ -115,7 +115,7 @@ module integraforces
            end do
                        
             
-      end subroutine andersen_therm  º
+      end subroutine andersen_therm 
                   
 
 
