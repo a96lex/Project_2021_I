@@ -39,7 +39,7 @@ module integraforces
                      if(i /= j) then
                         !Compute distance and apply minimum image convention.
                         distv = rlocal(:,i)-rlocal(:,j)
-                        call min_img_2(distv)
+                        call min_img(distv)
                         dist = sqrt(sum((distv)**2))
 
 
@@ -209,7 +209,7 @@ module integraforces
          do i=imin,imax
             rlocal(:,i)=rlocal(:,i)+vlocal(:,i)*dt +flocal(:,i)*dt**2/2.0d0
             !Apply PBC
-            call min_img_2(r(:,i)) 
+            call min_img(r(:,i)) 
 
             vlocal(:,i)=vlocal(:,i)+flocal(:,i)*dt*0.5d0
          enddo
