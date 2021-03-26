@@ -8,7 +8,7 @@
 
       implicit none
       character(len=50) :: input_name
-      real*8, allocatable :: pos(:,:), vel(:,:)
+      real*8, allocatable :: pos(:,:), vel(:,:), fold(:,:)
       real*8, allocatable :: epotVEC(:), PVEC(:), ekinVEC(:), etotVEC(:), TinsVEC(:)
       real*8, allocatable :: epotVECins(:), g_avg(:), g_squared_avg(:)
       real*8, allocatable :: Xpos(:), Ypos(:), Zpos(:)
@@ -44,7 +44,8 @@
       
       ! Allocates
       allocate(pos(D,N))
-      allocate(vel(D,N))   
+      allocate(vel(D,N))  
+      allocate(fold(D,N)) 
       allocate(epotVECins(n_meas))
       allocate(PVEC(n_conf))
       allocate(ekinVEC(n_conf))
@@ -91,6 +92,8 @@
       open(unit=13,file="results/mean_epot.dat")
       open(unit=14,file="results/diffcoeff.dat")
       open(unit=15,file="results/averages.dat")
+
+      write(10,*)"#t,   K,   U,  E,  T,  v_tot,  Ptot"
       
       ! Set the variables for computing g(r) (defined in rad_dist module)
       Nshells = 100
@@ -105,10 +108,13 @@
       k = 0
       cnt = 0
       epotAUX = 0.d0
+
       print*,"------Simulation Start------"
+
+      call compute_force_LJ(pos,fold,epot,P)
       do i = 1,n_total
-      
-            call verlet_v_step(pos,vel,time,i,dt_sim,epot,P)
+     
+            call verlet_v_step(pos,vel,fold,time,i,dt_sim,epot,P)
             call andersen_therm(vel,dt_sim,T_ref)
 
             ! Càlcul del coeficient de difusió per cada dimensió
