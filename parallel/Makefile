@@ -33,10 +33,10 @@ main.o : main.f90 $(mods)
 
 
 .PHONY: sim plots trajectory_video clean backup clean_all strong_speed_up
-## sim: Compiles the program if needed and runs a simulation with the parameters specified with input=your_input.txt.
+## sim: Compiles the program if needed and runs a simulation with the parameters specified with input=your_input.txt. Uses all processors/workers available.
 ## Results are generated at the directory "results"
 sim : main.x
-	./main.x $(input)	
+	mpirun main.x $(input)	
 
 ## plots: Generates the plots of the observables found in results/
 plots :

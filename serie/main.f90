@@ -68,7 +68,7 @@
       call writeXyz(D,N,pos,11)
 
       flag_g = 0 ! DM: don't write g(r)
-      call vvel_solver(5000,1.d-4,pos,vel,1000.d0,10,0,flag_g) ! AJ: Initialization of system.
+      call vvel_solver(n_equil,1.d-4,pos,vel,1000.d0,10,0,flag_g) ! AJ: Initialization of system.
 
       call writeXyz(D,N,pos,11) ! AJ: write initial configuration, check that it is random.
 
