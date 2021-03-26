@@ -66,7 +66,7 @@ program main
     do i=1,1000
       call verlet_v_step(pos,vel,fold,time,i,dt_sim,epot,P)
     enddo
-    if (taskid==master) print*, pos(2,:)
+    !if (taskid==master) print*, pos(2,:)
  
     ! Start g(r) test: david: torno a cridar init_sc perque amb 2 processadors el resultat de verlet em dona problemes
     call init_sc_gather(pos)
