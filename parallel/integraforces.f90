@@ -112,7 +112,7 @@ module integraforces
                call MPI_Gatherv(v(i,:), local_size, MPI_DOUBLE_PRECISION, v(i,:), &
                                aux_size, aux_pos, MPI_DOUBLE_PRECISION, master, &
                                MPI_COMM_WORLD, request, ierror)
-           end do
+            end do
                        
             
       end subroutine andersen_therm
@@ -186,6 +186,7 @@ module integraforces
          real(8) :: vec1(N), vec2(N), vec3(N)
          integer :: request, request1, request2, request3, ierror, ierror1, ierror2, ierror3
 
+         !Initialize variables
          rlocal=0.d0
          vlocal=0.0d0
          flocal=0.0d0
@@ -208,19 +209,13 @@ module integraforces
             rlocal(i,imin:imax) = vec3(imin:imax)
          end do
 
-         !Change of positions
+         !Change of positions and velocities
          do i=imin,imax
             rlocal(:,i)=rlocal(:,i)+vlocal(:,i)*dt +flocal(:,i)*dt**2/2.0d0
-            !Apply PBC
-            call min_img(rlocal(:,i)) 
-
+            call min_img(rlocal(:,i))  !Apply PBC
             vlocal(:,i)=vlocal(:,i)+flocal(:,i)*dt*0.5d0
          enddo
 
-         r=0.0d0
-         ! The new calculation of forces requires all new positions, we
-         ! must ensure they are all updated before computing forces again
-         call MPI_BARRIER(MPI_COMM_WORLD,ierror)
 
          !Save new positions information in master
          do i=1,D
@@ -231,22 +226,16 @@ module integraforces
          !forces at t+dt
          call compute_force_LJ(r,f,U,P)
 
-         flocal=0.d0
-
-         !Get force information from master
+         !Get forces information from master
          do i=1,D
             if (taskid==master) vec1 = f(i,:)
             call MPI_BCAST(vec1,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request1,ierror1)
             flocal(i,imin:imax) = vec1(imin:imax)
          end do
-
-
+         
          do i=imin,imax
             vlocal(:,i)=vlocal(:,i)+flocal(:,i)*dt*0.5d0
          enddo 
-
-         v=0.d0
-         call MPI_BARRIER(MPI_COMM_WORLD,ierror)
 
          !Save new velocities information in master
          do i=1,D
