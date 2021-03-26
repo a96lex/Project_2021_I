@@ -202,6 +202,7 @@
       ! Deallocates
       deallocate(pos) 
       deallocate(vel)
+      deallocate(fold)
       deallocate(epotVEC)
       deallocate(PVEC)
       deallocate(ekinVEC)
