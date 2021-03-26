@@ -9,7 +9,7 @@ program main
     implicit none
     include 'mpif.h'
     character(len=50)   :: input_name
-    real*8, allocatable :: pos(:,:), vel(:,:)
+    real*8, allocatable :: pos(:,:), vel(:,:), fold(:,:)
     real*8              :: time,epot,P
     integer             :: i,ierror,Nshells
     real*8              :: ti_global,tf_global,elapsed_time !AJ: collective timing of program.
@@ -37,6 +37,7 @@ program main
     ! Allocates
     allocate(pos(D,N))
     allocate(vel(D,N)) 
+    allocate(fold(D,N))
     
     if(taskid==master) then
         print*,"------------------------Parameters-------------------------------"
@@ -61,9 +62,11 @@ program main
     end if
    
    !Test v_verlet
+    call compute_force_LJ(pos,fold,epot,P)
     do i=1,1000
-      call verlet_v_step(pos,vel,time,i,dt_sim,epot,P)
+      call verlet_v_step(pos,vel,fold,time,i,dt_sim,epot,P)
     enddo
+    if (taskid==master) print*, pos(2,:)
  
     ! Start g(r) test: david: torno a cridar init_sc perque amb 2 processadors el resultat de verlet em dona problemes
     call init_sc_gather(pos)
@@ -90,6 +93,7 @@ program main
 
     if (allocated(pos)) deallocate(pos)
     if (allocated(vel)) deallocate(vel)
+    if (allocated(fold)) deallocate (fold)
     if (allocated(aux_pos)) deallocate(aux_pos)
     if (allocated(aux_size)) deallocate(aux_size)
 
