@@ -163,13 +163,14 @@ module integraforces
 
 
 
-      subroutine verlet_v_step(r,v,t,time_i,dt,U,P)
+      subroutine verlet_v_step(r,v,fold,t,time_i,dt,U,P)
       !Author: Laia Barjuan
       ! Computes one time step with velocity verlet algorithm 
          ! --------------------------------------------------
          ! input: 
          !        r --> positions of the particles
          !        v  --> velocities of the system
+         !        fold --> force at t
          !        time_i --> number of step
          !        dt --> time step
          ! output: 
@@ -181,8 +182,8 @@ module integraforces
          implicit none 
          include 'mpif.h'
          integer :: i, time_i
-         real(8) :: r(D,N), v(D,N), U, f(D,N), t, dt, P
-         real(8) :: flocal(D,N), vlocal(D,N), rlocal(D,N)
+         real(8) :: r(D,N), v(D,N), U, f(D,N), fold(D,N), t, dt, P
+         real(8) :: flocal(D,N), vlocal(D,N), rlocal(D,N), flocal_old(D,N)
          real(8) :: vec1(N), vec2(N), vec3(N)
          integer :: request, request1, request2, request3, ierror, ierror1, ierror2, ierror3
 
@@ -190,30 +191,27 @@ module integraforces
          rlocal=0.d0
          vlocal=0.0d0
          flocal=0.0d0
-
-         !Compute forces at t
-         call compute_force_LJ(r,f,U,P)
+         flocal_old=0.0d0
 
          !Get information from master
          do i=1,D
             if (taskid==master) then
-               vec1 = f(i,:)
+               vec1 = fold(i,:)
                vec2 = v(i,:)
                vec3 = r(i,:)
             endif
             call MPI_BCAST(vec1,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request1,ierror1)
             call MPI_BCAST(vec2,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request2,ierror2)
             call MPI_BCAST(vec3,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request3,ierror3)
-            flocal(i,imin:imax) = vec1(imin:imax)
+            flocal_old(i,imin:imax) = vec1(imin:imax)
             vlocal(i,imin:imax) = vec2(imin:imax)
             rlocal(i,imin:imax) = vec3(imin:imax)
          end do
 
          !Change of positions and velocities
          do i=imin,imax
-            rlocal(:,i)=rlocal(:,i)+vlocal(:,i)*dt +flocal(:,i)*dt**2/2.0d0
+            rlocal(:,i)=rlocal(:,i)+vlocal(:,i)*dt +flocal_old(:,i)*dt**2*0.5d0
             call min_img(rlocal(:,i))  !Apply PBC
-            vlocal(:,i)=vlocal(:,i)+flocal(:,i)*dt*0.5d0
          enddo
 
 
@@ -234,7 +232,7 @@ module integraforces
          end do
          
          do i=imin,imax
-            vlocal(:,i)=vlocal(:,i)+flocal(:,i)*dt*0.5d0
+            vlocal(:,i)=vlocal(:,i)+(flocal_old(:,i)+flocal(:,i))*dt*0.5d0
          enddo 
 
          !Save new velocities information in master
@@ -243,7 +241,10 @@ module integraforces
             call MPI_REDUCE(vec2,v(i,:),N,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror2)
          end do
 
-         if (taskid==master) t=(time_i-1)*dt !Update time
+         if (taskid==master) then
+            fold=f
+            t=time_i*dt !Update time
+         endif 
          return
       end subroutine verlet_v_step
 
@@ -272,7 +273,7 @@ module integraforces
          include 'mpif.h'
          integer, intent(in) :: Nt, eunit, eunit_g
          real(8) :: dt, Temp
-         real(8) :: r(D,N), v(D,N), f(D,N)
+         real(8) :: r(D,N), v(D,N), f(D,N), fold(D,N)
          real(8) :: ekin, U, t, Tins, Ppot, Ptot
          integer :: i,j
          ! Flags for writing g:
@@ -292,19 +293,19 @@ module integraforces
 
          !Write intial results.
          if (taskid==master) then
-             write(eunit,*)"t","K","U","E","T","v_tot"
-             write(eunit,*) t, ekin, U, ekin+U, Tins, sum(v,2)
+             write(eunit,*)"#t,   K,   U,  E,  T,  v_tot,  Ptot"
+             write(eunit,*) t, ekin, U, ekin+U, Tins, dsqrt(sum(sum(v,2)**2)), Ptot
          endif
              
+         if (taskid==master) fold=f
          do i=1,Nt !Main time loop.
-            call verlet_v_step(r,v,t,i,dt,U,Ppot) !Perform Verlet step.
+            call verlet_v_step(r,v,fold,t,i,dt,U,Ppot) !Perform Verlet step.
             !call andersen_therm(v,dt,Temp) !Apply thermostat !Uncomment when applied 
-            call compute_force_LJ(r,f,U,Ppot)
             call energy_kin(v,ekin,Tins)
             if (taskid==master) Ptot = rho*Tins + Ppot
 
             !Write to file.
-            if (taskid==master) write(eunit,*) t, ekin, U, ekin+U, Tins, sum(v,2)
+            if (taskid==master) write(eunit,*) t, ekin, U, ekin+U, Tins, dsqrt(sum(sum(v,2)**2)), Ptot
             
             !Write snapshot of g(r)
             !if(flag_g.ne.0) then
