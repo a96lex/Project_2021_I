@@ -119,13 +119,14 @@
          end subroutine energy_kin
 
 
-         subroutine verlet_v_step(r,v,t,time_i,dt,U,P)
+         subroutine verlet_v_step(r,v,fold,t,time_i,dt,U,P)
          !Author: Laia Barjuan
          ! Computes one time step with velocity verlet algorithm 
             ! --------------------------------------------------
             ! input: 
             !        r --> positions of the particles
             !        v  --> velocities of the system
+            !        fold --> force at t
             !        time_i --> number of step
             !        dt --> time step
             ! output: 
@@ -136,28 +137,26 @@
             ! --------------------------------------------------
             implicit none 
             integer :: i, time_i
-            real(8) :: r(D,N), v(D,N), U, f(D,N), t, dt, P
-
-            !forces at t
-            call compute_force_LJ(r,f,U,P)
+            real(8) :: r(D,N), v(D,N), U, f(D,N), fold(D,N), t, dt, P
 
             !change of positions
             do i=1,N
-               r(:,i)=r(:,i)+v(:,i)*dt +f(:,i)*dt**2/2.0d0
+               r(:,i)=r(:,i)+v(:,i)*dt +fold(:,i)*dt**2/2.0d0
                !Apply PBC
                call min_img(r(:,i)) 
-
-               v(:,i)=v(:,i)+f(:,i)*dt*0.5d0
             enddo
 
             !forces at t+dt
             call compute_force_LJ(r,f,U,P)
 
+            !update of velocities
             do i=1,N
-               v(:,i)=v(:,i)+f(:,i)*dt*0.5d0
-            enddo 
+               v(:,i)=v(:,i)+(fold(:,i)+f(:,i))*dt*0.5d0
+            enddo
 
-            t=(time_i-1)*dt !Update time
+            fold=f
+
+            t=time_i*dt !Update time
             return
          end subroutine verlet_v_step
 
@@ -184,7 +183,7 @@
             implicit none
             integer, intent(in) :: Nt, eunit, eunit_g
             real(8) :: dt, Temp
-            real(8) :: r(D,N), v(D,N), f(D,N)
+            real(8) :: r(D,N), v(D,N), f(D,N), fold(D,N)
             real(8) :: ekin, U, t, Tins, Ppot, Ptot
             integer :: i,j
             ! Flags for writing g:
@@ -203,19 +202,18 @@
             Ptot = rho*Tins + Ppot !AJ: modifed to use the rho in parameters.
 
             !Write intial results.
-            write(eunit,*)"t","K","U","E","T","v_tot"
-            write(eunit,*) t, ekin, U, ekin+U, Tins, sum(v,2)
-      
+            write(eunit,*)"#t,   K,   U,  E,  T,  v_tot,  Ptot"
+            write(eunit,*) t, ekin, U, ekin+U, Tins, dsqrt(sum(sum(v,2)**2)), Ptot
+
+            f=fold
             do i=1,Nt !Main time loop.
-               call verlet_v_step(r,v,t,i,dt,U,Ppot) !Perform Verlet step.
+               call verlet_v_step(r,v,fold,t,i,dt,U,Ppot) !Perform Verlet step.
                call andersen_therm(v,dt,Temp) !Apply thermostat
-               call compute_force_LJ(r,f,U,Ppot)
                call energy_kin(v,ekin,Tins)
                Ptot = rho*Tins + Ppot
 
                !Write to file.
-               write(eunit,*) t, ekin, U, ekin+U, Tins, sum(v,2)
-               
+               write(eunit,*) t, ekin, U, ekin+U, Tins, dsqrt(sum(sum(v,2)**2)), Ptot
                !Write snapshot of g(r)
                if(flag_g.ne.0) then
                  call rad_distr_fun(r,Nshells)
