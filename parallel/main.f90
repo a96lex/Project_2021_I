@@ -63,8 +63,20 @@
       end if
      
       flag_g = 0
-      call vvel_solver(n_equil,1.d-4,pos,vel,1000.d0,10,0,flag_g)
+      call vvel_solver(5000,1.d-4,pos,vel,1000.d0,10,0,flag_g)
       !End melting
+
+      ! Start dynamics
+      ! Perform equilibration of the system
+      call init_vel_gather(vel, T_ref) ! Reescale to target temperature
+
+      if(taskid==master) then
+            close(10)
+            open(unit=10,file="results/thermodynamics_equilibration.dat")
+      end if
+
+      call vvel_solver(n_equil,dt_sim,pos,vel,T_ref,10,0,flag_g)
+
    
       !Prepare files for main simulation   
       if(taskid==master) then
