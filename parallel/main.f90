@@ -9,7 +9,7 @@
       implicit none
       include 'mpif.h'
       character(len=50)   :: input_name
-      real*8, allocatable :: pos(:,:), vel(:,:), fold(:,:)
+      real*8, allocatable :: pos(:,:), vel(:,:), fold(:,:), g_avg(:), g_squared_avg(:)
       real*8              :: time,ekin,epot,Tins,P,etot
       integer             :: i,ierror,Nshells,flag_g
       real*8              :: ti_global,tf_global,elapsed_time !AJ: collective timing of program.
@@ -92,7 +92,12 @@
       !Prepare g(r) variables
       Nshells = 100
       call prepare_shells(Nshells)
-      call rad_dist_fun(pos,Nshells)
+      if(taskid==master) then
+            allocate(g_avg(Nshells))
+            allocate(g_squared_avg(Nshells))
+            g_avg = 0d0
+            g_squared_avg = 0d0
+      endif
   
       !Start main simulation
       call compute_force_LJ(pos,fold,epot,P)
@@ -106,6 +111,11 @@
                         write(10,*) time, ekin, epot, ekin+epot, Tins, dsqrt(sum(sum(vel,2)**2)), P+rho*Tins
                         call writeXyz(D,N,pos,11)
                   end if
+                  call rad_dist_fun_pairs(pos,Nshells)
+                  if(taskid==master) then
+                        g_avg = g_avg + g
+                        g_squared_avg = g_squared_avg + g**2
+                  endif
             endif
       
             if(mod(i,int(0.001*n_total))==0 .and. taskid==master) then
@@ -113,6 +123,17 @@
                   if (i<n_total) call execute_command_line('echo "\033[A"')
             endif
       enddo
+      
+      ! Average de la g(r)
+      if(taskid==master) then
+            g_avg = g_avg/dble(n_conf)
+            g_squared_avg = g_squared_avg/dble(n_conf)
+            write(12,*) " # r (reduced units), r (Angstroms),   g(r),   std dev "
+            do i=1,Nshells
+                  write(12,*) grid_shells*(i-1), grid_shells*(i-1)*sigma, g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
+            enddo
+      endif
+      
       if(taskid==master) then
             write (*,*)
             write (*,*) "----Simulation Completed----"

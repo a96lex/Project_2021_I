@@ -4,8 +4,6 @@ module rad_dist
   real(8), parameter :: pi = 4d0*datan(1d0)
   real(8) :: grid_shells
   real(8), dimension(:), allocatable :: g, shells_vect
-  ! this is for testing purposes only:
-  real(8), dimension(:), allocatable :: g_p
   
   ! module variables info:
   ! grid_shells will save the width of the spherical shells:
@@ -25,7 +23,6 @@ module rad_dist
       integer, intent(in) :: Nshells
       integer i
       allocate(g(Nshells))
-      allocate(g_p(Nshells))
       allocate(shells_vect(Nshells))
       ! Define the grid parameter:
       grid_shells = (L/2d0)/(dble(Nshells))
@@ -118,7 +115,7 @@ module rad_dist
     real(8), dimension(D,N) :: pos_local
     real(8), dimension(Nshells) :: glocal
     
-    g_p = 0d0
+    g = 0d0
     glocal = 0d0
     pos_local = pos
     
@@ -150,9 +147,9 @@ module rad_dist
     enddo
     !print*, "Task", taskid, " g(40) ", glocal(40)
     call MPI_BARRIER(MPI_COMM_WORLD,ierror)
-    call MPI_REDUCE(glocal,g_p,Nshells,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
+    call MPI_REDUCE(glocal,g,Nshells,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
     ! Add the duplicated contribution left by not counting the j,i pairs in the nested loop, normalize for N particles
-    if(taskid.eq.master) g_p = 2d0*g_p/dble(N)
+    if(taskid.eq.master) g = 2d0*g/dble(N)
  end subroutine rad_dist_fun_pairs
  
 
