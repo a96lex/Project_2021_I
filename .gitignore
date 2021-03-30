@@ -3,3 +3,4 @@
 *.x
 */results
 */backups
+/venv
