@@ -33,6 +33,7 @@ module init
 
             call reduced_units()
             call divide_particles()
+            call divide_particles_pairs()
         end subroutine get_param
 
         subroutine divide_particles()
@@ -66,10 +67,11 @@ module init
         end subroutine divide_particles
         
         subroutine divide_particles_pairs()
-           ! TESTING. Author: David March
+           ! Author: David March
            ! Distribute particles so they each processor computes an approx. equal number of pairs in a nested loop such as:
            ! do i=imin_p,imax_p
            !    do j=i+1,N
+           ! Sets the particles ranges per processor in imin_p, imax_p
            implicit none
            !include 'mpif.h'
            integer :: i,j

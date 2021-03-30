@@ -14,11 +14,8 @@
       !Parallelization params
       integer              :: numproc, taskid
       integer,parameter    :: master=0
-      integer              :: imin,imax,local_size
+      integer              :: imin,imax,local_size,imin_p, imax_p
       integer, allocatable :: aux_size(:), aux_pos(:)
-      
-      ! Other parallel params (testing)
-      integer :: imin_p, imax_p
 
       contains
 
