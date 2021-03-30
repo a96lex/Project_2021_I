@@ -306,7 +306,7 @@ module integraforces
          if (taskid==master) fold=f
          do i=1,Nt !Main time loop.
             call verlet_v_step(r,v,fold,t,i,dt,U,Ppot) !Perform Verlet step.
-            !call andersen_therm(v,dt,Temp) !Apply thermostat !Uncomment when applied 
+            call andersen_therm(v,Temp) !Apply thermostat
             call energy_kin(v,ekin,Tins)
             if (taskid==master) Ptot = rho*Tins + Ppot
 
