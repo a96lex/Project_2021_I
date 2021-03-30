@@ -98,7 +98,7 @@
       call compute_force_LJ(pos,fold,epot,P)
       do i = 1,n_total
             call verlet_v_step(pos,vel,fold,time,i,dt_sim,epot,P)
-            ! call andersen_therm(vel,dt_sim,T_ref)
+            call andersen_therm(vel,T_ref)
       
             if(mod(i,n_meas) == 0) then ! AJ : measure every n_meas steps
                   call energy_kin(vel,ekin,Tins)
