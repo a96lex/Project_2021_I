@@ -91,25 +91,31 @@ module integraforces
             include 'mpif.h'
             real*8,intent(inout) :: v(D,N)
             real*8,intent(in) :: Temp
-            real*8 :: std,nu,x1,x2,PI,v_tmp(N)
+            real*8 :: std,nu,x1,x2,PI,v_tmp(N),v_local(D,N)
             integer :: im,i,j,request, ierror
 
             std = sqrt(Temp) !Standard deviation of the gaussian.
             nu = 0.1 ! probability of collision
             PI = 4d0*datan(1d0)
 
+            do i=1,D
+               v_tmp = v(i,:)
+               call MPI_BCAST(v_tmp,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
+               v_local(i,:) = v_tmp
+            end do
+
             do i=imin,imax
                if (rand()<nu) then ! Check if collision happens.
                   do j=1,D
                      x1 = rand()
                      x2 = rand()
-                     v(j,i) = std*dsqrt(-2d0*dlog(1.d0-x1))*dcos(2d0*PI*x2)
+                     v_local(j,i) = std*dsqrt(-2d0*dlog(1.d0-x1))*dcos(2d0*PI*x2)
                   enddo
                endif
             enddo
 
             do i = 1, D
-               call MPI_Gatherv(v(i,:), local_size, MPI_DOUBLE_PRECISION, v(i,:), &
+               call MPI_Gatherv(v_local(i,imin:imax), local_size, MPI_DOUBLE_PRECISION, v(i,:), &
                                aux_size, aux_pos, MPI_DOUBLE_PRECISION, master, &
                                MPI_COMM_WORLD, request, ierror)
             end do
