@@ -67,7 +67,7 @@
                               x1 = rand()
                               x2 = rand()
                               call box_muller(std,x1,x2) !Modify the velocity.
-                              v(i,j) = x1
+                              v(j,i) = x1
                               !Here we are effectively throwing away one of the
                               !two gaussian numbers given by box_muller
                         enddo
