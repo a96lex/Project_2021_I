@@ -63,7 +63,7 @@
         ! Recomano numBINmin=50 (a MoMo em funcionava realment bé)
         implicit none
         include 'mpif.h'
-        integer numBINmin,m,i,j,c,numBIN,test,d,request,ierror
+        integer numBINmin,m,i,j,c,numBIN,test,d,dimbin,request,ierror
         double precision,allocatable :: binned(:),aux(:)
         character(len=*) :: filename
         double precision total,mean,var,vec(d),var1
@@ -111,10 +111,12 @@
                         c=c+1
                         binned(numBIN+1)=binned(numBIN+1)+aux(c)/dble(test)
                     enddo
+                    dimbin = size(binned)
                 endif
 
                 ! Escrivim els resultats per cada cas de número de bins
-                call MPI_BCAST(binned,size(binned),MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
+                call MPI_BCAST(dimbin,1,MPI_INTEGER,master,MPI_COMM_WORLD,request,ierror)
+                call MPI_BCAST(binned,dimbin,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
                 call estad(size(binned),binned,mean,var)
                 
                 if (taskid.eq.master) then
