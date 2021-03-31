@@ -225,7 +225,7 @@
 
                if(mod(i,int(0.001*Nt))==0) then
                   write (*,"(A,F5.1,A)",advance="no") "Progress: ",i/dble(n_total)*100.,"%"
-                  if (i<n_total) call execute_command_line('echo "\033[A"')
+                  if (i<Nt) call execute_command_line('echo "\033[A"')
                 endif
                
             enddo
