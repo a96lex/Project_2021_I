@@ -68,6 +68,7 @@ set output "./results/plots/Coef_dif_x.png"
 set title "Coeficient de difusió X"
 set xlabel "2t"
 set ylabel "Variància X"
+set yrange[*:*]
 unset key
 lin(x)=a*x+b
 fit lin(x) "./results/diffcoeff.dat" u 1:2 via a,b
@@ -79,6 +80,7 @@ set output "./results/plots/Coef_dif_y.png"
 set title "Coeficient de difusió Y"
 set xlabel "2t"
 set ylabel "Variància Y"
+set yrange[*:*]
 unset key
 lin(x)=a*x+b
 fit lin(x) "./results/diffcoeff.dat" u 1:3 via a,b
@@ -90,8 +92,18 @@ set output "./results/plots/Coef_dif_z.png"
 set title "Coeficient de difusió Z"
 set xlabel "2t"
 set ylabel "Variància Z"
+set yrange[*:*]
 unset key
 lin(x)=a*x+b
 fit lin(x) "./results/diffcoeff.dat" u 1:4 via a,b
 plot "./results/diffcoeff.dat" u 1:4 w l, lin(x) w l lc rgb "blue"
+
+set terminal png size 800,600
+system "mkdir -p ./results/plots"
+set output "./results/plots/Correlation_energy.png"
+set title "Funció Autocorrelació Energia Total"
+set xlabel "Time Lag"
+set ylabel "Autocorrelació"
+unset key
+plot "./results/correlation_energy.dat" w l
 
