@@ -142,7 +142,7 @@
             call estad(N,Ypos,Ymean,Yvar)
             call estad(N,Zpos,Zmean,Zvar)
             if (taskid.eq.master) then
-                write(14,*) 2.d0*dble(i), Xvar*dble(N), Yvar*dble(N), Zvar*dble(N)
+                write(14,*) 2.d0*time, Xvar*dble(N), Yvar*dble(N), Zvar*dble(N)
             endif
 
             k = k+1
