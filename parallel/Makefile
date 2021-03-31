@@ -58,6 +58,7 @@ clean_all :
 ## backup: Saves the contents from the results folder in the backup folder with a timestamp
 backup : 
 	mkdir -p backups results
+	cp input_template.txt results/.
 	cp -a results "backups/results_$(shell date +"%Y-%m-%d_%H:%M:%S")"
 
 ## strong_speed_up: Executes the script for different processor number
