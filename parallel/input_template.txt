@@ -7,7 +7,7 @@
 ! indica el final del namelist.
 
 ! System
-N=125           ! Number of atoms
+N=512           ! Number of atoms
 D=3             ! Number of dimensions
 rho=0.1         ! Redced density 
 T_ref=27.5      ! Reduced temperature 

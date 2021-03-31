@@ -68,7 +68,7 @@
   
       ! Initialize positions and velocities
       call init_sc(pos)
-      call init_vel(vel, 1000.d0)
+      call init_vel(vel, 10.d0)
   
       !Start melting
       if(taskid==master) then
