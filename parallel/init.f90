@@ -13,7 +13,7 @@ module init
             integer, intent(in):: unit
             integer :: errstat
             namelist /input/ N, D, rho, dt_sim, n_meas, n_conf, n_equil, T_ref, &
-                            fact_rc, sigma, epsilon, mass, seed
+                            fact_rc, nu, sigma, epsilon, mass, seed
 
             ! Llegim els parametres del input
             read(unit=unit, nml=input, iostat=errstat)

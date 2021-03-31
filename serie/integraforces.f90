@@ -40,7 +40,7 @@
                P = 1.d0/(3.d0*L**3)*P
          end subroutine compute_force_LJ
 
-         subroutine andersen_therm(v,dt,Temp)
+         subroutine andersen_therm(v,Temp)
          !Author: Arnau Jurado
          !     Applies the Andersen thermostat to a system of N particles. Requires
          !     boxmuller subroutine.
@@ -56,11 +56,10 @@
          !                       Velocities of the system after the thermostat application.
             implicit none
             real*8,intent(inout) :: v(D,N)
-            real*8,intent(in) :: dt,Temp
-            real*8 :: std,nu,x1,x2
+            real*8,intent(in) :: Temp
+            real*8 :: std,x1,x2
             integer :: i,j
             std = sqrt(Temp) !Standard deviation of the gaussian.
-            nu = 0.1
             do i=1,N
                   if (rand()<nu) then ! Check if collision happens.
                         do j=1,D
@@ -208,7 +207,7 @@
             f=fold
             do i=1,Nt !Main time loop.
                call verlet_v_step(r,v,fold,t,i,dt,U,Ppot) !Perform Verlet step.
-               call andersen_therm(v,dt,Temp) !Apply thermostat
+               call andersen_therm(v,Temp) !Apply thermostat
                call energy_kin(v,ekin,Tins)
                Ptot = rho*Tins + Ppot
 

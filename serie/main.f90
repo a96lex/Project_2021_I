@@ -119,7 +119,7 @@
       do i = 1,n_total
      
             call verlet_v_step(pos,vel,fold,time,i,dt_sim,epot,P)
-            call andersen_therm(vel,dt_sim,T_ref)
+            call andersen_therm(vel,T_ref)
 
             ! Càlcul del coeficient de difusió per cada dimensió
             Xpos(:) = pos(1,:)
