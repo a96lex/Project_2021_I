@@ -134,8 +134,8 @@
                   k = 0
                   cnt = cnt+1
                   call estad(n_meas,epotVECins,epotMEAN,epotVAR)
-                  write(13,*) i, (epotMEAN+epotAUX*dble(cnt-1))/dble(cnt)
                   epotAUX = (epotMEAN+epotAUX*dble(cnt-1))/dble(cnt)
+                  write(13,*) i, epotAUX
 
                   call energy_kin(vel,ekin,Tins)
                   write(10,*) time, ekin, epot, ekin+epot, Tins, dsqrt(sum(sum(vel,2)**2)), P+rho*Tins
