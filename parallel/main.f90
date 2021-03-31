@@ -237,6 +237,9 @@
       if (allocated(Xpos)) deallocate(Xpos)
       if (allocated(Ypos)) deallocate(Ypos)
       if (allocated(Zpos)) deallocate(Zpos)
+      if (allocated(g_avg)) deallocate(g_avg)
+      if (allocated(g_squared_avg)) deallocate(g_squared_avg)
+      call deallocate_g_variables()
   
       tf_global = MPI_WTIME()
       call MPI_REDUCE(tf_global-ti_global,elapsed_time,1,MPI_DOUBLE_PRECISION,MPI_MAX,master,MPI_COMM_WORLD,ierror)
