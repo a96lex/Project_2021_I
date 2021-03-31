@@ -30,25 +30,25 @@ set offsets 0, 0, 0, 0
 unset key
 plot "./results/thermodynamics.dat" u 1:5 w l 
 
-#set terminal png size 800,600
-#system "mkdir -p ./results/plots"
-#set output "./results/plots/Energia_cinetica_bins.png"
-#set title "Binning de la energia cinètica"
-#set xlabel "Número de bins"
-#set ylabel "Desviació quadràtica de la energia cinètica"
-#set offsets 1, 1, 0, 0
-#unset key
-#plot "./results/ekinBIN.dat" u 1:3 w lp ls 7 lc rgb "blue" ps 2
+set terminal png size 800,600
+system "mkdir -p ./results/plots"
+set output "./results/plots/Energia_cinetica_bins.png"
+set title "Binning de la energia cinètica"
+set xlabel "Número de bins"
+set ylabel "Desviació quadràtica de la energia cinètica"
+set offsets 1, 1, 0, 0
+unset key
+plot "./results/ekinBIN.dat" u 1:3 w lp ls 7 lc rgb "blue" ps 2
 
-#set terminal png size 800,600
-#system "mkdir -p ./results/plots"
-#set output "./results/plots/Energia_potencial_bins.png"
-#set title "Binning de la energia potencial"
-#set xlabel "Número de bins"
-#set ylabel "Desviació quadràtica de la energia potencial"
-#set offsets 1, 1, 0.1, 0
-#unset key
-#plot "./results/epotBIN.dat" u 1:3 w lp ls 7 lc rgb "blue" ps 2 
+set terminal png size 800,600
+system "mkdir -p ./results/plots"
+set output "./results/plots/Energia_potencial_bins.png"
+set title "Binning de la energia potencial"
+set xlabel "Número de bins"
+set ylabel "Desviació quadràtica de la energia potencial"
+set offsets 1, 1, 0.1, 0
+unset key
+plot "./results/epotBIN.dat" u 1:3 w lp ls 7 lc rgb "blue" ps 2 
 
 set terminal png size 800,600
 system "mkdir -p ./results/plots"

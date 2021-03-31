@@ -116,6 +116,9 @@
 
                 ! Escrivim els resultats per cada cas de número de bins
                 call MPI_BCAST(dimbin,1,MPI_INTEGER,master,MPI_COMM_WORLD,request,ierror)
+                if (taskid.ne.master) then
+                    allocate(binned(dimbin))
+                endif
                 call MPI_BCAST(binned,dimbin,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
                 call estad(size(binned),binned,mean,var)
                 
