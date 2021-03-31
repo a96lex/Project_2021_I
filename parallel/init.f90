@@ -107,7 +107,7 @@ module init
           deallocate(ranges_proc)
        end subroutine divide_particles_pairs
 
-        subroutine init_sc_gather(pos)
+        subroutine init_sc(pos)
             ! Author: Eloi Sanchez
             ! Crea una xarxa cristal·lina ordenada (cuadrada en 2D i cubica en 3D)
             ! Està fet general per D dimensions.
@@ -152,54 +152,9 @@ module init
             end do
 
             deallocate(pos_local)           
-        end subroutine init_sc_gather
+        end subroutine init_sc
 
-        subroutine init_sc_reduce(pos)
-            ! Author: Eloi Sanchez
-            ! Crea una xarxa cristal·lina ordenada (cuadrada en 2D i cubica en 3D)
-            ! Està fet general per D dimensions.
-            ! P. ex. N=27 i L=3 tindrem atoms amb coords a 0, 1 i 2.
-            ! En la dimensio 1 farem 000000000111111111222222222
-            ! En la dimensio 2 farem 000111222000111222000111222
-            ! En la dimensio 3 farem 012012012012012012012012012
-            ! Així, cada columna indica les 3 coord de un atom. Al final es centra la grid.
-            ! Paralelització en el outer loop (les N particules) i reduce enlloc de gather
-            ! Del ordre del gatherv pero una mica mes lenta.
-            implicit none
-            include 'mpif.h'
-            
-            real*8, intent(out):: pos(D,N)
-            integer :: M    ! Nº atoms en cada dimensio.
-            real*8 :: a     ! Distancia interatomica i variable per assignar posicions al loop
-            integer :: i, j
-            real*8 :: M_check
-            real*8 :: pos_local(D,N)
-            integer :: ierror
-
-            ! Aixo ho fan totes les tasks
-            M_check = N ** (1.d0 / D)
-            M = ceiling(M_check)
-            a = L / dble(M)
-
-            ! Cada task dona valor a la posició local
-            pos_local = 0.d0
-            do i = imin, imax
-                do j = 1, D 
-                    pos_local(j,i) = a * (mod(i - 1, M ** (D - j + 1)) / (M ** (D - j)))
-                end do
-            end do
-            
-            ! El master rep la info al vector pos
-            if (taskid == master) pos = 0.d0
-            do i = 1, D
-                call MPI_Reduce(pos_local(i,:), pos(i,:), N, MPI_DOUBLE_PRECISION, &
-                MPI_SUM, master, MPI_COMM_WORLD, ierror)
-            end do
-            if (taskid == master) pos = pos - (L - a) / 2.d0  ! Centrem el sistema al (0,0,0)
-
-        end subroutine init_sc_reduce
-
-        subroutine init_vel_gather(vel, T)
+        subroutine init_vel(vel, T)
             ! Author: Eloi Sanchez
             ! Torna el array de velocitats (aleatories) vel(D,N) consistent amb la T donada.
             ! --- VARIABLES ---
@@ -244,15 +199,11 @@ module init
             
             ! Reescalem les velocitats a la temperatura objectiu
             call energy_kin(vel, kin, dummy_T)  
-            do i = 1, D
-                call MPI_Bcast(vel(i,:), N, MPI_DOUBLE_PRECISION, master, &
-                                MPI_COMM_WORLD, ierror)
-            end do
             call MPI_Bcast(kin, 1, MPI_DOUBLE_PRECISION, master, &
                             MPI_COMM_WORLD, ierror)
             
             do i = imin, imax
-                vel_local(:,i) = vel(:,i) * sqrt(dble(3*N)*T/(2.d0*kin))
+                vel_local(:,i) = vel_local(:,i) * sqrt(dble(3*N)*T/(2.d0*kin))
             end do
 
             do i = 1, D
@@ -261,6 +212,5 @@ module init
                                 MPI_COMM_WORLD, ierror)
             end do
 
-        end subroutine
-
+        end subroutine init_vel
 end module init

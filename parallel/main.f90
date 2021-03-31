@@ -67,8 +67,8 @@
       call MPI_BARRIER(MPI_COMM_WORLD,ierror) 
   
       ! Initialize positions and velocities
-      call init_sc_gather(pos)
-      call init_vel_gather(vel, 1000.d0)
+      call init_sc(pos)
+      call init_vel(vel, 10.d0)
   
       !Start melting
       if(taskid==master) then
@@ -85,7 +85,7 @@
 
       ! Start dynamics
       ! Perform equilibration of the system
-      call init_vel_gather(vel, T_ref) ! Reescale to target temperature
+      call init_vel(vel, T_ref) ! Reescale to target temperature
 
       if(taskid==master) then
             close(10)
