@@ -71,7 +71,7 @@ set ylabel "Variància X"
 unset key
 lin(x)=a*x+b
 fit lin(x) "./results/diffcoeff.dat" u 1:2 via a,b
-plot "./results/diffcoeff.dat" u 1:2 w l, lin(x) w l rgb "blue"
+plot "./results/diffcoeff.dat" u 1:2 w l, lin(x) w l lc rgb "blue"
 
 set terminal png size 800,600
 system "mkdir -p ./results/plots"
@@ -82,7 +82,7 @@ set ylabel "Variància Y"
 unset key
 lin(x)=a*x+b
 fit lin(x) "./results/diffcoeff.dat" u 1:3 via a,b
-plot "./results/diffcoeff.dat" u 1:3 w l, lin(x) w l rgb "blue"
+plot "./results/diffcoeff.dat" u 1:3 w l, lin(x) w l lc rgb "blue"
 
 set terminal png size 800,600
 system "mkdir -p ./results/plots"
@@ -93,5 +93,5 @@ set ylabel "Variància Z"
 unset key
 lin(x)=a*x+b
 fit lin(x) "./results/diffcoeff.dat" u 1:4 via a,b
-plot "./results/diffcoeff.dat" u 1:4 w l, lin(x) w l rgb "blue"
+plot "./results/diffcoeff.dat" u 1:4 w l, lin(x) w l lc rgb "blue"
 
