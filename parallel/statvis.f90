@@ -62,53 +62,64 @@
         ! input 'vec' de dimensió 'd' (com en la subrutina estad)
         ! Recomano numBINmin=50 (a MoMo em funcionava realment bé)
         implicit none
-        integer numBINmin,m,i,j,c,numBIN,test,d
+        include 'mpif.h'
+        integer numBINmin,m,i,j,c,numBIN,test,d,request,ierror
         double precision,allocatable :: binned(:),aux(:)
         character(len=*) :: filename
         double precision total,mean,var,vec(d),var1
         
-            open(10,file=filename)
+            if (taskid.eq.master) then
+                open(10,file=filename)
+            endif
             ! Definim per primer cop el vector auxiliar
-            allocate(aux(size(vec)))
+            allocate(aux(d))
             aux=vec
 
             ! Comencem pel cas unibinari
             m=1
-            call estad(size(vec),vec,mean,var)
-            write(10,*) m,mean,dsqrt(var)
-            var1=var
+            call estad(d,vec,mean,var)
+            if (taskid.eq.master) then
+                write(10,*) m,mean,dsqrt(var)
+                var1=var
+            endif
             ! Fem per la resta de casos. Iniciem pel cas bibinari
             m=2
-            numBIN=size(vec)/m
+            numBIN=d/m
             ! Els càlculs es duran a terme sempre i quan el número de bins sigui major al número mínim d'aquests
             do while (numBIN > numBINmin)
                 ! La dimensió del vector binnejat dependrà de si estem a la meitat del vector total o no
-                test=size(aux)-numBIN*2
-                if (test.eq.(0)) then
-                    allocate(binned(numBIN))
-                else
-                    allocate(binned(numBIN+1))
+                if (taskid.eq.master) then
+                    test=size(aux)-numBIN*2
+                    if (test.eq.(0)) then
+                        allocate(binned(numBIN))
+                    else
+                        allocate(binned(numBIN+1))
+                    endif
+
+                    ! Construïm ja el vector binnejat
+                    c=0
+                    binned=0.d0
+                    do i=1,numBIN
+                        total=0.d0
+                        do j=1,2
+                            c=c+1
+                            total=total+aux(c)
+                        enddo
+                        binned(i)=total/2.d0
+                    enddo
+                    do i=1,test
+                        c=c+1
+                        binned(numBIN+1)=binned(numBIN+1)+aux(c)/dble(test)
+                    enddo
                 endif
 
-                ! Construïm ja el vector binnejat
-                c=0
-                binned=0.d0
-                do i=1,numBIN
-                    total=0.d0
-                    do j=1,2
-                        c=c+1
-                        total=total+aux(c)
-                    enddo
-                    binned(i)=total/2.d0
-                enddo
-                do i=1,test
-                    c=c+1
-                    binned(numBIN+1)=binned(numBIN+1)+aux(c)/dble(test)
-                enddo
-
                 ! Escrivim els resultats per cada cas de número de bins
+                call MPI_BCAST(binned,size(binned),MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
                 call estad(size(binned),binned,mean,var)
-                write(10,*) m,mean,dsqrt(var)
+                
+                if (taskid.eq.master) then
+                    write(10,*) m,mean,dsqrt(var)
+                endif
                 ! I redefinim el vector auxiliar com el vector binnejat per tal de poder fer els càlculs per la següent iteració
                 deallocate(aux)
                 allocate(aux(size(binned)))
@@ -118,10 +129,13 @@
                 m=m*2
                 numBIN=size(aux)/2
             enddo
-            write(10,*)
-            write(10,*)
-            write(10,*) "Autocorrelation time =", var/var1
-            close(10)
+            
+            if (taskid.eq.master) then
+                write(10,*)
+                write(10,*)
+                write(10,*) "Autocorrelation time =", var/var1
+                close(10)
+            endif
         return
         end subroutine binning
         

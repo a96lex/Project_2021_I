@@ -1,4 +1,4 @@
-# Authonr: Alex
+# Author: Alex
 
 set terminal png size 800,600
 system "mkdir -p ./results/plots"
@@ -33,22 +33,22 @@ plot "./results/thermodynamics.dat" u 1:5 w l
 set terminal png size 800,600
 system "mkdir -p ./results/plots"
 set output "./results/plots/Energia_cinetica_bins.png"
-set title "Variància de la energia cinètica respecte número de bins"
+set title "Binning de la energia cinètica"
 set xlabel "Número de bins"
-set ylabel "Variància de la energia cinètica"
+set ylabel "Desviació quadràtica de la energia cinètica"
 set offsets 1, 1, 0, 0
 unset key
-plot "./results/ekinBIN.dat" u 1:3 w p ls 7 lc rgb "blue" ps 2
+plot "./results/ekinBIN.dat" u 1:3 w lp ls 7 lc rgb "blue" ps 2
 
 set terminal png size 800,600
 system "mkdir -p ./results/plots"
 set output "./results/plots/Energia_potencial_bins.png"
-set title "Variància de la energia potencial respecte número de bins"
+set title "Binning de la energia potencial"
 set xlabel "Número de bins"
-set ylabel "Variància de la energia potencial"
+set ylabel "Desviació quadràtica de la energia potencial"
 set offsets 1, 1, 0.1, 0
 unset key
-plot "./results/epotBIN.dat" u 1:3 w p ls 7 lc rgb "blue" ps 2 
+plot "./results/epotBIN.dat" u 1:3 w lp ls 7 lc rgb "blue" ps 2 
 
 set terminal png size 800,600
 system "mkdir -p ./results/plots"
@@ -61,4 +61,37 @@ unset key
 unset offsets
 plot "./results/radial_distribution.dat" u 1:3:4 w yerrorbars lc rgb "light-blue", \
 '' u 1:3 w l lc rgb "blue";
+
+set terminal png size 800,600
+system "mkdir -p ./results/plots"
+set output "./results/plots/Coef_dif_x.png"
+set title "Coeficient de difusió X"
+set xlabel "2t"
+set ylabel "Variància X"
+unset key
+lin(x)=a*x+b
+fit lin(x) "./results/diffcoeff.dat" u 1:2 via a,b
+plot "./results/diffcoeff.dat" u 1:2 w l, lin(x) w l rgb "blue"
+
+set terminal png size 800,600
+system "mkdir -p ./results/plots"
+set output "./results/plots/Coef_dif_y.png"
+set title "Coeficient de difusió Y"
+set xlabel "2t"
+set ylabel "Variància Y"
+unset key
+lin(x)=a*x+b
+fit lin(x) "./results/diffcoeff.dat" u 1:3 via a,b
+plot "./results/diffcoeff.dat" u 1:3 w l, lin(x) w l rgb "blue"
+
+set terminal png size 800,600
+system "mkdir -p ./results/plots"
+set output "./results/plots/Coef_dif_z.png"
+set title "Coeficient de difusió Z"
+set xlabel "2t"
+set ylabel "Variància Z"
+unset key
+lin(x)=a*x+b
+fit lin(x) "./results/diffcoeff.dat" u 1:4 via a,b
+plot "./results/diffcoeff.dat" u 1:4 w l, lin(x) w l rgb "blue"
 
