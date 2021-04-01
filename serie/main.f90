@@ -40,7 +40,7 @@
       print"(A,X,I8)","seed=",seed
       print"(A,X,F4.2,2X,A,X,F6.2)","rho=",rho,"T=",T_ref
       print"(A,X,F10.5,2X,A,X,F10.5,2X,A,X,F10.5)","eps=",epsilon,"sigma=",sigma,"rc=",rc
-      print"(A,X,I10)","n_equil=",n_meas
+      print"(A,X,I10)","n_equil=",n_equil
       print"(A,X,I3,2X,I10,2X,I10)","n_meas,n_conf,n_total=",n_meas,n_conf,n_total
       print*,"-----------------------------------------------------------------"
       
@@ -99,7 +99,14 @@
       open(unit=14,file="results/diffcoeff.dat")
       open(unit=15,file="results/averages.dat")
 
+      open(unit=16,file="results/thermodynamics.dat")
+      open(unit=17,file="results/dimensionalized/trajectory_dim.xyz")
+      open(unit=18,file="results/dimensionalized/mean_epot_dim.dat")
+      open(unit=19,file="results/dimensionalized/diffcoeff_dim.dat")
+      open(unit=20,file="results/dimensionalized/averages_dim.dat")
+
       write(10,*)"#t,   K,   U,  E,  T,  v_tot,  Ptot"
+      write(16,*)"#t,   K,   U,  E,  T,  Ptot"
       
       ! Set the variables for computing g(r) (defined in rad_dist module)
       Nshells = 100
@@ -131,6 +138,9 @@
             call estad(N,Ypos,Ymean,Yvar)
             call estad(N,Zpos,Zmean,Zvar)
             write(14,*) 2.d0*dble(i), Xvar*dble(N), Yvar*dble(N), Zvar*dble(N)
+            write(19,*) 2.d0*time, Xvar*dble(N)*unit_of_length**2,&
+                  Yvar*dble(N)*unit_of_length**2,&
+                  Zvar*dble(N)*unit_of_length**2
 
             k = k+1
             epotVECins(k) = epot
@@ -142,15 +152,20 @@
                   call estad(n_meas,epotVECins,epotMEAN,epotVAR)
                   epotAUX = (epotMEAN+epotAUX*dble(cnt-1))/dble(cnt)
                   write(13,*) i, epotAUX
+                  write(18,*) i, epotAUX*unit_of_energy
 
                   call energy_kin(vel,ekin,Tins)
                   write(10,*) time, ekin, epot, ekin+epot, Tins, dsqrt(sum(sum(vel,2)**2)), P+rho*Tins
+                  write(16,*) time*unit_of_time,&
+                        ekin*unit_of_energy, epot*unit_of_energy, (ekin+epot)*unit_of_energy,&
+                        Tins*epsilon, (P+rho*Tins)*unit_of_pressure
                   ekinVEC(cnt) = ekin
                   epotVEC(cnt) = epot
                   etotVEC(cnt) = ekin+epot
                   TinsVEC(cnt) = Tins
                   PVEC(cnt) = P+rho*Tins
                   call writeXyz(D,N,pos,11)
+                  call writeXyz(D,N,pos*unit_of_length,17)
 
                   ! Compute g(r) and write to file
                   call rad_distr_fun(pos,Nshells)
@@ -170,6 +185,11 @@
       close(11)
       close(13)
       close(14)
+
+      close(16)
+      close(17)
+      close(18)
+      close(19)
       
       ! Average de la g(r)
       g_avg = g_avg/dble(n_conf)
@@ -195,6 +215,14 @@
       write(15,*) "Total Energy", etotMEAN, etotVAR
       write(15,*) "Instant Temperature", TinsMEAN, TinsVAR
       write(15,*) "Pressure", PMEAN, PVAR
+
+      write(20,*) "Sample mean and Variance"
+      write(20,*) "Kinetic Energy", ekinMEAN*unit_of_energy, ekinVAR*unit_of_energy
+      write(20,*) "Potential Energy", epotMEAN*unit_of_energy, epotVAR*unit_of_energy
+      write(20,*) "Total Energy", etotMEAN*unit_of_energy, etotVAR*unit_of_energy
+      write(20,*) "Instant Temperature", TinsMEAN*epsilon, TinsVAR*epsilon
+      write(20,*) "Pressure", PMEAN*unit_of_pressure, PVAR*unit_of_pressure
+      close(20)
 
       ! Binning de les energies cinètica i potencial
       call binning(n_conf,ekinVEC,50,"results/ekinBIN.dat")
