@@ -168,7 +168,8 @@
                         PVEC(cnt) = P+rho*Tins
                         call writeXyz(D,N,pos,11)
                   end if
-                  call rad_dist_fun_pairs(pos,Nshells)
+                  call rad_dist_fun_pairs_improv(pos,Nshells)
+                  !call rad_dist_fun_pairs(pos,Nshells)
                   if(taskid==master) then
                         g_avg = g_avg + g
                         g_squared_avg = g_squared_avg + g**2

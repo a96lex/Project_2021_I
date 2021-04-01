@@ -34,6 +34,7 @@ module init
             call reduced_units()
             call divide_particles()
             call divide_particles_pairs()
+            call divide_particles_pairs_improv()
         end subroutine get_param
 
         subroutine divide_particles()
@@ -106,6 +107,103 @@ module init
           !print*, "task ",taskid, " with particle ranges ", imin_p, imax_p
           deallocate(ranges_proc)
        end subroutine divide_particles_pairs
+       
+       subroutine divide_particles_pairs_improv()
+           ! Author: David March
+           ! Distribute particles so they each processor computes an approx. equal number of pairs in a nested loop such as:
+           ! do i=imin_p,imax_p
+           !    do j=i+1,N
+           ! Sets the particles ranges per processor in imin_p, imax_p
+           implicit none
+           !include 'mpif.h'
+           integer :: i,j,k,count_pairs,processor
+           integer, dimension(numproc) :: track_pairs
+           integer, dimension(N) :: num_pairs
+           integer, dimension(:,:), allocatable :: ranges_proc_i, ranges_proc_j_imin, ranges_proc_j_imax
+           real(8) total_pairs, pairs_per_proc, sum_pairs
+           
+           allocate(ranges_proc_i(numproc,2)) ! (:,1) for min i, (:,2) for max i
+           allocate(ranges_proc_j_imin(numproc,2)) ! (:,1) for min j from min i, (:,2) for min j from max i
+           allocate(ranges_proc_j_imax(numproc,2)) ! (:,1) for max j from min i, (:,2) for max j from max i
+           
+           count_pairs = 0
+           total_pairs = N*(N-1)/2
+           pairs_per_proc = dble(total_pairs)/dble(numproc)
+           
+           processor = 1
+           ranges_proc_i(processor,1) = 1
+           ranges_proc_j_imin(processor,1) = 2
+           do i=1,N-1
+             do j=i+1,N
+               if(j.eq.N.and.i.eq.ranges_proc_i(processor,1)) ranges_proc_j_imin(processor,2) = N
+               count_pairs = count_pairs + 1
+               if(dble(count_pairs).ge.pairs_per_proc.or.(i.eq.(N-1).and.(j.eq.N))) then
+                   ! Final indexes from processor
+                   ranges_proc_i(processor,2) = i
+                   ranges_proc_j_imax(processor,1) = i+1
+                   ranges_proc_j_imax(processor,2) = j
+                   track_pairs(processor) = count_pairs
+                   count_pairs = 0
+                   ! Start new processor, saving starting indexes:
+                   if(processor.lt.numproc) then
+                       processor = processor + 1
+                       if(j.lt.N) then
+                           ranges_proc_i(processor,1) = i
+                           ranges_proc_j_imin(processor,1) = j+1
+                       else
+                           ranges_proc_i(processor,1) = i+1
+                           ranges_proc_j_imin(processor,1) = i+2
+                       endif
+                       
+                   endif
+               endif
+             enddo
+           enddo
+           
+          ! Finally, assignate the min and max index to the global variables:
+          !imin_p = ranges_proc(taskid+1,1)
+          !imax_p = ranges_proc(taskid+1,2)
+          !print*, "task ",taskid, " with particle ranges ", imin_p, imax_p
+          
+          allocate(jmin_p(ranges_proc_i(taskid+1,1):ranges_proc_i(taskid+1,2)))
+          allocate(jmax_p(ranges_proc_i(taskid+1,1):ranges_proc_i(taskid+1,2)))
+          !jmin_p = 0
+          !jmax_p = 0
+          imin_p = ranges_proc_i(taskid+1,1)
+          imax_p = ranges_proc_i(taskid+1,2)
+          jmin_p(ranges_proc_i(taskid+1,1)) = ranges_proc_j_imin(taskid+1,1)
+          jmax_p(ranges_proc_i(taskid+1,1)) = ranges_proc_j_imin(taskid+1,2)
+          jmin_p(ranges_proc_i(taskid+1,2)) = ranges_proc_j_imax(taskid+1,1)
+          jmax_p(ranges_proc_i(taskid+1,2)) = ranges_proc_j_imax(taskid+1,2)
+          ! In between the go normaly from i+1 to N
+          do i=ranges_proc_i(taskid+1,1)+1,ranges_proc_i(taskid+1,2)-1
+              jmin_p(i) = i+1
+              jmax_p(i) = N
+          enddo
+          
+          !if(taskid==master) CALL sleep(5)
+          ! CHECK:
+          !write(*,*) "Task", taskid
+          !do i=1,N
+          !    write(*,*) jmin_p(i),jmax_p(i)
+          !enddo
+          
+          ! Prova serie per veure els rangs ben ordenats
+          !if(taskid==master) then
+          !do k=1,numproc
+          !    write(*,'(A17, I2)') "Ranges processor ", k
+          !    write(*,'(A8, 2(I4,1X))') "     i: ", ranges_proc_i(k,1),ranges_proc_i(k,2)
+          !    write(*,'(A21, I5)') "     Pairs assigned: ", track_pairs(k)
+          !    write(*,'(A20, I4, A12, 2(I4,1X))') "          For min i ", ranges_proc_i(k,1), " j range is: ", &
+          !                                                   ranges_proc_j_imin(k,1), ranges_proc_j_imin(k,2)
+          !    write(*,'(A20, I4, A12, 2(I4,1X))') "          For max i ", ranges_proc_i(k,2), " j range is: ", &
+          !                                                   ranges_proc_j_imax(k,1), ranges_proc_j_imax(k,2)
+          !enddo
+          !endif
+          deallocate(ranges_proc_i)
+          deallocate(ranges_proc_j_imin)
+          deallocate(ranges_proc_j_imax)
+       end subroutine divide_particles_pairs_improv
 
         subroutine init_sc(pos)
             ! Author: Eloi Sanchez
