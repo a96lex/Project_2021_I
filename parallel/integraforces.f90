@@ -12,7 +12,7 @@ module integraforces
             real*8,intent(in)  :: r(D,N)
             real*8,intent(out) :: f(D,N),U,P
             real*8             :: flocal(D,N),Ulocal,Plocal
-            real*8             :: distv(D),dist
+            real*8             :: distv(D),dist,fij(D)
             real*8             :: rlocal(D,N),coord(N)
             integer            :: i,j
             integer            :: ierror,request
@@ -34,26 +34,24 @@ module integraforces
             end do
 
 
-            do i=imin,imax !Loop over assigned particles
-                  do j=1,N !We do the full double loop
-                     if(i /= j) then
+            do i=imin_p,imax_p !Loop over assigned pairs
+                  do j=i+1,N
                         !Compute distance and apply minimum image convention.
                         distv = rlocal(:,i)-rlocal(:,j)
                         call min_img(distv)
                         dist = sqrt(sum((distv)**2))
 
-
                         if(dist<rc) then !Cutoff
                               !Compute forces and pressure.
-                              flocal(:,i) = flocal(:,i)& 
-                              + (48.d0/dist**14 - 24.d0/dist**8)*distv
+                              fij = (48.d0/dist**14 - 24.d0/dist**8)*distv
+                              flocal(:,i) = flocal(:,i) + fij
+                              flocal(:,j) = flocal(:,j) - fij
 
                               Ulocal = Ulocal + 4.d0*((1.d0/dist)**12-(1.d0/dist)**6)-&
-                                      4.d0*((1.d0/rc)**12-(1.d0/rc)**6)
+                                          4.d0*((1.d0/rc)**12-(1.d0/rc)**6)
+                              Plocal = Plocal + sum(distv * fij)
                         end if
-                     end if
                   end do
-                  Plocal = Plocal + sum(rlocal(:,i) * flocal(:,i))
             end do
             call MPI_BARRIER(MPI_COMM_WORLD,ierror)
 
@@ -66,8 +64,6 @@ module integraforces
             call MPI_REDUCE(Plocal,P,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
 
             if(taskid==master) then
-               !Remove double counting on pot energy
-               U = U/2.d0
                !Add 1/3V factor to potential pressure.
                P = 1.d0/(3.d0*L**3)*P
             end if
