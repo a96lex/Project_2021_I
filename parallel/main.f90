@@ -59,9 +59,10 @@
             print"(A,X,I5,2X,A,X,I1)", "N=",N,"D=",D
             print"(A,X,E14.7)","dt_sim=",dt_sim
             print"(A,X,I8)","seed=",seed
-            print"(A,X,F4.2,2X,A,X,F5.2)","rho=",rho,"T=",T_ref
-            print"(A,X,F7.4,2X,A,X,F4.2)","eps=",epsilon,"sigma=",sigma,"rc=",rc
-            print"(A,X,I3,2X,I5,2X,I10)","n_meas,n_conf,n_total=",n_meas,n_conf,n_total
+            print"(A,X,F4.2,2X,A,X,F6.2)","rho=",rho,"T=",T_ref
+            print"(A,X,F10.5,2X,A,X,F10.5,2X,A,X,F10.5)","eps=",epsilon,"sigma=",sigma,"rc=",rc
+            print"(A,X,I10)","n_equil=",n_equil
+            print"(A,X,I3,2X,I10,2X,I10)","n_meas,n_conf,n_total=",n_meas,n_conf,n_total
             print*,"-----------------------------------------------------------------"
       end if
       call MPI_BARRIER(MPI_COMM_WORLD,ierror) 
@@ -80,6 +81,7 @@
       flag_g = 0
       if(taskid==master)print*,"------Melting Start------"
       call vvel_solver(5000,1.d-4,pos,vel,1000.d0,10,0,flag_g)
+      if(taskid==master)call writeXyz(D,N,pos,11) !Check that it is random.
       if(taskid==master)print*,"------Melting Completed------"
       !End melting
 
@@ -107,8 +109,15 @@
             open(unit=13,file="results/mean_epot.dat")
             open(unit=14,file="results/diffcoeff.dat")
             open(unit=15,file="results/averages.dat")
+
+            open(unit=16,file="results/thermodynamics.dat")
+            open(unit=17,file="results/dimensionalized/trajectory_dim.xyz")
+            open(unit=18,file="results/dimensionalized/mean_epot_dim.dat")
+            open(unit=19,file="results/dimensionalized/diffcoeff_dim.dat")
+            open(unit=20,file="results/dimensionalized/averages_dim.dat")
       
             write(10,*)"#t,   K,   U,  E,  T,  v_tot,  Ptot"
+            write(16,*)"#t,   K,   U,  E,  T,  Ptot"
       end if
   
       !Prepare g(r) variables
@@ -143,6 +152,9 @@
             call estad(N,Zpos,Zmean,Zvar)
             if (taskid.eq.master) then
                 write(14,*) 2.d0*time, Xvar*dble(N), Yvar*dble(N), Zvar*dble(N)
+                write(19,*) 2.d0*time, Xvar*dble(N)*unit_of_length**2,&
+                 Yvar*dble(N)*unit_of_length**2,&
+                 Zvar*dble(N)*unit_of_length**2
             endif
 
             k = k+1
@@ -156,17 +168,22 @@
                   if (taskid.eq.master) then
                         epotAUX = (epotMEAN+epotAUX*dble(cnt-1))/dble(cnt)
                         write(13,*) i, epotAUX
+                        write(18,*) i, epotAUX*unit_of_energy
                   endif
                   
                   call energy_kin(vel,ekin,Tins)
                   if(taskid==master) then
                         write(10,*) time, ekin, epot, ekin+epot, Tins, dsqrt(sum(sum(vel,2)**2)), P+rho*Tins
+                        write(16,*) time*unit_of_time,&
+                        ekin*unit_of_energy, epot*unit_of_energy, (ekin+epot)*unit_of_energy,&
+                        Tins*epsilon, (P+rho*Tins)*unit_of_pressure
                         ekinVEC(cnt) = ekin
                         epotVEC(cnt) = epot
                         etotVEC(cnt) = ekin+epot
                         TinsVEC(cnt) = Tins
                         PVEC(cnt) = P+rho*Tins
                         call writeXyz(D,N,pos,11)
+                        call writeXyz(D,N,pos*unit_of_length,17)
                   end if
                   call rad_dist_fun_pairs(pos,Nshells)
                   if(taskid==master) then
@@ -188,6 +205,11 @@
             close(11)
             close(13)
             close(14)
+
+            close(16)
+            close(17)
+            close(18)
+            close(19)
       end if
       
       ! Average de la g(r)
@@ -218,6 +240,14 @@
           write(15,*) "Instant Temperature", TinsMEAN, TinsVAR
           write(15,*) "Pressure", PMEAN, PVAR
           close(15)
+
+          write(20,*) "Sample mean and Variance"
+          write(20,*) "Kinetic Energy", ekinMEAN*unit_of_energy, ekinVAR*unit_of_energy
+          write(20,*) "Potential Energy", epotMEAN*unit_of_energy, epotVAR*unit_of_energy
+          write(20,*) "Total Energy", etotMEAN*unit_of_energy, etotVAR*unit_of_energy
+          write(20,*) "Instant Temperature", TinsMEAN*epsilon, TinsVAR*epsilon
+          write(20,*) "Pressure", PMEAN*unit_of_pressure, PVAR*unit_of_pressure
+          close(20)
       endif
 
       ! Binning de les energies cinètica i potencial
