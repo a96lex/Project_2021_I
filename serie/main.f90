@@ -37,9 +37,11 @@
       print*,"------------------------Parameters-------------------------------"
       print"(A,X,I5,2X,A,X,I1)", "N=",N,"D=",D
       print"(A,X,E14.7)","dt_sim=",dt_sim
-      print"(A,X,F4.2,2X,A,X,F5.2)","rho=",rho,"T=",T_ref
-      print"(A,X,F7.4,2X,A,X,F4.2)","eps=",epsilon,"sigma=",sigma,"rc=",rc
-      print"(A,X,I3,2X,I5,2X,I5)","n_meas,n_conf,n_total=",n_meas,n_conf,n_total
+      print"(A,X,I8)","seed=",seed
+      print"(A,X,F4.2,2X,A,X,F6.2)","rho=",rho,"T=",T_ref
+      print"(A,X,F10.5,2X,A,X,F10.5,2X,A,X,F10.5)","eps=",epsilon,"sigma=",sigma,"rc=",rc
+      print"(A,X,I10)","n_equil=",n_meas
+      print"(A,X,I3,2X,I10,2X,I10)","n_meas,n_conf,n_total=",n_meas,n_conf,n_total
       print*,"-----------------------------------------------------------------"
       
       ! Allocates
