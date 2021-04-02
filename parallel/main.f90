@@ -110,7 +110,7 @@
             open(unit=14,file="results/diffcoeff.dat")
             open(unit=15,file="results/averages.dat")
 
-            open(unit=16,file="results/thermodynamics.dat")
+            open(unit=16,file="results/dimensionalized/thermodynamics_dim.dat")
             open(unit=17,file="results/dimensionalized/trajectory_dim.xyz")
             open(unit=18,file="results/dimensionalized/mean_epot_dim.dat")
             open(unit=19,file="results/dimensionalized/diffcoeff_dim.dat")
