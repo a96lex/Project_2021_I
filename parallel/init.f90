@@ -112,8 +112,9 @@ module init
            ! Author: David March
            ! Distribute particles so they each processor computes an approx. equal number of pairs in a nested loop such as:
            ! do i=imin_p,imax_p
-           !    do j=i+1,N
-           ! Sets the particles ranges per processor in imin_p, imax_p
+           !    do j=jmin_p(i),jmax_p(i)
+           ! Sets the particles ranges per processor in imin_p, imax_p; Each processor for will have jmin_p(i),jmax_p(i)
+           ! for their working particles
            implicit none
            !include 'mpif.h'
            integer :: i,j,k,count_pairs,processor
@@ -159,23 +160,16 @@ module init
                endif
              enddo
            enddo
-           
-          ! Finally, assignate the min and max index to the global variables:
-          !imin_p = ranges_proc(taskid+1,1)
-          !imax_p = ranges_proc(taskid+1,2)
-          !print*, "task ",taskid, " with particle ranges ", imin_p, imax_p
           
           allocate(jmin_p(ranges_proc_i(taskid+1,1):ranges_proc_i(taskid+1,2)))
           allocate(jmax_p(ranges_proc_i(taskid+1,1):ranges_proc_i(taskid+1,2)))
-          !jmin_p = 0
-          !jmax_p = 0
           imin_p = ranges_proc_i(taskid+1,1)
           imax_p = ranges_proc_i(taskid+1,2)
           jmin_p(ranges_proc_i(taskid+1,1)) = ranges_proc_j_imin(taskid+1,1)
           jmax_p(ranges_proc_i(taskid+1,1)) = ranges_proc_j_imin(taskid+1,2)
           jmin_p(ranges_proc_i(taskid+1,2)) = ranges_proc_j_imax(taskid+1,1)
           jmax_p(ranges_proc_i(taskid+1,2)) = ranges_proc_j_imax(taskid+1,2)
-          ! In between the go normaly from i+1 to N
+          ! In between, go normaly from i+1 to N
           do i=ranges_proc_i(taskid+1,1)+1,ranges_proc_i(taskid+1,2)-1
               jmin_p(i) = i+1
               jmax_p(i) = N
