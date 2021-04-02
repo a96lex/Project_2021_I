@@ -35,7 +35,7 @@ module integraforces
 
 
             do i=imin_p,imax_p !Loop over assigned pairs
-                  do j=i+1,N
+                  do j=jmin_p(i),jmax_p(i)
                         !Compute distance and apply minimum image convention.
                         distv = rlocal(:,i)-rlocal(:,j)
                         call min_img(distv)
