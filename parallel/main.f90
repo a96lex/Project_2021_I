@@ -55,6 +55,7 @@
       allocate(Zpos(N))
       
       if(taskid==master) then
+            call execute_command_line('clear')
             print*,"------------------------Parameters-------------------------------"
             print"(A,X,I5,2X,A,X,I1)", "N=",N,"D=",D
             print"(A,X,E14.7)","dt_sim=",dt_sim
@@ -82,7 +83,10 @@
       if(taskid==master)print*,"------Melting Start------"
       call vvel_solver(5000,1.d-4,pos,vel,1000.d0,10,0,flag_g)
       if(taskid==master)call writeXyz(D,N,pos,11) !Check that it is random.
-      if(taskid==master)print*,"------Melting Completed------"
+      if(taskid==master) then
+        call execute_command_line('echo -e "\033[2A"')
+        print*,"------Melting Completed------"
+      endif
       !End melting
 
       ! Start dynamics
@@ -96,8 +100,10 @@
 
       if(taskid==master)print*,"------Equilibration Start------"
       call vvel_solver(n_equil,dt_sim,pos,vel,T_ref,10,0,flag_g)
-      if(taskid==master)print*,"------Equilibration Completed------"
-
+      if(taskid==master) then
+        call execute_command_line('echo -e "\033[2A"')
+        print*,"------Equilibration Completed------"
+      endif
    
       !Prepare files for main simulation   
       if(taskid==master) then
@@ -202,12 +208,13 @@
       
             if(mod(i,int(0.001*n_total))==0 .and. taskid==master) then
                   write (*,"(A,F5.1,A)",advance="no") "Progress: ",i/dble(n_total)*100.,"%"
-                  if (i<n_total) call execute_command_line('echo "\033[A"')
+                  if (i.le.n_total) call execute_command_line('echo -e "\033[A"')
             endif
       enddo
       
       if(taskid==master) then
             write (*,*)
+            call execute_command_line('echo -e "\033[3A"')
             write (*,*) "----Simulation Completed----"
             close(10)
             close(11)
