@@ -55,7 +55,7 @@
         end subroutine estad
         
         
-        subroutine binning(d,vec,numBINmin,filename)
+        subroutine binning(d,vec,numBINmin,file_unit)
         !Author: Jaume Ojer
         ! Subrutina que escriu en un fitxer output (de nom 'filename', que és un input)
         ! el valor esperat i la desviació quadràtica a partir de binnejar el vector
@@ -63,14 +63,10 @@
         ! Recomano numBINmin=50 (a MoMo em funcionava realment bé)
         implicit none
         include 'mpif.h'
-        integer numBINmin,m,i,j,c,numBIN,test,d,dimbin,request,ierror
+        integer numBINmin,file_unit,m,i,j,c,numBIN,test,d,dimbin,request,ierror
         double precision,allocatable :: binned(:),aux(:)
-        character(len=*) :: filename
         double precision total,mean,var,vec(d),var1
         
-            if (taskid.eq.master) then
-                open(10,file=filename)
-            endif
             ! Definim per primer cop el vector auxiliar
             allocate(aux(d))
             aux=vec
@@ -79,7 +75,7 @@
             m=1
             call estad(d,vec,mean,var)
             if (taskid.eq.master) then
-                write(10,*) m,mean,dsqrt(var)
+                write(file_unit,*) m,mean,dsqrt(var)
                 var1=var
             endif
             ! Fem per la resta de casos. Iniciem pel cas bibinari
@@ -123,7 +119,7 @@
                 call estad(size(binned),binned,mean,var)
                 
                 if (taskid.eq.master) then
-                    write(10,*) m,mean,dsqrt(var)
+                    write(file_unit,*) m,mean,dsqrt(var)
                 endif
                 ! I redefinim el vector auxiliar com el vector binnejat per tal de poder fer els càlculs per la següent iteració
                 deallocate(aux)
@@ -136,31 +132,33 @@
             enddo
             
             if (taskid.eq.master) then
-                write(10,*)
-                write(10,*)
-                write(10,*) "Autocorrelation time =", var/var1
-                close(10)
+                write(file_unit,*)
+                write(file_unit,*)
+                write(file_unit,*) "Autocorrelation time =", var/var1
             endif
         return
         end subroutine binning
         
         
-        subroutine corrtime(d,vec,filename)
+        subroutine corrtime(d,vec,file_unit)
         !Author: Jaume Ojer
-        ! Construcció de la funció i temps d'autocorrelació (específic per tau = 500)
+        ! Construcció de la funció i temps d'autocorrelació (tau = d/10)
         ! El vector 'vec' a analitzar de dimensió 'd' és l'input.
         ! La subrutina escriu en un fitxer de nom 'filename' la funció i temps d'autocorrelació
         implicit none
         include 'mpif.h'
-        integer d,tau,n,request,ierror,tmin,tmax
-        character(len=*) :: filename
-        double precision vec(d),mean,var,corrlocal(500),corr(500),corsum,time
+        integer d,file_unit,tau,n,lag,request,ierror,tmin,tmax
+        double precision vec(d),mean,var,corsum,time
+        double precision,allocatable :: corr(:),corrlocal(:)
             ! Passem el vector input a tots els processadors perquè es reparteixin el bucle dels lags
             call MPI_BCAST(vec,d,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
             call estad(size(vec),vec,mean,var)
             call MPI_BCAST(var,1,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
-            tmin = taskid * 500 / numproc + 1
-            tmax = (taskid + 1) * 500 / numproc
+            lag = d/10
+            allocate(corrlocal(lag))
+            allocate(corr(lag))
+            tmin = taskid * lag / numproc + 1
+            tmax = (taskid + 1) * lag / numproc
             corr=0.d0
             corrlocal=0.d0
             ! Bucle dels lags
@@ -174,18 +172,19 @@
             enddo
             ! Juntem cada contribució del bucle en una i li passem al master, el qual escriurà el fitxer
             call MPI_BARRIER(MPI_COMM_WORLD,ierror)
-            call MPI_REDUCE(corrlocal,corr,500,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
+            call MPI_REDUCE(corrlocal,corr,lag,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
             if (taskid.eq.master) then
-                open(50,file=filename)
-                do tau=1,500
-                    write(50,*) tau,corr(tau)
+                write(file_unit,*) 0, 1.d0
+                do tau=0,lag
+                    write(file_unit,*) tau,corr(tau)
                 enddo
                 time=1.d0+2.d0*sum(corr)
-                write(50,*)
-                write(50,*)
-                write(50,*) "Integrated Autocorrelation Time =", time
-                close(50)
+                write(file_unit,*)
+                write(file_unit,*)
+                write(file_unit,*) "Integrated Autocorrelation Time =", time
             endif
+            deallocate(corrlocal)
+            deallocate(corr)
         return
         end subroutine corrtime
     end module statvis

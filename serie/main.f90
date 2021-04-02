@@ -98,6 +98,9 @@
       open(unit=13,file="results/mean_epot.dat")
       open(unit=14,file="results/diffcoeff.dat")
       open(unit=15,file="results/averages.dat")
+      open(unit=21,file="results/ekinBIN.dat")
+      open(unit=22,file="results/epotBIN.dat")
+      open(unit=23,file="results/correlation_energy.dat")
 
       open(unit=16,file="results/thermodynamics.dat")
       open(unit=17,file="results/dimensionalized/trajectory_dim.xyz")
@@ -209,29 +212,32 @@
       call estad(n_conf,etotVEC,etotMEAN,etotVAR)
       call estad(n_conf,TinsVEC,TinsMEAN,TinsVAR)
       call estad(n_conf,PVEC,PMEAN,PVAR)
-      write(15,*) "Sample mean and Variance"
-      write(15,*) "Kinetic Energy", ekinMEAN, ekinVAR
-      write(15,*) "Potential Energy", epotMEAN, epotVAR
-      write(15,*) "Total Energy", etotMEAN, etotVAR
-      write(15,*) "Instant Temperature", TinsMEAN, TinsVAR
-      write(15,*) "Pressure", PMEAN, PVAR
+      write(15,*) "Sample mean and Statistical error"
+      write(15,*) "Kinetic Energy", ekinMEAN, dsqrt(ekinVAR/dble(n_conf))
+      write(15,*) "Potential Energy", epotMEAN, dsqrt(epotVAR/dble(n_conf))
+      write(15,*) "Total Energy", etotMEAN, dsqrt(etotVAR/dble(n_conf))
+      write(15,*) "Instant Temperature", TinsMEAN, dsqrt(TinsVAR/dble(n_conf))
+      write(15,*) "Pressure", PMEAN, dsqrt(PVAR/dble(n_conf))
+      close(15)
 
-      write(20,*) "Sample mean and Variance"
-      write(20,*) "Kinetic Energy", ekinMEAN*unit_of_energy, ekinVAR*unit_of_energy
-      write(20,*) "Potential Energy", epotMEAN*unit_of_energy, epotVAR*unit_of_energy
-      write(20,*) "Total Energy", etotMEAN*unit_of_energy, etotVAR*unit_of_energy
-      write(20,*) "Instant Temperature", TinsMEAN*epsilon, TinsVAR*epsilon
-      write(20,*) "Pressure", PMEAN*unit_of_pressure, PVAR*unit_of_pressure
+      write(20,*) "Sample mean and Statistical error"
+      write(20,*) "Kinetic Energy", ekinMEAN*unit_of_energy, dsqrt(ekinVAR/dble(n_conf))*unit_of_energy
+      write(20,*) "Potential Energy", epotMEAN*unit_of_energy, dsqrt(epotVAR/dble(n_conf))*unit_of_energy
+      write(20,*) "Total Energy", etotMEAN*unit_of_energy, dsqrt(etotVAR/dble(n_conf))*unit_of_energy
+      write(20,*) "Instant Temperature", TinsMEAN*epsilon, dsqrt(TinsVAR/dble(n_conf))*epsilon
+      write(20,*) "Pressure", PMEAN*unit_of_pressure, dsqrt(PVAR/dble(n_conf))*unit_of_pressure
       close(20)
 
       ! Binning de les energies cinètica i potencial
-      call binning(n_conf,ekinVEC,50,"results/ekinBIN.dat")
-      call binning(n_conf,epotVEC,50,"results/epotBIN.dat")
+      call binning(n_conf,ekinVEC,50,21)
+      call binning(n_conf,epotVEC,50,22)
       
       ! Funció d'autocorrelació per l'energia total
-      call corrtime(n_conf,etotVEC,"results/correlation_energy.dat")
+      call corrtime(n_conf,etotVEC,23)
 
-      close(15)
+      close(21)
+      close(22)
+      close(23)
 
       ! Deallocates
       deallocate(pos) 
