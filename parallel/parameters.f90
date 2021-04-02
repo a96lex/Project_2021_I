@@ -15,7 +15,7 @@
       integer              :: numproc, taskid
       integer,parameter    :: master=0
       integer              :: imin,imax,local_size,imin_p, imax_p
-      integer, allocatable :: aux_size(:), aux_pos(:)
+      integer, allocatable :: aux_size(:), aux_pos(:), jmin_p(:), jmax_p(:)
 
       contains
 

@@ -185,7 +185,8 @@
                         call writeXyz(D,N,pos,11)
                         call writeXyz(D,N,pos*unit_of_length,17)
                   end if
-                  call rad_dist_fun_pairs(pos,Nshells)
+                  call rad_dist_fun_pairs_improv(pos,Nshells)
+                  !call rad_dist_fun_pairs(pos,Nshells)
                   if(taskid==master) then
                         g_avg = g_avg + g
                         g_squared_avg = g_squared_avg + g**2
