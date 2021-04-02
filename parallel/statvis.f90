@@ -175,7 +175,7 @@
             call MPI_REDUCE(corrlocal,corr,lag,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
             if (taskid.eq.master) then
                 write(file_unit,*) 0, 1.d0
-                do tau=0,lag
+                do tau=1,lag
                     write(file_unit,*) tau, (corr(tau))/var
                 enddo
                 time=1.d0+2.d0*(sum(corr))/var
