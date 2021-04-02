@@ -3,4 +3,6 @@
 *.x
 */results
 */backups
+*gmon.out
+*fit.log
 /venv

@@ -51,22 +51,20 @@ module rad_dist
     g = 0d0
     ! Compute the radial distribution function by averaging the r.d.f. over all particles.
     do i=1,N-1
-      do j=i+1,N
-        if(i.ne.j) then
-          ! Check in wich cell particle j falls repsective from particle i:
-          distv = pos(:,i) - pos(:,j)
-          call min_img(distv)
-          dist = sqrt(sum((distv)**2))
-          ! Given dist, add contribution to g(r):
-          do k=1,Nshells
-            outer_radius = k*grid_shells
-            inner_radius = (k-1)*grid_shells
-            if(dist.lt.outer_radius.and.dist.gt.inner_radius) then
-              g(k) = g(k) + 1d0/(rho * shells_vect(k))
-            endif
-          enddo
-        endif
-      enddo
+        do j=i+1,N
+            ! Check in wich cell particle j falls repsective from particle i:
+            distv = pos(:,i) - pos(:,j)
+            call min_img(distv)
+            dist = sqrt(sum((distv)**2))
+            ! Given dist, add contribution to g(r):
+            do k=1,Nshells
+                outer_radius = k*grid_shells
+                inner_radius = (k-1)*grid_shells
+                if(dist.lt.outer_radius.and.dist.gt.inner_radius) then
+                    g(k) = g(k) + 1d0/(rho * shells_vect(k))
+                endif
+            enddo
+        enddo
     enddo
     g = 2d0*g/dble(N)
     return

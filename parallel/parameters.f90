@@ -4,7 +4,7 @@
       integer :: N,D
       real*8  :: dt_sim
       integer :: n_meas, n_conf, n_total, n_equil
-      real*8  :: rho, T_ref, L, rc, fact_rc
+      real*8  :: rho, T_ref, L, rc, fact_rc, nu
       real*8  :: sigma, epsilon, mass
       integer :: seed
 
@@ -14,11 +14,8 @@
       !Parallelization params
       integer              :: numproc, taskid
       integer,parameter    :: master=0
-      integer              :: imin,imax,local_size
-      integer, allocatable :: aux_size(:), aux_pos(:)
-      
-      ! Other parallel params (testing)
-      integer :: imin_p, imax_p
+      integer              :: imin,imax,local_size,imin_p, imax_p
+      integer, allocatable :: aux_size(:), aux_pos(:), jmin_p(:), jmax_p(:)
 
       contains
 

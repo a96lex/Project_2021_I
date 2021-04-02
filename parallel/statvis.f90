@@ -55,60 +55,72 @@
         end subroutine estad
         
         
-        subroutine binning(d,vec,numBINmin,filename)
+        subroutine binning(d,vec,numBINmin,file_unit)
         !Author: Jaume Ojer
         ! Subrutina que escriu en un fitxer output (de nom 'filename', que és un input)
         ! el valor esperat i la desviació quadràtica a partir de binnejar el vector
         ! input 'vec' de dimensió 'd' (com en la subrutina estad)
         ! Recomano numBINmin=50 (a MoMo em funcionava realment bé)
         implicit none
-        integer numBINmin,m,i,j,c,numBIN,test,d
+        include 'mpif.h'
+        integer numBINmin,file_unit,m,i,j,c,numBIN,test,d,dimbin,request,ierror
         double precision,allocatable :: binned(:),aux(:)
-        character(len=*) :: filename
         double precision total,mean,var,vec(d),var1
         
-            open(10,file=filename)
             ! Definim per primer cop el vector auxiliar
-            allocate(aux(size(vec)))
+            allocate(aux(d))
             aux=vec
 
             ! Comencem pel cas unibinari
             m=1
-            call estad(size(vec),vec,mean,var)
-            write(10,*) m,mean,dsqrt(var)
-            var1=var
+            call estad(d,vec,mean,var)
+            if (taskid.eq.master) then
+                write(file_unit,*) m,mean,dsqrt(var)
+                var1=var
+            endif
             ! Fem per la resta de casos. Iniciem pel cas bibinari
             m=2
-            numBIN=size(vec)/m
+            numBIN=d/m
             ! Els càlculs es duran a terme sempre i quan el número de bins sigui major al número mínim d'aquests
             do while (numBIN > numBINmin)
                 ! La dimensió del vector binnejat dependrà de si estem a la meitat del vector total o no
-                test=size(aux)-numBIN*2
-                if (test.eq.(0)) then
-                    allocate(binned(numBIN))
-                else
-                    allocate(binned(numBIN+1))
+                if (taskid.eq.master) then
+                    test=size(aux)-numBIN*2
+                    if (test.eq.(0)) then
+                        allocate(binned(numBIN))
+                    else
+                        allocate(binned(numBIN+1))
+                    endif
+
+                    ! Construïm ja el vector binnejat
+                    c=0
+                    binned=0.d0
+                    do i=1,numBIN
+                        total=0.d0
+                        do j=1,2
+                            c=c+1
+                            total=total+aux(c)
+                        enddo
+                        binned(i)=total/2.d0
+                    enddo
+                    do i=1,test
+                        c=c+1
+                        binned(numBIN+1)=binned(numBIN+1)+aux(c)/dble(test)
+                    enddo
+                    dimbin = size(binned)
                 endif
 
-                ! Construïm ja el vector binnejat
-                c=0
-                binned=0.d0
-                do i=1,numBIN
-                    total=0.d0
-                    do j=1,2
-                        c=c+1
-                        total=total+aux(c)
-                    enddo
-                    binned(i)=total/2.d0
-                enddo
-                do i=1,test
-                    c=c+1
-                    binned(numBIN+1)=binned(numBIN+1)+aux(c)/dble(test)
-                enddo
-
                 ! Escrivim els resultats per cada cas de número de bins
+                call MPI_BCAST(dimbin,1,MPI_INTEGER,master,MPI_COMM_WORLD,request,ierror)
+                if (taskid.ne.master) then
+                    allocate(binned(dimbin))
+                endif
+                call MPI_BCAST(binned,dimbin,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
                 call estad(size(binned),binned,mean,var)
-                write(10,*) m,mean,dsqrt(var)
+                
+                if (taskid.eq.master) then
+                    write(file_unit,*) m,mean,dsqrt(var)
+                endif
                 ! I redefinim el vector auxiliar com el vector binnejat per tal de poder fer els càlculs per la següent iteració
                 deallocate(aux)
                 allocate(aux(size(binned)))
@@ -118,30 +130,35 @@
                 m=m*2
                 numBIN=size(aux)/2
             enddo
-            write(10,*)
-            write(10,*)
-            write(10,*) "Autocorrelation time =", var/var1
-            close(10)
+            
+            if (taskid.eq.master) then
+                write(file_unit,*)
+                write(file_unit,*)
+                write(file_unit,*) "Autocorrelation time =", var/var1
+            endif
         return
         end subroutine binning
         
         
-        subroutine corrtime(d,vec,filename)
+        subroutine corrtime(d,vec,file_unit)
         !Author: Jaume Ojer
-        ! Construcció de la funció i temps d'autocorrelació (específic per tau = 500)
+        ! Construcció de la funció i temps d'autocorrelació (tau = d/10)
         ! El vector 'vec' a analitzar de dimensió 'd' és l'input.
         ! La subrutina escriu en un fitxer de nom 'filename' la funció i temps d'autocorrelació
         implicit none
         include 'mpif.h'
-        integer d,tau,n,request,ierror,tmin,tmax
-        character(len=*) :: filename
-        double precision vec(d),mean,var,corrlocal(500),corr(500),corsum,time
+        integer d,file_unit,tau,n,lag,request,ierror,tmin,tmax
+        double precision vec(d),mean,var,corsum,time
+        double precision,allocatable :: corr(:),corrlocal(:)
             ! Passem el vector input a tots els processadors perquè es reparteixin el bucle dels lags
             call MPI_BCAST(vec,d,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
             call estad(size(vec),vec,mean,var)
-            call MPI_BCAST(var,1,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
-            tmin = taskid * 500 / numproc + 1
-            tmax = (taskid + 1) * 500 / numproc
+            call MPI_BCAST(mean,1,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
+            lag = d/10
+            allocate(corrlocal(lag))
+            allocate(corr(lag))
+            tmin = taskid * lag / numproc + 1
+            tmax = (taskid + 1) * lag / numproc
             corr=0.d0
             corrlocal=0.d0
             ! Bucle dels lags
@@ -151,22 +168,23 @@
                 do n=1,d-tau
                     corsum=corsum+(vec(n)-mean)*(vec(n+tau)-mean)
                 enddo
-                corrlocal(tau)=corsum/(dble(d-tau)*var)
+                corrlocal(tau)=corsum/dble(d-tau)
             enddo
             ! Juntem cada contribució del bucle en una i li passem al master, el qual escriurà el fitxer
             call MPI_BARRIER(MPI_COMM_WORLD,ierror)
-            call MPI_REDUCE(corrlocal,corr,500,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
+            call MPI_REDUCE(corrlocal,corr,lag,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
             if (taskid.eq.master) then
-                open(50,file=filename)
-                do tau=1,500
-                    write(50,*) tau,corr(tau)
+                write(file_unit,*) 0, 1.d0
+                do tau=1,lag
+                    write(file_unit,*) tau, (corr(tau))/var
                 enddo
-                time=1.d0+2.d0*sum(corr)
-                write(50,*)
-                write(50,*)
-                write(50,*) "Integrated Autocorrelation Time =", time
-                close(50)
+                time=1.d0+2.d0*(sum(corr))/var
+                write(file_unit,*)
+                write(file_unit,*)
+                write(file_unit,*) "Integrated Autocorrelation Time =", time
             endif
+            deallocate(corrlocal)
+            deallocate(corr)
         return
         end subroutine corrtime
     end module statvis

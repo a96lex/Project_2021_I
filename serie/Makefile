@@ -7,6 +7,7 @@ opt=
 
 main.x : $(objects)
 	mkdir -p results
+	mkdir -p results/dimensionalized
 	$(compiler) -o main.x $(opt) $(objects)
 
 $(mods) : $(dep_objects)  
@@ -59,6 +60,7 @@ clean_all :
 ## backup: Saves the contents from the results folder in the backup folder with a timestamp
 backup : 
 	mkdir -p backups results
+	cp input_template.txt results/.
 	cp -a results "backups/results_$(shell date +"%Y-%m-%d_%H:%M:%S")"
 
 ## help: Shows information about the Makefile options

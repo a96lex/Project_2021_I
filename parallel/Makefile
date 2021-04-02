@@ -6,6 +6,7 @@ opt=-g
 
 main.x : $(objects)
 	mkdir -p results
+	mkdir -p results/dimensionalized
 	$(compiler) -o main.x $(opt) $(objects)
 
 $(mods) : $(dep_objects)  
@@ -32,11 +33,16 @@ main.o : main.f90 $(mods)
 	$(compiler) -c $(opt) main.f90
 
 
-.PHONY: sim plots trajectory_video clean backup clean_all strong_speed_up
+.PHONY: sim simN plots trajectory_video clean backup clean_all strong_speed_up
 ## sim: Compiles the program if needed and runs a simulation with the parameters specified with input=your_input.txt. Uses all processors/workers available.
 ## Results are generated at the directory "results"
 sim : main.x
 	mpirun main.x $(input)	
+
+## simN: Compiles the program if needed and runs a simulation with the parameters specified with input=your_input.txt. Uses numproc=N processors/workers.
+## Results are generated at the directory "results"
+simN : main.x
+	mpirun -np $(numproc) main.x $(input) > sim$(numproc).log	
 
 ## plots: Generates the plots of the observables found in results/
 plots :
@@ -58,6 +64,7 @@ clean_all :
 ## backup: Saves the contents from the results folder in the backup folder with a timestamp
 backup : 
 	mkdir -p backups results
+	cp input_template.txt results/.
 	cp -a results "backups/results_$(shell date +"%Y-%m-%d_%H:%M:%S")"
 
 ## strong_speed_up: Executes the script for different processor number

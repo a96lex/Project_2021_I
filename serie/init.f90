@@ -15,7 +15,8 @@ module init
             integer, intent(in):: unit
             integer :: errstat
 
-            namelist /input/ N, D, rho, dt_sim, n_meas, n_conf, n_equil, T_ref, fact_rc, sigma, epsilon, mass
+            namelist /input/ N, D, rho, dt_sim, n_meas, n_conf, n_equil, T_ref, & 
+                              fact_rc, nu, sigma, epsilon, mass, seed
 
             ! Llegim els parametres del input
             read(unit=unit, nml=input, iostat=errstat)
@@ -24,7 +25,8 @@ module init
                 print *, "ERROR reading namelist from input file in init.f90 (code", errstat, ")"
                 stop
             end if
-            
+            call srand(seed)
+
             ! Calculem el nº de iteracions i la longitud de la cel·la
             n_total = n_meas * n_conf
             L = (N / rho) ** (1.d0 / D)

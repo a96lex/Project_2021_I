@@ -43,19 +43,17 @@
         end subroutine estad
 
         
-        subroutine binning(d,vec,numBINmin,filename)
+        subroutine binning(d,vec,numBINmin,file_unit)
         !Author: Jaume Ojer
         ! Subrutina que escriu en un fitxer output (de nom 'filename', que és un input)
         ! el valor esperat i la desviació quadràtica a partir de binnejar el vector
         ! input 'vec' de dimensió 'd' (com en la subrutina estad)
         ! Recomano numBINmin=50 (a MoMo em funcionava realment bé)
         implicit none
-        integer numBINmin,m,i,j,c,numBIN,test,d
+        integer numBINmin,file_unit,m,i,j,c,numBIN,test,d
         double precision,allocatable :: binned(:),aux(:)
-        character(len=*) :: filename
         double precision total,mean,var,vec(d),var1
 
-            open(10,file=filename)
             ! Definim per primer cop el vector auxiliar
             allocate(aux(size(vec)))
             aux=vec
@@ -63,7 +61,7 @@
             ! Comencem pel cas unibinari
             m=1
             call estad(size(vec),vec,mean,var)
-            write(10,*) m,mean,dsqrt(var)
+            write(file_unit,*) m,mean,dsqrt(var)
             var1=var
             ! Fem per la resta de casos. Iniciem pel cas bibinari
             m=2
@@ -96,7 +94,7 @@
 
                 ! Escrivim els resultats per cada cas de número de bins
                 call estad(size(binned),binned,mean,var)
-                write(10,*) m,mean,dsqrt(var)
+                write(file_unit,*) m,mean,dsqrt(var)
                 ! I redefinim el vector auxiliar com el vector binnejat per tal de poder fer els càlculs per la següent iteració
                 deallocate(aux)
                 allocate(aux(size(binned)))
@@ -106,27 +104,28 @@
                 m=m*2
                 numBIN=size(aux)/2
             enddo
-            write(10,*)
-            write(10,*)
-            write(10,*) "Autocorrelation time =", var/var1
-            close(10)
+            write(file_unit,*)
+            write(file_unit,*)
+            write(file_unit,*) "Autocorrelation time =", var/var1
         return
         end subroutine binning
         
         
-	    subroutine corrtime(d,vec,filename)
+	    subroutine corrtime(d,vec,file_unit)
 	    !Author: Jaume Ojer
-	    ! Construcció de la funció i temps d'autocorrelació (específic per tau = 500)
+	    ! Construcció de la funció i temps d'autocorrelació (tau = d/10)
         ! El vector 'vec' a analitzar de dimensió 'd' és l'input.
         ! La subrutina escriu en un fitxer de nom 'filename' la funció i temps d'autocorrelació
 	    implicit none
-	    integer d,tau,n
-	    character(len=*) :: filename
-	    double precision vec(d),mean,var,corr(500),corsum,time
-            open(50,file=filename)
+	    integer d,file_unit,tau,n,lag
+	    double precision vec(d),mean,var,corsum,time
+	    double precision,allocatable :: corr(:)
             call estad(size(vec),vec,mean,var)
+            lag=d/10
+            allocate(corr(lag))
             ! Fem un bucle per cada un dels lags
-            do tau=1,500
+            write(file_unit,*) 0, 1.d0
+            do tau=1,lag
                 corsum=0.d0
                 ! I apliquem la definició de variància amb el lag
                 do n=1,d-tau
@@ -136,14 +135,14 @@
               !    write(*,*) tau
               !  endif
                 corr(tau)=corsum/(dble(d-tau)*var)
-                write(50,*) tau,corr(tau)
+                write(file_unit,*) tau,corr(tau)
             enddo
             ! Calculem també el temps d'autocorrelació integrat
             time=1.d0+2.d0*sum(corr)
-            write(50,*)
-            write(50,*)
-            write(50,*) "Integrated Autocorrelation Time =", time
-            close(50)
+            write(file_unit,*)
+            write(file_unit,*)
+            write(file_unit,*) "Integrated Autocorrelation Time =", time
+            deallocate(corr)
 	    return
 	    end subroutine corrtime
     end module statvis

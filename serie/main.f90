@@ -37,9 +37,11 @@
       print*,"------------------------Parameters-------------------------------"
       print"(A,X,I5,2X,A,X,I1)", "N=",N,"D=",D
       print"(A,X,E14.7)","dt_sim=",dt_sim
-      print"(A,X,F4.2,2X,A,X,F5.2)","rho=",rho,"T=",T_ref
-      print"(A,X,F7.4,2X,A,X,F4.2)","eps=",epsilon,"sigma=",sigma,"rc=",rc
-      print"(A,X,I3,2X,I5,2X,I5)","n_meas,n_conf,n_total=",n_meas,n_conf,n_total
+      print"(A,X,I8)","seed=",seed
+      print"(A,X,F4.2,2X,A,X,F6.2)","rho=",rho,"T=",T_ref
+      print"(A,X,F10.5,2X,A,X,F10.5,2X,A,X,F10.5)","eps=",epsilon,"sigma=",sigma,"rc=",rc
+      print"(A,X,I10)","n_equil=",n_equil
+      print"(A,X,I3,2X,I10,2X,I10)","n_meas,n_conf,n_total=",n_meas,n_conf,n_total
       print*,"-----------------------------------------------------------------"
       
       ! Allocates
@@ -68,7 +70,9 @@
       call writeXyz(D,N,pos,11)
 
       flag_g = 0 ! DM: don't write g(r)
+      print*,"------Melting Start------"
       call vvel_solver(5000,1.d-4,pos,vel,1000.d0,10,0,flag_g) ! AJ: Initialization of system.
+      print*,"------Melting Completed------"
 
       call writeXyz(D,N,pos,11) ! AJ: write initial configuration, check that it is random.
 
@@ -81,7 +85,9 @@
 
       open(unit=10,file="results/thermodynamics_equilibration.dat")
 
+      print*,"------Equilibration Start------"
       call vvel_solver(n_equil,dt_sim,pos,vel,T_ref,10,0,flag_g)
+      print*,"------Equilibration Completed------"
 
       close(10)
 
@@ -92,8 +98,18 @@
       open(unit=13,file="results/mean_epot.dat")
       open(unit=14,file="results/diffcoeff.dat")
       open(unit=15,file="results/averages.dat")
+      open(unit=21,file="results/ekinBIN.dat")
+      open(unit=22,file="results/epotBIN.dat")
+      open(unit=23,file="results/correlation_energy.dat")
+
+      open(unit=16,file="results/thermodynamics.dat")
+      open(unit=17,file="results/dimensionalized/trajectory_dim.xyz")
+      open(unit=18,file="results/dimensionalized/mean_epot_dim.dat")
+      open(unit=19,file="results/dimensionalized/diffcoeff_dim.dat")
+      open(unit=20,file="results/dimensionalized/averages_dim.dat")
 
       write(10,*)"#t,   K,   U,  E,  T,  v_tot,  Ptot"
+      write(16,*)"#t,   K,   U,  E,  T,  Ptot"
       
       ! Set the variables for computing g(r) (defined in rad_dist module)
       Nshells = 100
@@ -115,7 +131,7 @@
       do i = 1,n_total
      
             call verlet_v_step(pos,vel,fold,time,i,dt_sim,epot,P)
-            call andersen_therm(vel,dt_sim,T_ref)
+            call andersen_therm(vel,T_ref)
 
             ! Càlcul del coeficient de difusió per cada dimensió
             Xpos(:) = pos(1,:)
@@ -125,6 +141,9 @@
             call estad(N,Ypos,Ymean,Yvar)
             call estad(N,Zpos,Zmean,Zvar)
             write(14,*) 2.d0*dble(i), Xvar*dble(N), Yvar*dble(N), Zvar*dble(N)
+            write(19,*) 2.d0*time, Xvar*dble(N)*unit_of_length**2,&
+                  Yvar*dble(N)*unit_of_length**2,&
+                  Zvar*dble(N)*unit_of_length**2
 
             k = k+1
             epotVECins(k) = epot
@@ -134,17 +153,22 @@
                   k = 0
                   cnt = cnt+1
                   call estad(n_meas,epotVECins,epotMEAN,epotVAR)
-                  write(13,*) i, (epotMEAN+epotAUX*dble(cnt-1))/dble(cnt)
                   epotAUX = (epotMEAN+epotAUX*dble(cnt-1))/dble(cnt)
+                  write(13,*) i, epotAUX
+                  write(18,*) i, epotAUX*unit_of_energy
 
                   call energy_kin(vel,ekin,Tins)
                   write(10,*) time, ekin, epot, ekin+epot, Tins, dsqrt(sum(sum(vel,2)**2)), P+rho*Tins
+                  write(16,*) time*unit_of_time,&
+                        ekin*unit_of_energy, epot*unit_of_energy, (ekin+epot)*unit_of_energy,&
+                        Tins*epsilon, (P+rho*Tins)*unit_of_pressure
                   ekinVEC(cnt) = ekin
                   epotVEC(cnt) = epot
                   etotVEC(cnt) = ekin+epot
                   TinsVEC(cnt) = Tins
                   PVEC(cnt) = P+rho*Tins
                   call writeXyz(D,N,pos,11)
+                  call writeXyz(D,N,pos*unit_of_length,17)
 
                   ! Compute g(r) and write to file
                   call rad_distr_fun(pos,Nshells)
@@ -164,6 +188,11 @@
       close(11)
       close(13)
       close(14)
+
+      close(16)
+      close(17)
+      close(18)
+      close(19)
       
       ! Average de la g(r)
       g_avg = g_avg/dble(n_conf)
@@ -183,21 +212,32 @@
       call estad(n_conf,etotVEC,etotMEAN,etotVAR)
       call estad(n_conf,TinsVEC,TinsMEAN,TinsVAR)
       call estad(n_conf,PVEC,PMEAN,PVAR)
-      write(15,*) "Sample mean and Variance"
-      write(15,*) "Kinetic Energy", ekinMEAN, ekinVAR
-      write(15,*) "Potential Energy", epotMEAN, epotVAR
-      write(15,*) "Total Energy", etotMEAN, etotVAR
-      write(15,*) "Instant Temperature", TinsMEAN, TinsVAR
-      write(15,*) "Pressure", PMEAN, PVAR
+      write(15,*) "Sample mean and Statistical error"
+      write(15,*) "Kinetic Energy", ekinMEAN, dsqrt(ekinVAR/dble(n_conf))
+      write(15,*) "Potential Energy", epotMEAN, dsqrt(epotVAR/dble(n_conf))
+      write(15,*) "Total Energy", etotMEAN, dsqrt(etotVAR/dble(n_conf))
+      write(15,*) "Instant Temperature", TinsMEAN, dsqrt(TinsVAR/dble(n_conf))
+      write(15,*) "Pressure", PMEAN, dsqrt(PVAR/dble(n_conf))
+      close(15)
+
+      write(20,*) "Sample mean and Statistical error"
+      write(20,*) "Kinetic Energy", ekinMEAN*unit_of_energy, dsqrt(ekinVAR/dble(n_conf))*unit_of_energy
+      write(20,*) "Potential Energy", epotMEAN*unit_of_energy, dsqrt(epotVAR/dble(n_conf))*unit_of_energy
+      write(20,*) "Total Energy", etotMEAN*unit_of_energy, dsqrt(etotVAR/dble(n_conf))*unit_of_energy
+      write(20,*) "Instant Temperature", TinsMEAN*epsilon, dsqrt(TinsVAR/dble(n_conf))*epsilon
+      write(20,*) "Pressure", PMEAN*unit_of_pressure, dsqrt(PVAR/dble(n_conf))*unit_of_pressure
+      close(20)
 
       ! Binning de les energies cinètica i potencial
-      call binning(n_conf,ekinVEC,50,"results/ekinBIN.dat")
-      call binning(n_conf,epotVEC,50,"results/epotBIN.dat")
+      call binning(n_conf,ekinVEC,50,21)
+      call binning(n_conf,epotVEC,50,22)
       
       ! Funció d'autocorrelació per l'energia total
-      call corrtime(n_conf,etotVEC,"results/correlation_energy.dat")
+      call corrtime(n_conf,etotVEC,23)
 
-      close(15)
+      close(21)
+      close(22)
+      close(23)
 
       ! Deallocates
       deallocate(pos) 

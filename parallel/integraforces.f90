@@ -12,7 +12,7 @@ module integraforces
             real*8,intent(in)  :: r(D,N)
             real*8,intent(out) :: f(D,N),U,P
             real*8             :: flocal(D,N),Ulocal,Plocal
-            real*8             :: distv(D),dist
+            real*8             :: distv(D),dist,fij(D)
             real*8             :: rlocal(D,N),coord(N)
             integer            :: i,j
             integer            :: ierror,request
@@ -34,26 +34,24 @@ module integraforces
             end do
 
 
-            do i=imin,imax !Loop over assigned particles
-                  do j=1,N !We do the full double loop
-                     if(i /= j) then
+            do i=imin_p,imax_p !Loop over assigned pairs
+                  do j=jmin_p(i),jmax_p(i)
                         !Compute distance and apply minimum image convention.
                         distv = rlocal(:,i)-rlocal(:,j)
                         call min_img(distv)
                         dist = sqrt(sum((distv)**2))
 
-
                         if(dist<rc) then !Cutoff
                               !Compute forces and pressure.
-                              flocal(:,i) = flocal(:,i)& 
-                              + (48.d0/dist**14 - 24.d0/dist**8)*distv
+                              fij = (48.d0/dist**14 - 24.d0/dist**8)*distv
+                              flocal(:,i) = flocal(:,i) + fij
+                              flocal(:,j) = flocal(:,j) - fij
 
                               Ulocal = Ulocal + 4.d0*((1.d0/dist)**12-(1.d0/dist)**6)-&
-                                      4.d0*((1.d0/rc)**12-(1.d0/rc)**6)
+                                          4.d0*((1.d0/rc)**12-(1.d0/rc)**6)
+                              Plocal = Plocal + sum(distv * fij)
                         end if
-                     end if
                   end do
-                  Plocal = Plocal + sum(rlocal(:,i) * flocal(:,i))
             end do
             call MPI_BARRIER(MPI_COMM_WORLD,ierror)
 
@@ -66,8 +64,6 @@ module integraforces
             call MPI_REDUCE(Plocal,P,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
 
             if(taskid==master) then
-               !Remove double counting on pot energy
-               U = U/2.d0
                !Add 1/3V factor to potential pressure.
                P = 1.d0/(3.d0*L**3)*P
             end if
@@ -91,11 +87,10 @@ module integraforces
             include 'mpif.h'
             real*8,intent(inout) :: v(D,N)
             real*8,intent(in) :: Temp
-            real*8 :: std,nu,x1,x2,PI,v_tmp(N),v_local(D,N)
+            real*8 :: std,x1,x2,PI,v_tmp(N),v_local(D,N)
             integer :: im,i,j,request, ierror
 
             std = sqrt(Temp) !Standard deviation of the gaussian.
-            nu = 0.1 ! probability of collision
             PI = 4d0*datan(1d0)
 
             do i=1,D
@@ -306,7 +301,7 @@ module integraforces
          if (taskid==master) fold=f
          do i=1,Nt !Main time loop.
             call verlet_v_step(r,v,fold,t,i,dt,U,Ppot) !Perform Verlet step.
-            !call andersen_therm(v,dt,Temp) !Apply thermostat !Uncomment when applied 
+            call andersen_therm(v,Temp) !Apply thermostat
             call energy_kin(v,ekin,Tins)
             if (taskid==master) Ptot = rho*Tins + Ppot
 
@@ -321,6 +316,11 @@ module integraforces
             !  enddo
             !  write(eunit_g,*) ! separation line
             !endif
+
+            if(mod(i,int(0.001*Nt))==0 .and. taskid==master) then
+                  write (*,"(A,F5.1,A)",advance="no") "Progress: ",i/dble(Nt)*100.,"%"
+                  if (i<Nt) call execute_command_line('echo "\033[A"')
+            endif
             
          enddo
 
