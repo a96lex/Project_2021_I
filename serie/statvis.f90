@@ -124,7 +124,8 @@
             lag=d/10
             allocate(corr(lag))
             ! Fem un bucle per cada un dels lags
-            do tau=0,lag
+            write(file_unit,*) 0, 1.d0
+            do tau=1,lag
                 corsum=0.d0
                 ! I apliquem la definició de variància amb el lag
                 do n=1,d-tau
