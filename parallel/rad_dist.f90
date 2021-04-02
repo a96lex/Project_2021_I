@@ -88,7 +88,7 @@ module rad_dist
  end subroutine rad_dist_fun_pairs
  
  subroutine rad_dist_fun_pairs_improv(pos,Nshells)
- ! THIS ONE USES imin_p,imax_p to use j=i+1,N in the nested loop !
+ ! THIS ONE USES i=imin_p,imax_p j=jmin_p(i),jmax_p(i) in the nested loop !
  ! computes g(r) in a histogram-like way, saving it in the defined g array
     ! uses the module variable shells_vect
     ! INPUT: ----------------------------------------------------------------------------

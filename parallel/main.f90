@@ -115,6 +115,7 @@
             open(unit=18,file="results/dimensionalized/mean_epot_dim.dat")
             open(unit=19,file="results/dimensionalized/diffcoeff_dim.dat")
             open(unit=20,file="results/dimensionalized/averages_dim.dat")
+            open(unit=21,file="results/dimensionalized/radial_distribution_dim.dat")
       
             write(10,*)"#t,   K,   U,  E,  T,  v_tot,  Ptot"
             write(16,*)"#t,   K,   U,  E,  T,  Ptot"
@@ -217,9 +218,11 @@
       if(taskid==master) then
             g_avg = g_avg/dble(n_conf)
             g_squared_avg = g_squared_avg/dble(n_conf)
-            write(12,*) " # r (reduced units), r (Angstroms),   g(r),   std dev "
+            write(12,*) " # r (reduced units),   g(r),   std_dev "
+            write(21,*) " # r (Angstroms),   g(r),    std_dev"
             do i=1,Nshells
-                  write(12,*) grid_shells*(i-1), grid_shells*(i-1)*sigma, g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
+                  write(12,*) grid_shells*(i-1)+grid_shells/2d0, g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
+                  write(21,*) grid_shells*(i-1)*sigma + grid_shells*sigma/2d0, g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
             enddo
             close(12)
       endif

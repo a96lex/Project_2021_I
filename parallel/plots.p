@@ -59,8 +59,8 @@ set ylabel "Frequència"
 set yrange[0:]
 unset key
 unset offsets
-plot "./results/radial_distribution.dat" u 1:3:4 w yerrorbars lc rgb "light-blue", \
-'' u 1:3 w l lc rgb "blue";
+plot "./results/radial_distribution.dat" u 1:2:3 w yerrorbars lc rgb "light-blue", \
+'' u 1:2 w l lc rgb "blue";
 
 set terminal png size 800,600
 system "mkdir -p ./results/plots"
