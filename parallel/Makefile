@@ -42,7 +42,7 @@ sim : main.x
 ## simN: Compiles the program if needed and runs a simulation with the parameters specified with input=your_input.txt. Uses numproc=N processors/workers.
 ## Results are generated at the directory "results"
 simN : main.x
-	mpirun -np $(numproc) main.x $(input) > sim$(numproc).log	
+	mpirun -np $(numproc) main.x $(input) > results/speedup/sim_$(numproc)/sim$(numproc).log	
 
 ## plots: Generates the plots of the observables found in results/
 plots :
@@ -69,7 +69,7 @@ backup :
 
 ## strong_speed_up: Executes the script for different processor number
 strong_speed_up :
-	bash scripts/strong_speed_up.sh
+	bash scripts/strong_speed_up_2.sh
 
 ## help: Shows information about the Makefile options
 help :
