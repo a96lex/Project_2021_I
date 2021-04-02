@@ -153,7 +153,7 @@
             ! Passem el vector input a tots els processadors perquè es reparteixin el bucle dels lags
             call MPI_BCAST(vec,d,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
             call estad(size(vec),vec,mean,var)
-            call MPI_BCAST(var,1,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
+            call MPI_BCAST(mean,1,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
             lag = d/10
             allocate(corrlocal(lag))
             allocate(corr(lag))
@@ -168,17 +168,17 @@
                 do n=1,d-tau
                     corsum=corsum+(vec(n)-mean)*(vec(n+tau)-mean)
                 enddo
-                corrlocal(tau)=corsum/(dble(d-tau)*var)
+                corrlocal(tau)=corsum/dble(d-tau)
             enddo
             ! Juntem cada contribució del bucle en una i li passem al master, el qual escriurà el fitxer
             call MPI_BARRIER(MPI_COMM_WORLD,ierror)
             call MPI_REDUCE(corrlocal,corr,lag,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
             if (taskid.eq.master) then
                 write(file_unit,*) 0, 1.d0
-                do tau=0,lag
-                    write(file_unit,*) tau,corr(tau)
+                do tau=1,lag
+                    write(file_unit,*) tau, (corr(tau))/var
                 enddo
-                time=1.d0+2.d0*sum(corr)
+                time=1.d0+2.d0*(sum(corr))/var
                 write(file_unit,*)
                 write(file_unit,*)
                 write(file_unit,*) "Integrated Autocorrelation Time =", time
