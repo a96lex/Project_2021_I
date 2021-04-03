@@ -176,9 +176,9 @@
             if (taskid.eq.master) then
                 write(file_unit,*) 0, 1.d0
                 do tau=1,lag
-                    write(file_unit,*) tau, (corr(tau))/var
+                    write(file_unit,*) tau, (corr(tau))/(var*dble(d))
                 enddo
-                time=1.d0+2.d0*(sum(corr))/var
+                time=1.d0+2.d0*(sum(corr))/(var*dble(d))
                 write(file_unit,*)
                 write(file_unit,*)
                 write(file_unit,*) "Integrated Autocorrelation Time =", time
