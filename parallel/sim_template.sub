@@ -1,0 +1,11 @@
+#!/bin/bash
+#$ -S /bin/bash
+#$ -q master.q
+#$ -N speedup_test_NUMPROCS
+#$ -cwd
+#$ -o ./results/speedup/sim_NUMPROCS/exit.out
+#$ -e ./results/speedup/sim_NUMPROCS/exit.err
+#$ -pe mpi NUMPROCS	
+
+make simN numproc=NUMPROCS input=input_template.txt
+

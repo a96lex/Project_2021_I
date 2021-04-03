@@ -1,3 +1,9 @@
+#!/bin/bash
+#$ -S /bin/bash
+#$ -q master.q
+#$ -N test
+#$ -cwd
+
 echo -n  "Min number of processors: "
 read min_np
 echo -n "Max number of processors: "
