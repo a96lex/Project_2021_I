@@ -134,7 +134,7 @@
               !  if (mod(tau,200).eq.(0)) then
               !    write(*,*) tau
               !  endif
-                corr(tau)=corsum/(dble(d-tau)*var)
+                corr(tau)=corsum/(dble(d-tau)*var*dble(d))
                 write(file_unit,*) tau,corr(tau)
             enddo
             ! Calculem també el temps d'autocorrelació integrat
