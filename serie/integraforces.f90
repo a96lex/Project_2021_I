@@ -160,7 +160,7 @@
          end subroutine verlet_v_step
 
 
-         subroutine vvel_solver(Nt,dt,r,v,Temp,eunit,eunit_g,flag_g)
+         subroutine vvel_solver(Nt,dt,r,v,Temp,eunit,eunit_dim,eunit_g,flag_g)
          !Author: Laia Barjuan
          !Co-Authors: David March (radial distribution), Arnau Jurado (interface with forces)
    !     Performs Nt steps of the velocity verlet algorithm while computing
@@ -173,6 +173,7 @@
             !        v  --> velocities of the system
             !        T --> temperature of the system
             !        eunit --> unit of file to write energies and temperature
+            !        eunit_dim --> "" with physical units
             !        eunit_g --> unit of file to write g(r)
             !        flag_g --> different to a non-zero int to write files
             ! output: 
@@ -180,7 +181,7 @@
             ! --------------------------------------------------
             use rad_dist
             implicit none
-            integer, intent(in) :: Nt, eunit, eunit_g
+            integer, intent(in) :: Nt, eunit, eunit_dim, eunit_g
             real(8) :: dt, Temp
             real(8) :: r(D,N), v(D,N), f(D,N), fold(D,N)
             real(8) :: ekin, U, t, Tins, Ppot, Ptot
@@ -204,6 +205,11 @@
             write(eunit,*)"#t,   K,   U,  E,  T,  v_tot,  Ptot"
             write(eunit,*) t, ekin, U, ekin+U, Tins, dsqrt(sum(sum(v,2)**2)), Ptot
 
+            write(eunit_dim,*)"#t,   K,   U,  E,  T,  Ptot"
+            write(eunit_dim,*) t*unit_of_time,&
+                        ekin*unit_of_energy, U*unit_of_energy, (ekin+U)*unit_of_energy,&
+                        Tins*epsilon, Ptot*unit_of_pressure
+
             f=fold
             do i=1,Nt !Main time loop.
                call verlet_v_step(r,v,fold,t,i,dt,U,Ppot) !Perform Verlet step.
@@ -211,8 +217,11 @@
                call energy_kin(v,ekin,Tins)
                Ptot = rho*Tins + Ppot
 
-               !Write to file.
+               !Write to files.
                write(eunit,*) t, ekin, U, ekin+U, Tins, dsqrt(sum(sum(v,2)**2)), Ptot
+               write(eunit_dim,*) t*unit_of_time,&
+                        ekin*unit_of_energy, U*unit_of_energy, (ekin+U)*unit_of_energy,&
+                        Tins*epsilon, Ptot*unit_of_pressure
                !Write snapshot of g(r)
                if(flag_g.ne.0) then
                  call rad_distr_fun(r,Nshells)
