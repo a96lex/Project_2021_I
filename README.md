@@ -12,6 +12,7 @@ Scripts for generating plots of the results are also included.
 - init.f90 : initialization subroutines. Responsible: Eloi Sanchez.
 - parameters.f90 : common parameters for the program. Responsible: Eloi Sanchez.
 - pbc.f90 : boundary conditions subroutines. Responsible: David March.
+- rad_dist.f90 : radial distribution function subroutines. Responsible: David March.
 - integraforces.f90 : integration and dynamic (forces and energies) subroutines. Responsibles: Laia Barjuan (integration) and Arnau Jurado (forces).
 - statvis.f90 : statistics and visualization subroutines. Responsibles: Jaume Ojer (statistics) and Alex Párrraga (visualization).
 
