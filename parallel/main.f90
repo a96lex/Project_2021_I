@@ -75,13 +75,14 @@
       !Start melting
       if(taskid==master) then
             open(unit=10,file="results/thermodynamics_initialization.dat")
+            open(unit=12,file="results/dimensionalized/thermodynamics_initialization_dim.dat") 
             open(unit=11,file="results/init_conf.xyz")
             call writeXyz(D,N,pos,11)
       end if
      
       flag_g = 0
       if(taskid==master)print*,"------Melting Start------"
-      call vvel_solver(5000,1.d-4,pos,vel,1000.d0,10,0,flag_g)
+      call vvel_solver(5000,1.d-4,pos,vel,1000.d0,10,12,0,flag_g)
       if(taskid==master)call writeXyz(D,N,pos,11) !Check that it is random.
       if(taskid==master) then
         call execute_command_line('echo -e "\033[2A"')
@@ -95,11 +96,14 @@
 
       if(taskid==master) then
             close(10)
+            close(11)
+            close(12)
             open(unit=10,file="results/thermodynamics_equilibration.dat")
+            open(unit=11,file="results/dimensionalized/thermodynamics_equilibration_dim.dat")
       end if
 
       if(taskid==master)print*,"------Equilibration Start------"
-      call vvel_solver(n_equil,dt_sim,pos,vel,T_ref,10,0,flag_g)
+      call vvel_solver(n_equil,dt_sim,pos,vel,T_ref,10,11,0,flag_g)
       if(taskid==master) then
         call execute_command_line('echo -e "\033[2A"')
         print*,"------Equilibration Completed------"
