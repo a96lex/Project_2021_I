@@ -65,31 +65,35 @@
 
       ! Start melting of the system
       open(unit=10,file="results/thermodynamics_initialization.dat") ! AJ: open result for initialitzation.
+      open(unit=12,file="results/dimensionalized/thermodynamics_initialization_dim.dat") 
       open(unit=11,file="results/init_conf.xyz")
 
       call writeXyz(D,N,pos,11)
 
       flag_g = 0 ! DM: don't write g(r)
       print*,"------Melting Start------"
-      call vvel_solver(5000,1.d-4,pos,vel,1000.d0,10,0,flag_g) ! AJ: Initialization of system.
+      call vvel_solver(5000,1.d-4,pos,vel,1000.d0,10,12,0,flag_g) ! AJ: Initialization of system.
       print*,"------Melting Completed------"
 
       call writeXyz(D,N,pos,11) ! AJ: write initial configuration, check that it is random.
 
       close(10)
       close(11)
+      close(12)
 
       ! Start dynamics
       ! Perform equilibration of the system
       call init_vel(vel, T_ref) ! AJ: reescale to target temperature
 
       open(unit=10,file="results/thermodynamics_equilibration.dat")
+      open(unit=11,file="results/dimensionalized/thermodynamics_equilibration_dim.dat")
 
       print*,"------Equilibration Start------"
-      call vvel_solver(n_equil,dt_sim,pos,vel,T_ref,10,0,flag_g)
+      call vvel_solver(n_equil,dt_sim,pos,vel,T_ref,10,11,0,flag_g)
       print*,"------Equilibration Completed------"
 
       close(10)
+      close(11)
 
       ! Once the system is equilibrated, start dynamics of the system
       open(unit=10,file="results/thermodynamics.dat")
