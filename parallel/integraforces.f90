@@ -250,7 +250,7 @@ module integraforces
       end subroutine verlet_v_step
 
 
-      subroutine vvel_solver(Nt,dt,r,v,Temp,eunit,eunit_g,flag_g)
+      subroutine vvel_solver(Nt,dt,r,v,Temp,eunit,eunit_dim,eunit_g,flag_g)
       !Author: Laia Barjuan
       !Co-Authors: David March (radial distribution), Arnau Jurado (interface
       !with forces)
@@ -264,6 +264,7 @@ module integraforces
          !        v  --> velocities of the system
          !        T --> temperature of the system
          !        eunit --> unit of file to write energies and temperature
+         !        eunit_dim --> "" with physical units
          !        eunit_g --> unit of file to write g(r)
          !        flag_g --> different to a non-zero int to write files
          ! output: 
@@ -272,7 +273,7 @@ module integraforces
          !use rad_dist
          implicit none
          include 'mpif.h'
-         integer, intent(in) :: Nt, eunit, eunit_g
+         integer, intent(in) :: Nt, eunit, eunit_dim, eunit_g
          real(8) :: dt, Temp
          real(8) :: r(D,N), v(D,N), f(D,N), fold(D,N)
          real(8) :: ekin, U, t, Tins, Ppot, Ptot
@@ -296,6 +297,11 @@ module integraforces
          if (taskid==master) then
              write(eunit,*)"#t,   K,   U,  E,  T,  v_tot,  Ptot"
              write(eunit,*) t, ekin, U, ekin+U, Tins, dsqrt(sum(sum(v,2)**2)), Ptot
+
+             write(eunit_dim,*)"#t,   K,   U,  E,  T,  Ptot"
+             write(eunit_dim,*) t*unit_of_time,&
+                        ekin*unit_of_energy, U*unit_of_energy, (ekin+U)*unit_of_energy,&
+                        Tins*epsilon, Ptot*unit_of_pressure
          endif
              
          if (taskid==master) fold=f
@@ -306,7 +312,13 @@ module integraforces
             if (taskid==master) Ptot = rho*Tins + Ppot
 
             !Write to file.
-            if (taskid==master) write(eunit,*) t, ekin, U, ekin+U, Tins, dsqrt(sum(sum(v,2)**2)), Ptot
+            if (taskid==master) then
+               write(eunit,*) t, ekin, U, ekin+U, Tins, dsqrt(sum(sum(v,2)**2)), Ptot
+
+               write(eunit_dim,*) t*unit_of_time,&
+                        ekin*unit_of_energy, U*unit_of_energy, (ekin+U)*unit_of_energy,&
+                        Tins*epsilon, Ptot*unit_of_pressure
+            endif
             
             !Write snapshot of g(r)
             !if(flag_g.ne.0) then
