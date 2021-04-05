@@ -209,7 +209,7 @@ module integraforces
             rlocal(i,imin:imax) = vec3(imin:imax)
          end do
 
-         !Change of positions and velocities
+         !Change of positions
          do i=imin,imax
             rlocal(:,i)=rlocal(:,i)+vlocal(:,i)*dt +flocal_old(:,i)*dt**2*0.5d0
             call min_img(rlocal(:,i))  !Apply PBC
@@ -232,6 +232,7 @@ module integraforces
             flocal(i,imin:imax) = vec1(imin:imax)
          end do
          
+         !Compute velocities
          do i=imin,imax
             vlocal(:,i)=vlocal(:,i)+(flocal_old(:,i)+flocal(:,i))*dt*0.5d0
          enddo 
