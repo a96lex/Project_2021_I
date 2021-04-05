@@ -255,19 +255,19 @@
       
       if (taskid.eq.master) then
           write(15,*) "Sample mean and Statistical error"
-          write(15,*) "Kinetic Energy", ekinMEAN, dsqrt(ekinVAR/dble(n_conf))
-          write(15,*) "Potential Energy", epotMEAN, dsqrt(epotVAR/dble(n_conf))
-          write(15,*) "Total Energy", etotMEAN, dsqrt(etotVAR/dble(n_conf))
-          write(15,*) "Instant Temperature", TinsMEAN, dsqrt(TinsVAR/dble(n_conf))
-          write(15,*) "Pressure", PMEAN, dsqrt(PVAR/dble(n_conf))
+          write(15,*) "Kinetic Energy", ekinMEAN, dsqrt(ekinVAR)
+          write(15,*) "Potential Energy", epotMEAN, dsqrt(epotVAR)
+          write(15,*) "Total Energy", etotMEAN, dsqrt(etotVAR)
+          write(15,*) "Instant Temperature", TinsMEAN, dsqrt(TinsVAR)
+          write(15,*) "Pressure", PMEAN, dsqrt(PVAR)
           close(15)
 
           write(20,*) "Sample mean and Statistical error"
-          write(20,*) "Kinetic Energy", ekinMEAN*unit_of_energy, dsqrt(ekinVAR/dble(n_conf))*unit_of_energy
-          write(20,*) "Potential Energy", epotMEAN*unit_of_energy, dsqrt(epotVAR/dble(n_conf))*unit_of_energy
-          write(20,*) "Total Energy", etotMEAN*unit_of_energy, dsqrt(etotVAR/dble(n_conf))*unit_of_energy
-          write(20,*) "Instant Temperature", TinsMEAN*epsilon, dsqrt(TinsVAR/dble(n_conf))*epsilon
-          write(20,*) "Pressure", PMEAN*unit_of_pressure, dsqrt(PVAR/dble(n_conf))*unit_of_pressure
+          write(20,*) "Kinetic Energy", ekinMEAN*unit_of_energy, dsqrt(ekinVAR)*unit_of_energy
+          write(20,*) "Potential Energy", epotMEAN*unit_of_energy, dsqrt(epotVAR)*unit_of_energy
+          write(20,*) "Total Energy", etotMEAN*unit_of_energy, dsqrt(etotVAR)*unit_of_energy
+          write(20,*) "Instant Temperature", TinsMEAN*epsilon, dsqrt(TinsVAR)*epsilon
+          write(20,*) "Pressure", PMEAN*unit_of_pressure, dsqrt(PVAR)*unit_of_pressure
           close(20)
       endif
 
