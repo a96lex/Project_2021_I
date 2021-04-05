@@ -17,7 +17,7 @@
       real*8              :: epotAUX,epotMEAN,PMEAN,epotVAR,PVAR
       real*8              :: ekinMEAN,ekinVAR,etotMEAN,etotVAR,TinsMEAN,TinsVAR
       real*8              :: Xmean,Ymean,Zmean,Xvar,Yvar,Zvar
-      integer             :: i,ierror,Nshells,flag_g,k,cnt
+      integer             :: i,j,ierror,Nshells,flag_g,k,cnt
       real*8              :: ti_global,tf_global,elapsed_time !AJ: collective timing of program.
       
       ! Init MPI
