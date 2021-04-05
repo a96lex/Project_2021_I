@@ -11,7 +11,7 @@
       real*8, allocatable :: pos(:,:), vel(:,:), fold(:,:)
       real*8, allocatable :: epotVEC(:), PVEC(:), ekinVEC(:), etotVEC(:), TinsVEC(:)
       real*8, allocatable :: epotVECins(:), g_avg(:), g_squared_avg(:)
-      real*8, allocatable :: Xpos(:), Ypos(:), Zpos(:)
+      real*8, allocatable :: Xpos(:), Ypos(:), Zpos(:), posAUX(:,:), noPBC(:,:)
       
       real*8  :: time,ekin,epot,Tins,P,etot
       real*8  :: epotAUX,epotMEAN,PMEAN,epotVAR,PVAR
@@ -57,6 +57,8 @@
       allocate(Xpos(N))
       allocate(Ypos(N))
       allocate(Zpos(N))
+      allocate(posAUX(D,N))
+      allocate(noPBC(D,N))
 
       ! Initialize positions and velocities
       call init_sc(pos)
@@ -128,19 +130,42 @@
       k = 0
       cnt = 0
       epotAUX = 0.d0
+      noPBC = 0.d0
 
       print*,"------Simulation Start------"
 
       call compute_force_LJ(pos,fold,epot,P)
       do i = 1,n_total
      
+	    posAUX = pos
+
             call verlet_v_step(pos,vel,fold,time,i,dt_sim,epot,P)
             call andersen_therm(vel,T_ref)
 
-            ! Càlcul del coeficient de difusió per cada dimensió
-            Xpos(:) = pos(1,:)
-            Ypos(:) = pos(2,:)
-            Zpos(:) = pos(3,:)
+	    do j=1,N
+		  ! X
+	          if ((pos(1,j)-posAUX(1,j)).gt.(0.9d0*L)) then
+		        noPBC(1,j) = noPBC(1,j) - L
+		  elseif ((pos(1,j)-posAUX(1,j)).lt.(0.9d0*L)) then
+		        noPBC(1,j) = noPBC(1,j) + L
+		  endif
+		  ! Y
+	          if ((pos(2,j)-posAUX(2,j)).gt.(0.9d0*L)) then
+		        noPBC(2,j) = noPBC(2,j) - L
+		  elseif ((pos(2,j)-posAUX(2,j)).lt.(0.9d0*L)) then
+		        noPBC(2,j) = noPBC(2,j) + L
+		  endif
+		  ! Z
+	          if ((pos(3,j)-posAUX(3,j)).gt.(0.9d0*L)) then
+		        noPBC(3,j) = noPBC(3,j) - L
+		  elseif ((pos(3,j)-posAUX(3,j)).lt.(0.9d0*L)) then
+		        noPBC(3,j) = noPBC(3,j) + L
+		  endif
+            enddo
+            ! Càlcul del coeficient de difusió per cada dimensió (s'han evitat les PBC)
+            Xpos(:) = pos(1,:) + noPBC(1,:)
+            Ypos(:) = pos(2,:) + noPBC(2,:)
+            Zpos(:) = pos(3,:) + noPBC(3,:)
             call estad(N,Xpos,Xmean,Xvar)
             call estad(N,Ypos,Ymean,Yvar)
             call estad(N,Zpos,Zmean,Zvar)
@@ -257,6 +282,8 @@
       deallocate(Xpos)
       deallocate(Ypos)
       deallocate(Zpos)
+      deallocate(posAUX)
+      deallocate(noPBC)
       call deallocate_g_variables()
 
       call cpu_time(tf)
