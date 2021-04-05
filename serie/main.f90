@@ -11,7 +11,7 @@
       real*8, allocatable :: pos(:,:), vel(:,:), fold(:,:)
       real*8, allocatable :: epotVEC(:), PVEC(:), ekinVEC(:), etotVEC(:), TinsVEC(:)
       real*8, allocatable :: epotVECins(:), g_avg(:), g_squared_avg(:)
-      real*8, allocatable :: Xpos(:), Ypos(:), Zpos(:)
+      real*8, allocatable :: Xpos(:), Ypos(:), Zpos(:), posAUX(:,:), noPBC(:,:)
       
       real*8  :: time,ekin,epot,Tins,P,etot
       real*8  :: epotAUX,epotMEAN,PMEAN,epotVAR,PVAR
@@ -57,6 +57,8 @@
       allocate(Xpos(N))
       allocate(Ypos(N))
       allocate(Zpos(N))
+      allocate(posAUX(D,N))
+      allocate(noPBC(D,N))
 
       ! Initialize positions and velocities
       call init_sc(pos)
@@ -129,19 +131,42 @@
       k = 0
       cnt = 0
       epotAUX = 0.d0
+      noPBC = 0.d0
 
       print*,"------Simulation Start------"
 
       call compute_force_LJ(pos,fold,epot,P)
       do i = 1,n_total
      
+	    posAUX = pos
+
             call verlet_v_step(pos,vel,fold,time,i,dt_sim,epot,P)
             call andersen_therm(vel,T_ref)
 
-            ! Càlcul del coeficient de difusió per cada dimensió
-            Xpos(:) = pos(1,:)
-            Ypos(:) = pos(2,:)
-            Zpos(:) = pos(3,:)
+	    do j=1,N
+		  ! X
+	          if ((pos(1,j)-posAUX(1,j)).gt.(0.9d0*L)) then
+		        noPBC(1,j) = noPBC(1,j) - L
+		  elseif ((pos(1,j)-posAUX(1,j)).lt.(0.9d0*L)) then
+		        noPBC(1,j) = noPBC(1,j) + L
+		  endif
+		  ! Y
+	          if ((pos(2,j)-posAUX(2,j)).gt.(0.9d0*L)) then
+		        noPBC(2,j) = noPBC(2,j) - L
+		  elseif ((pos(2,j)-posAUX(2,j)).lt.(0.9d0*L)) then
+		        noPBC(2,j) = noPBC(2,j) + L
+		  endif
+		  ! Z
+	          if ((pos(3,j)-posAUX(3,j)).gt.(0.9d0*L)) then
+		        noPBC(3,j) = noPBC(3,j) - L
+		  elseif ((pos(3,j)-posAUX(3,j)).lt.(0.9d0*L)) then
+		        noPBC(3,j) = noPBC(3,j) + L
+		  endif
+            enddo
+            ! Càlcul del coeficient de difusió per cada dimensió (s'han evitat les PBC)
+            Xpos(:) = pos(1,:) + noPBC(1,:)
+            Ypos(:) = pos(2,:) + noPBC(2,:)
+            Zpos(:) = pos(3,:) + noPBC(3,:)
             call estad(N,Xpos,Xmean,Xvar)
             call estad(N,Ypos,Ymean,Yvar)
             call estad(N,Zpos,Zmean,Zvar)
@@ -221,19 +246,19 @@
       call estad(n_conf,TinsVEC,TinsMEAN,TinsVAR)
       call estad(n_conf,PVEC,PMEAN,PVAR)
       write(15,*) "Sample mean and Statistical error"
-      write(15,*) "Kinetic Energy", ekinMEAN, dsqrt(ekinVAR/dble(n_conf))
-      write(15,*) "Potential Energy", epotMEAN, dsqrt(epotVAR/dble(n_conf))
-      write(15,*) "Total Energy", etotMEAN, dsqrt(etotVAR/dble(n_conf))
-      write(15,*) "Instant Temperature", TinsMEAN, dsqrt(TinsVAR/dble(n_conf))
-      write(15,*) "Pressure", PMEAN, dsqrt(PVAR/dble(n_conf))
+      write(15,*) "Kinetic Energy", ekinMEAN, dsqrt(ekinVAR)
+      write(15,*) "Potential Energy", epotMEAN, dsqrt(epotVAR)
+      write(15,*) "Total Energy", etotMEAN, dsqrt(etotVAR)
+      write(15,*) "Instant Temperature", TinsMEAN, dsqrt(TinsVAR)
+      write(15,*) "Pressure", PMEAN, dsqrt(PVAR)
       close(15)
 
       write(20,*) "Sample mean and Statistical error"
-      write(20,*) "Kinetic Energy", ekinMEAN*unit_of_energy, dsqrt(ekinVAR/dble(n_conf))*unit_of_energy
-      write(20,*) "Potential Energy", epotMEAN*unit_of_energy, dsqrt(epotVAR/dble(n_conf))*unit_of_energy
-      write(20,*) "Total Energy", etotMEAN*unit_of_energy, dsqrt(etotVAR/dble(n_conf))*unit_of_energy
-      write(20,*) "Instant Temperature", TinsMEAN*epsilon, dsqrt(TinsVAR/dble(n_conf))*epsilon
-      write(20,*) "Pressure", PMEAN*unit_of_pressure, dsqrt(PVAR/dble(n_conf))*unit_of_pressure
+      write(20,*) "Kinetic Energy", ekinMEAN*unit_of_energy, dsqrt(ekinVAR)*unit_of_energy
+      write(20,*) "Potential Energy", epotMEAN*unit_of_energy, dsqrt(epotVAR)*unit_of_energy
+      write(20,*) "Total Energy", etotMEAN*unit_of_energy, dsqrt(etotVAR)*unit_of_energy
+      write(20,*) "Instant Temperature", TinsMEAN*epsilon, dsqrt(TinsVAR)*epsilon
+      write(20,*) "Pressure", PMEAN*unit_of_pressure, dsqrt(PVAR)*unit_of_pressure
       close(20)
 
       ! Binning de les energies cinètica i potencial
@@ -261,6 +286,8 @@
       deallocate(Xpos)
       deallocate(Ypos)
       deallocate(Zpos)
+      deallocate(posAUX)
+      deallocate(noPBC)
       call deallocate_g_variables()
 
       call cpu_time(tf)
