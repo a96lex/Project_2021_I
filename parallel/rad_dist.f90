@@ -31,64 +31,9 @@ module rad_dist
           shells_vect(i) = 4d0*pi/3d0 * grid_shells**3 * (i**3 - (i-1)**3)
       enddo
    end subroutine prepare_shells
- 
- subroutine rad_dist_fun_pairs(pos,Nshells)
- ! THIS ONE USES imin_p,imax_p to use j=i+1,N in the nested loop !
- ! computes g(r) in a histogram-like way, saving it in the defined g array
-    ! uses the module variable shells_vect
-    ! INPUT: ----------------------------------------------------------------------------
-    !      pos:    position matrix of the particles
-    !      Nshells:    number of bins where to compute g
-    ! OUTPUT: (module variable) ---------------------------------------------------------
-    !      g:    radial distribution function
-    use parameters
-    use pbc
-    implicit none
-    include 'mpif.h'
-    integer, intent(in) :: Nshells
-    real(8), intent(in) :: pos(D,N)
-    ! internal:
-    integer i,j,k,part_ini,part_end,ierror,request
-    real(8) dist,inner_radius,outer_radius
-    real(8), dimension(D) :: distv(D)
-    real(8), dimension(N) :: coord
-    real(8), dimension(D,N) :: pos_local
-    real(8), dimension(Nshells) :: glocal
-    
-    g = 0d0
-    glocal = 0d0
-    pos_local = pos
-    
-    do i=1,3
-       if(taskid.eq.master) coord = pos_local(i,:)
-       call MPI_BCAST(coord,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
-       pos_local(i,:) = coord
-    enddo
-    
-    ! Nested loop for i,j pairs only
-    do i=imin_p,imax_p
-       do j=i+1,N
-          distv = pos_local(:,i) - pos_local(:,j)
-          call min_img(distv)
-          dist = dsqrt(sum((distv)**2))
-          do k=1,Nshells
-             outer_radius = k*grid_shells
-             inner_radius = (k-1)*grid_shells
-             if(dist.lt.outer_radius.and.dist.gt.inner_radius) then
-                glocal(k) = glocal(k) + 1d0/(rho * shells_vect(k))
-             endif
-          enddo
-       enddo
-    enddo
-    !print*, "Task", taskid, " g(40) ", glocal(40)
-    call MPI_BARRIER(MPI_COMM_WORLD,ierror)
-    call MPI_REDUCE(glocal,g,Nshells,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
-    ! Add the duplicated contribution left by not counting the j,i pairs in the nested loop, normalize for N particles
-    if(taskid.eq.master) g = 2d0*g/dble(N)
- end subroutine rad_dist_fun_pairs
- 
+
  subroutine rad_dist_fun_pairs_improv(pos,Nshells)
- ! THIS ONE USES i=imin_p,imax_p j=jmin_p(i),jmax_p(i) in the nested loop !
+ ! THIS ONE USES i=imin_p,imax_p j=jmin_p(i),jmax_p(i) in the nested loop. Equal number of paris per processor.
  ! computes g(r) in a histogram-like way, saving it in the defined g array
     ! uses the module variable shells_vect
     ! INPUT: ----------------------------------------------------------------------------
@@ -150,7 +95,65 @@ module rad_dist
   end subroutine
   
   
-   subroutine rad_dist_fun(pos,Nshells) ! THE LEAST EFFICIENT, CURRENTLY UNUSED
+  
+   subroutine rad_dist_fun_pairs(pos,Nshells)  ! LESS EFICIENT, CURRENTLY UNUSED
+    ! THIS ONE USES imin_p,imax_p to use j=i+1,N in the nested loop. Approx (but not equal) same amount of pairs per processor.
+    ! computes g(r) in a histogram-like way, saving it in the defined g array
+    ! uses the module variable shells_vect
+    ! INPUT: ----------------------------------------------------------------------------
+    !      pos:    position matrix of the particles
+    !      Nshells:    number of bins where to compute g
+    ! OUTPUT: (module variable) ---------------------------------------------------------
+    !      g:    radial distribution function
+    use parameters
+    use pbc
+    implicit none
+    include 'mpif.h'
+    integer, intent(in) :: Nshells
+    real(8), intent(in) :: pos(D,N)
+    ! internal:
+    integer i,j,k,part_ini,part_end,ierror,request
+    real(8) dist,inner_radius,outer_radius
+    real(8), dimension(D) :: distv(D)
+    real(8), dimension(N) :: coord
+    real(8), dimension(D,N) :: pos_local
+    real(8), dimension(Nshells) :: glocal
+    
+    g = 0d0
+    glocal = 0d0
+    pos_local = pos
+    
+    do i=1,3
+       if(taskid.eq.master) coord = pos_local(i,:)
+       call MPI_BCAST(coord,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
+       pos_local(i,:) = coord
+    enddo
+    
+    ! Nested loop for i,j pairs only
+    do i=imin_p,imax_p
+       do j=i+1,N
+          distv = pos_local(:,i) - pos_local(:,j)
+          call min_img(distv)
+          dist = dsqrt(sum((distv)**2))
+          do k=1,Nshells
+             outer_radius = k*grid_shells
+             inner_radius = (k-1)*grid_shells
+             if(dist.lt.outer_radius.and.dist.gt.inner_radius) then
+                glocal(k) = glocal(k) + 1d0/(rho * shells_vect(k))
+             endif
+          enddo
+       enddo
+    enddo
+    !print*, "Task", taskid, " g(40) ", glocal(40)
+    call MPI_BARRIER(MPI_COMM_WORLD,ierror)
+    call MPI_REDUCE(glocal,g,Nshells,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
+    ! Add the duplicated contribution left by not counting the j,i pairs in the nested loop, normalize for N particles
+    if(taskid.eq.master) g = 2d0*g/dble(N)
+ end subroutine rad_dist_fun_pairs
+ 
+ 
+   subroutine rad_dist_fun(pos,Nshells) ! THE LEAST EFFICIENT, CURRENTLY UNUSED.
+    ! USES imin, imax from divide_particles() to divide the work (i.e. each processor with the same amount of particles)
     ! computes g(r) in a histogram-like way, saving it in the defined g array
     ! uses the module variable shells_vect
     ! INPUT: ----------------------------------------------------------------------------
