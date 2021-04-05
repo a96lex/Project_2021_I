@@ -251,7 +251,7 @@ module integraforces
       end subroutine verlet_v_step
 
 
-      subroutine vvel_solver(Nt,dt,r,v,Temp,eunit,eunit_dim,eunit_g,flag_g)
+      subroutine vvel_solver(Nt,dt,r,v,Temp,eunit,eunit_dim,eunit_g,eunit_g_dim,flag_g)
       !Author: Laia Barjuan
       !Co-Authors: David March (radial distribution), Arnau Jurado (interface
       !with forces)
@@ -271,10 +271,10 @@ module integraforces
          ! output: 
          !         modified r and v
          ! --------------------------------------------------
-         !use rad_dist
+         use rad_dist
          implicit none
          include 'mpif.h'
-         integer, intent(in) :: Nt, eunit, eunit_dim, eunit_g
+         integer, intent(in) :: Nt, eunit, eunit_dim, eunit_g, eunit_g_dim
          real(8) :: dt, Temp
          real(8) :: r(D,N), v(D,N), f(D,N), fold(D,N)
          real(8) :: ekin, U, t, Tins, Ppot, Ptot
@@ -282,12 +282,17 @@ module integraforces
          ! Flags for writing g:
          integer, intent(in) :: flag_g
          integer :: Nshells
+         real(8), dimension(:), allocatable :: g_avg, g_squared_avg
          
          ! Initialization of the g(r) calculation:
-         !if(flag_g.ne.0) then
-         !  Nshells = 100
-         !  call prepare_shells_and_procs(Nshells,numproc) !LB: numproc not necessary (already in param)
-         !endif
+         if(flag_g.ne.0) then
+           Nshells = 100
+           call prepare_shells(Nshells)
+           allocate(g_avg(Nshells))
+           allocate(g_squared_avg(Nshells))
+           g_avg = 0d0
+           g_squared_avg = 0d0
+         endif
 
          t = 0.d0
          call compute_force_LJ(r,f,U,Ppot) !Initial force, energy and pressure
@@ -321,14 +326,14 @@ module integraforces
                         Tins*epsilon, Ptot*unit_of_pressure
             endif
             
-            !Write snapshot of g(r)
-            !if(flag_g.ne.0) then
-            !  call rad_distr_fun(r,Nshells)
-            !  do j=1,Nshells
-            !      write(eunit_g,*) (j-1)*grid_shells, g(j)
-            !  enddo
-            !  write(eunit_g,*) ! separation line
-            !endif
+            ! Save snapshot of g(r) to average
+            if(flag_g.ne.0) then
+              call rad_dist_fun_pairs_improv(r,Nshells)
+              if(taskid==master) then
+                g_avg = g_avg + g
+                g_squared_avg = g_squared_avg + g**2
+              endif
+            endif
 
             if(mod(i,int(0.001*Nt))==0 .and. taskid==master) then
                   write (*,"(A,F5.1,A)",advance="no") "Progress: ",i/dble(Nt)*100.,"%"
@@ -336,6 +341,13 @@ module integraforces
             endif
             
          enddo
+         
+         if(flag_g.ne.0.and.taskid.eq.master) then
+           do j=1,Nshells
+             write(eunit_g,*) (j-1)*grid_shells+grid_shells/2d0, g(j), dsqrt(g_squared_avg(i) - g_avg(i)**2)
+             write(eunit_g_dim,*) ((j-1)*grid_shells+grid_shells/2d0)*sigma, g(j), dsqrt(g_squared_avg(i) - g_avg(i)**2)
+           enddo
+         endif
 
          return
       end subroutine vvel_solver

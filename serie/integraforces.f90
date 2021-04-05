@@ -160,7 +160,7 @@
          end subroutine verlet_v_step
 
 
-         subroutine vvel_solver(Nt,dt,r,v,Temp,eunit,eunit_dim,eunit_g,flag_g)
+         subroutine vvel_solver(Nt,dt,r,v,Temp,eunit,eunit_dim,eunit_g,eunit_g_dim,flag_g)
          !Author: Laia Barjuan
          !Co-Authors: David March (radial distribution), Arnau Jurado (interface with forces)
    !     Performs Nt steps of the velocity verlet algorithm while computing
@@ -181,7 +181,7 @@
             ! --------------------------------------------------
             use rad_dist
             implicit none
-            integer, intent(in) :: Nt, eunit, eunit_dim, eunit_g
+            integer, intent(in) :: Nt, eunit, eunit_dim, eunit_g, eunit_g_dim
             real(8) :: dt, Temp
             real(8) :: r(D,N), v(D,N), f(D,N), fold(D,N)
             real(8) :: ekin, U, t, Tins, Ppot, Ptot
@@ -189,11 +189,16 @@
             ! Flags for writing g:
             integer, intent(in) :: flag_g
             integer :: Nshells
+            real(8), dimension(:), allocatable :: g_avg, g_squared_avg
             
             ! Initialization of the g(r) calculation:
             if(flag_g.ne.0) then
               Nshells = 100
               call prepare_shells(Nshells)
+              allocate(g_avg(Nshells))
+              allocate(g_squared_avg(Nshells))
+              g_avg = 0d0
+              g_squared_avg = 0d0
             endif
 
             t = 0.d0
@@ -222,13 +227,11 @@
                write(eunit_dim,*) t*unit_of_time,&
                         ekin*unit_of_energy, U*unit_of_energy, (ekin+U)*unit_of_energy,&
                         Tins*epsilon, Ptot*unit_of_pressure
-               !Write snapshot of g(r)
+               !Save snapshot of g(r) to average
                if(flag_g.ne.0) then
                  call rad_distr_fun(r,Nshells)
-                 do j=1,Nshells
-                     write(eunit_g,*) (j-1)*grid_shells, g(j)
-                 enddo
-                 write(eunit_g,*) ! separation line
+                 g_avg = g_avg + g
+                 g_squared_avg = g_squared_avg + g**2
                endif
 
                if(mod(i,int(0.001*Nt))==0) then
@@ -237,6 +240,13 @@
                 endif
                
             enddo
+            
+            if(flag_g.ne.0) then
+              do j=1,Nshells
+                write(eunit_g,*) (j-1)*grid_shells+grid_shells/2d0, g(j), dsqrt(g_squared_avg(i) - g_avg(i)**2)
+                write(eunit_g_dim,*) ((j-1)*grid_shells+grid_shells/2d0)*sigma, g(j), dsqrt(g_squared_avg(i) - g_avg(i)**2)
+              enddo
+            endif
 
             return
          end subroutine vvel_solver

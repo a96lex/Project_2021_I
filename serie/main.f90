@@ -72,7 +72,7 @@
 
       flag_g = 0 ! DM: don't write g(r)
       print*,"------Melting Start------"
-      call vvel_solver(5000,1.d-4,pos,vel,1000.d0,10,12,0,flag_g) ! AJ: Initialization of system.
+      call vvel_solver(5000,1.d-4,pos,vel,1000.d0,10,12,0,0,flag_g) ! AJ: Initialization of system.
       print*,"------Melting Completed------"
 
       call writeXyz(D,N,pos,11) ! AJ: write initial configuration, check that it is random.
@@ -89,7 +89,7 @@
       open(unit=11,file="results/dimensionalized/thermodynamics_equilibration_dim.dat")
 
       print*,"------Equilibration Start------"
-      call vvel_solver(n_equil,dt_sim,pos,vel,T_ref,10,11,0,flag_g)
+      call vvel_solver(n_equil,dt_sim,pos,vel,T_ref,10,11,0,0,flag_g)
       print*,"------Equilibration Completed------"
 
       close(10)
@@ -111,6 +111,7 @@
       open(unit=18,file="results/dimensionalized/mean_epot_dim.dat")
       open(unit=19,file="results/dimensionalized/diffcoeff_dim.dat")
       open(unit=20,file="results/dimensionalized/averages_dim.dat")
+      open(unit=21,file="results/dimensionalized/radial_distribution_dim.dat")
 
       write(10,*)"#t,   K,   U,  E,  T,  v_tot,  Ptot"
       write(16,*)"#t,   K,   U,  E,  T,  Ptot"
@@ -201,11 +202,14 @@
       ! Average de la g(r)
       g_avg = g_avg/dble(n_conf)
       g_squared_avg = g_squared_avg/dble(n_conf)
-      write(12,*) " # r (reduced units), r (Angstroms),   g(r),   std dev "
+      write(12,*) " # r (reduced units),   g(r),   std dev "
+      write(21,*) " # r (Angstroms),   g(r),   std dev "
       do i=1,Nshells
-        write(12,*) grid_shells*(i-1), grid_shells*(i-1)*sigma, g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
+        write(12,*) grid_shells*(i-1)+grid_shells/2d0, dsqrt(g_squared_avg(i) - g_avg(i)**2)
+        write(21,*) (grid_shells*(i-1)+grid_shells/2d0)*sigma, g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
       enddo
       close(12)
+      close(21)
         
 
       ! Averages finals
