@@ -138,30 +138,30 @@
       call compute_force_LJ(pos,fold,epot,P)
       do i = 1,n_total
      
-	    posAUX = pos
+          posAUX = pos
 
             call verlet_v_step(pos,vel,fold,time,i,dt_sim,epot,P)
             call andersen_therm(vel,T_ref)
 
-	    do j=1,N
-		  ! X
-	          if ((pos(1,j)-posAUX(1,j)).gt.(0.9d0*L)) then
-		        noPBC(1,j) = noPBC(1,j) - L
-		  elseif ((pos(1,j)-posAUX(1,j)).lt.(0.9d0*L)) then
-		        noPBC(1,j) = noPBC(1,j) + L
-		  endif
-		  ! Y
-	          if ((pos(2,j)-posAUX(2,j)).gt.(0.9d0*L)) then
-		        noPBC(2,j) = noPBC(2,j) - L
-		  elseif ((pos(2,j)-posAUX(2,j)).lt.(0.9d0*L)) then
-		        noPBC(2,j) = noPBC(2,j) + L
-		  endif
-		  ! Z
-	          if ((pos(3,j)-posAUX(3,j)).gt.(0.9d0*L)) then
-		        noPBC(3,j) = noPBC(3,j) - L
-		  elseif ((pos(3,j)-posAUX(3,j)).lt.(0.9d0*L)) then
-		        noPBC(3,j) = noPBC(3,j) + L
-		  endif
+          do j=1,N
+              ! X
+                if ((pos(1,j)-posAUX(1,j)).gt.(0.9d0*L)) then
+                    noPBC(1,j) = noPBC(1,j) - L
+              elseif ((pos(1,j)-posAUX(1,j)).lt.(0.9d0*L)) then
+                    noPBC(1,j) = noPBC(1,j) + L
+              endif
+              ! Y
+                if ((pos(2,j)-posAUX(2,j)).gt.(0.9d0*L)) then
+                    noPBC(2,j) = noPBC(2,j) - L
+              elseif ((pos(2,j)-posAUX(2,j)).lt.(0.9d0*L)) then
+                    noPBC(2,j) = noPBC(2,j) + L
+              endif
+              ! Z
+                if ((pos(3,j)-posAUX(3,j)).gt.(0.9d0*L)) then
+                    noPBC(3,j) = noPBC(3,j) - L
+              elseif ((pos(3,j)-posAUX(3,j)).lt.(0.9d0*L)) then
+                    noPBC(3,j) = noPBC(3,j) + L
+              endif
             enddo
             ! Càlcul del coeficient de difusió per cada dimensió (s'han evitat les PBC)
             Xpos(:) = pos(1,:) + noPBC(1,:)
