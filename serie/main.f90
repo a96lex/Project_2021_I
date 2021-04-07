@@ -104,9 +104,9 @@
       open(unit=13,file="results/mean_epot.dat")
       open(unit=14,file="results/diffcoeff.dat")
       open(unit=15,file="results/averages.dat")
-      open(unit=21,file="results/ekinBIN.dat")
-      open(unit=22,file="results/epotBIN.dat")
-      open(unit=23,file="results/correlation_energy.dat")
+      open(unit=20,file="results/ekinBIN.dat")
+      open(unit=21,file="results/epotBIN.dat")
+      open(unit=22,file="results/correlation_energy.dat")
 
       open(unit=16,file="results/dimensionalized/thermodynamics_dim.dat")
       open(unit=17,file="results/dimensionalized/trajectory_dim.xyz")
@@ -114,6 +114,9 @@
       open(unit=19,file="results/dimensionalized/diffcoeff_dim.dat")
       open(unit=24,file="results/dimensionalized/averages_dim.dat")
       open(unit=25,file="results/dimensionalized/radial_distribution_dim.dat")
+      open(unit=23,file="results/dimensionalized/ekinBIN_dim.dat")
+      open(unit=26,file="results/dimensionalized/epotBIN_dim.dat")
+      open(unit=27,file="results/dimensionalized/correlation_energy_dim.dat")
 
       write(10,*)"#t,   K,   U,  E,  T,  v_tot,  Ptot"
       write(16,*)"#t,   K,   U,  E,  T,  Ptot"
@@ -262,15 +265,22 @@
       close(24)
 
       ! Binning de les energies cinètica i potencial
-      call binning(n_conf,ekinVEC,50,21)
-      call binning(n_conf,epotVEC,50,22)
+      call binning(n_conf,ekinVEC,50,20)
+      call binning(n_conf,epotVEC,50,21)
+      
+      call binning(n_conf,ekinVEC*unit_of_energy,50,23)
+      call binning(n_conf,epotVEC*unit_of_energy,50,26)
       
       ! Funció d'autocorrelació per l'energia total
-      call corrtime(n_conf,etotVEC,23)
+      call corrtime(n_conf,etotVEC,22)
+      call corrtime(n_conf,etotVEC*unit_of_energy,27)
 
+      close(20)
       close(21)
-      close(22)
       close(23)
+      close(26)
+      close(22)
+      close(27)
 
       ! Deallocates
       deallocate(pos) 
