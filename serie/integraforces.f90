@@ -169,7 +169,7 @@
             real(8) :: dt, Temp
             real(8) :: r(D,N), v(D,N), f(D,N), fold(D,N)
             real(8) :: ekin, U, t, Tins, Ppot, Ptot
-            integer :: i,j,k
+            integer :: i,j
             ! Flags for writing g:
             integer, intent(in) :: flag_g
             integer :: Nshells
