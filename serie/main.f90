@@ -230,7 +230,7 @@
       write(12,*) " # r (reduced units),   g(r),   std dev "
       write(25,*) " # r (Angstroms),   g(r),   std dev "
       do i=1,Nshells
-        write(12,*) grid_shells*(i-1)+grid_shells/2d0, dsqrt(g_squared_avg(i) - g_avg(i)**2)
+        write(12,*) grid_shells*(i-1)+grid_shells/2d0, g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
         write(25,*) (grid_shells*(i-1)+grid_shells/2d0)*sigma, g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
       enddo
       close(12)
