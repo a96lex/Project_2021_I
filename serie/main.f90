@@ -112,8 +112,8 @@
       open(unit=17,file="results/dimensionalized/trajectory_dim.xyz")
       open(unit=18,file="results/dimensionalized/mean_epot_dim.dat")
       open(unit=19,file="results/dimensionalized/diffcoeff_dim.dat")
-      open(unit=20,file="results/dimensionalized/averages_dim.dat")
-      open(unit=21,file="results/dimensionalized/radial_distribution_dim.dat")
+      open(unit=24,file="results/dimensionalized/averages_dim.dat")
+      open(unit=25,file="results/dimensionalized/radial_distribution_dim.dat")
 
       write(10,*)"#t,   K,   U,  E,  T,  v_tot,  Ptot"
       write(16,*)"#t,   K,   U,  E,  T,  Ptot"
@@ -138,30 +138,30 @@
       call compute_force_LJ(pos,fold,epot,P)
       do i = 1,n_total
      
-	    posAUX = pos
+          posAUX = pos
 
             call verlet_v_step(pos,vel,fold,time,i,dt_sim,epot,P)
             call andersen_therm(vel,T_ref)
 
-	    do j=1,N
-		  ! X
-	          if ((pos(1,j)-posAUX(1,j)).gt.(0.9d0*L)) then
-		        noPBC(1,j) = noPBC(1,j) - L
-		  elseif ((pos(1,j)-posAUX(1,j)).lt.(0.9d0*L)) then
-		        noPBC(1,j) = noPBC(1,j) + L
-		  endif
-		  ! Y
-	          if ((pos(2,j)-posAUX(2,j)).gt.(0.9d0*L)) then
-		        noPBC(2,j) = noPBC(2,j) - L
-		  elseif ((pos(2,j)-posAUX(2,j)).lt.(0.9d0*L)) then
-		        noPBC(2,j) = noPBC(2,j) + L
-		  endif
-		  ! Z
-	          if ((pos(3,j)-posAUX(3,j)).gt.(0.9d0*L)) then
-		        noPBC(3,j) = noPBC(3,j) - L
-		  elseif ((pos(3,j)-posAUX(3,j)).lt.(0.9d0*L)) then
-		        noPBC(3,j) = noPBC(3,j) + L
-		  endif
+          do j=1,N
+              ! X
+                if ((pos(1,j)-posAUX(1,j)).gt.(0.9d0*L)) then
+                    noPBC(1,j) = noPBC(1,j) - L
+              elseif ((pos(1,j)-posAUX(1,j)).lt.(0.9d0*L)) then
+                    noPBC(1,j) = noPBC(1,j) + L
+              endif
+              ! Y
+                if ((pos(2,j)-posAUX(2,j)).gt.(0.9d0*L)) then
+                    noPBC(2,j) = noPBC(2,j) - L
+              elseif ((pos(2,j)-posAUX(2,j)).lt.(0.9d0*L)) then
+                    noPBC(2,j) = noPBC(2,j) + L
+              endif
+              ! Z
+                if ((pos(3,j)-posAUX(3,j)).gt.(0.9d0*L)) then
+                    noPBC(3,j) = noPBC(3,j) - L
+              elseif ((pos(3,j)-posAUX(3,j)).lt.(0.9d0*L)) then
+                    noPBC(3,j) = noPBC(3,j) + L
+              endif
             enddo
             ! Càlcul del coeficient de difusió per cada dimensió (s'han evitat les PBC)
             Xpos(:) = pos(1,:) + noPBC(1,:)
@@ -228,13 +228,13 @@
       g_avg = g_avg/dble(n_conf)
       g_squared_avg = g_squared_avg/dble(n_conf)
       write(12,*) " # r (reduced units),   g(r),   std dev "
-      write(21,*) " # r (Angstroms),   g(r),   std dev "
+      write(25,*) " # r (Angstroms),   g(r),   std dev "
       do i=1,Nshells
         write(12,*) grid_shells*(i-1)+grid_shells/2d0, dsqrt(g_squared_avg(i) - g_avg(i)**2)
-        write(21,*) (grid_shells*(i-1)+grid_shells/2d0)*sigma, g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
+        write(25,*) (grid_shells*(i-1)+grid_shells/2d0)*sigma, g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
       enddo
       close(12)
-      close(21)
+      close(25)
         
 
       ! Averages finals
@@ -253,13 +253,13 @@
       write(15,*) "Pressure", PMEAN, dsqrt(PVAR)
       close(15)
 
-      write(20,*) "Sample mean and Statistical error"
-      write(20,*) "Kinetic Energy", ekinMEAN*unit_of_energy, dsqrt(ekinVAR)*unit_of_energy
-      write(20,*) "Potential Energy", epotMEAN*unit_of_energy, dsqrt(epotVAR)*unit_of_energy
-      write(20,*) "Total Energy", etotMEAN*unit_of_energy, dsqrt(etotVAR)*unit_of_energy
-      write(20,*) "Instant Temperature", TinsMEAN*epsilon, dsqrt(TinsVAR)*epsilon
-      write(20,*) "Pressure", PMEAN*unit_of_pressure, dsqrt(PVAR)*unit_of_pressure
-      close(20)
+      write(24,*) "Sample mean and Statistical error"
+      write(24,*) "Kinetic Energy", ekinMEAN*unit_of_energy, dsqrt(ekinVAR)*unit_of_energy
+      write(24,*) "Potential Energy", epotMEAN*unit_of_energy, dsqrt(epotVAR)*unit_of_energy
+      write(24,*) "Total Energy", etotMEAN*unit_of_energy, dsqrt(etotVAR)*unit_of_energy
+      write(24,*) "Instant Temperature", TinsMEAN*epsilon, dsqrt(TinsVAR)*epsilon
+      write(24,*) "Pressure", PMEAN*unit_of_pressure, dsqrt(PVAR)*unit_of_pressure
+      close(24)
 
       ! Binning de les energies cinètica i potencial
       call binning(n_conf,ekinVEC,50,21)
