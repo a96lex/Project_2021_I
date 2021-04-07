@@ -169,7 +169,7 @@
             real(8) :: dt, Temp
             real(8) :: r(D,N), v(D,N), f(D,N), fold(D,N)
             real(8) :: ekin, U, t, Tins, Ppot, Ptot
-            integer :: i,j
+            integer :: i,j,k
             ! Flags for writing g:
             integer, intent(in) :: flag_g
             integer :: Nshells
@@ -199,7 +199,7 @@
                         ekin*unit_of_energy, U*unit_of_energy, (ekin+U)*unit_of_energy,&
                         Tins*epsilon, Ptot*unit_of_pressure
 
-            f=fold
+            fold = f
             do i=1,Nt !Main time loop.
                call verlet_v_step(r,v,fold,t,i,dt,U,Ppot) !Perform Verlet step.
                call andersen_therm(v,Temp) !Apply thermostat
@@ -221,8 +221,7 @@
                if(mod(i,int(0.001*Nt))==0) then
                   write (*,"(A,F5.1,A)",advance="no") "Progress: ",i/dble(Nt)*100.,"%"
                   if (i<Nt) call execute_command_line('echo "\033[A"')
-                endif
-               
+                endif            
             enddo
             
             if(flag_g.ne.0) then
