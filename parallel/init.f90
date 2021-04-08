@@ -52,7 +52,6 @@ module init
             imin = taskid * N / numproc + 1
             imax = (taskid + 1) * N / numproc
             local_size = imax - imin + 1
-            ! print*,taskid,imin,imax,imax-imin+1
             
             ! We create aux_size(numproc) and aux_pos(numproc) only in master
             call MPI_Gather(local_size, 1, MPI_INTEGER, aux_size, 1, MPI_INTEGER, &
@@ -64,6 +63,11 @@ module init
                     aux_pos(i+1) = aux_pos(i) + aux_size(i)
                 end do
             end if
+            
+            call MPI_Bcast(aux_pos, numproc, MPI_INTEGER, master, &
+                          MPI_COMM_WORLD, ierror)
+            call MPI_Bcast(aux_size, numproc, MPI_INTEGER, master, &
+                        MPI_COMM_WORLD, ierror)
 
         end subroutine divide_particles
         
