@@ -101,7 +101,7 @@
             close(12)
             open(unit=10,file="results/thermodynamics_equilibration.dat")
             open(unit=11,file="results/dimensionalized/thermodynamics_equilibration_dim.dat")
-      end if
+      endif
 
       if(taskid==master)print*,"------Equilibration Start------"
       call vvel_solver(n_equil,dt_sim,pos,vel,T_ref,10,11,0,0,flag_g)
@@ -134,8 +134,8 @@
             open(unit=26,file="results/dimensionalized/epotBIN_dim.dat")
             open(unit=27,file="results/dimensionalized/correlation_energy_dim.dat")
       
-            write(10,*)"#t,   K,   U,  E,  T,  v_tot,  Ptot"
-            write(16,*)"#t,   K,   U,  E,  T,  Ptot"
+            write(10,*)"#time,   K,   U,  E,  T,  Ptot"
+            write(16,*)"#time,   K,   U,  E,  T,  Ptot"
       end if
   
       ! Prepare g(r) variables
@@ -194,7 +194,7 @@
              call estadcoeff(N,Xpos,Xmean,Xvar)
              call estadcoeff(N,Ypos,Ymean,Yvar)
              call estadcoeff(N,Zpos,Zmean,Zvar)
-             if (taskid.eq.master) then
+             if (taskid==master) then
                  write(14,*) 2.d0*dble(i), Xvar*dble(N), Yvar*dble(N), Zvar*dble(N)
                  write(19,*) 2.d0*time, Xvar*dble(N)*unit_of_length**2,&
                   Yvar*dble(N)*unit_of_length**2,&
@@ -209,7 +209,7 @@
                 k = 0
                 cnt = cnt+1
                 call estad(n_meas,epotVECins,epotMEAN,epotVAR)
-                if (taskid.eq.master) then
+                if (taskid==master) then
                     epotAUX = (epotMEAN+epotAUX*dble(cnt-1))/dble(cnt)
                     write(13,*) i, epotAUX
                     write(18,*) i, epotAUX*unit_of_energy
@@ -286,7 +286,7 @@
        call estad(n_conf,TinsVEC,TinsMEAN,TinsVAR)
        call estad(n_conf,PVEC,PMEAN,PVAR)
       
-       if (taskid.eq.master) then
+       if (taskid==master) then
            write(15,*) "Sample mean and Statistical error"
            write(15,*) "Kinetic Energy", ekinMEAN, dsqrt(ekinVAR)
            write(15,*) "Potential Energy", epotMEAN, dsqrt(epotVAR)
@@ -304,7 +304,7 @@
            close(20)
        endif
 
-       ! Binning de les energies cinètica i potencial
+       ! Binning de les energies cinetica i potencial
        call binning(n_conf,ekinVEC,50,22)
        call binning(n_conf,epotVEC,50,23)
       
@@ -315,7 +315,7 @@
        call corrtime(n_conf,etotVEC,24)
        call corrtime(n_conf,etotVEC*unit_of_energy,27)
       
-       if (taskid.eq.master) then
+       if (taskid==master) then
          close(22)
          close(23)
          close(24)
