@@ -34,5 +34,5 @@ mass=4.002 !g
 !mass=131.29
 
 fact_rc=1.0  ! From 0 to 1
-nu=0.0       ! Collision probability for Andersen thermostat
+nu=0.1       ! Collision probability for Andersen thermostat
 /

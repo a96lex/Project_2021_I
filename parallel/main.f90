@@ -9,7 +9,7 @@
       implicit none
       include 'mpif.h'
       character(len=50)   :: input_name
-      real*8, allocatable :: pos(:,:), vel(:,:), fold(:,:), g_avg(:), g_squared_avg(:)
+      real*8, allocatable :: pos(:,:), vel(:,:), fold(:,:), g_avg(:), g_squared_avg(:), g_avg_final(:), g_squared_avg_final(:)
       real*8, allocatable :: pos_local(:,:),vel_local(:,:),vec(:)
       real*8, allocatable :: epotVECins(:), epotVEC(:), PVEC(:), ekinVEC(:), etotVEC(:), TinsVEC(:)
       real*8, allocatable :: Xpos(:), Ypos(:), Zpos(:), posAUX(:,:), noPBC(:,:)
@@ -169,18 +169,21 @@
             write(16,*)"#t,   K,   U,  E,  T,  Ptot"
       end if
   
-      !Prepare g(r) variables
+      ! Prepare g(r) variables
       Nshells = 100
       call prepare_shells(Nshells)
+      allocate(g_avg(Nshells))
+      allocate(g_squared_avg(Nshells))
+      g_avg = 0d0
+      g_squared_avg = 0d0
       if(taskid==master) then
-            allocate(g_avg(Nshells))
-            allocate(g_squared_avg(Nshells))
-            g_avg = 0d0
-            g_squared_avg = 0d0
-            
-            print*,"------Simulation Start------"
+            allocate(g_avg_final(Nshells))
+            allocate(g_squared_avg_final(Nshells))       
       endif
       
+      if(taskid==master) then
+            print*,"------Simulation Start------"
+      endif
       
       k = 0
       cnt = 0
@@ -264,12 +267,10 @@
                         call writeXyz(D,N,pos,11)
             !             call writeXyz(D,N,pos*unit_of_length,17)
                   end if
-            !       call rad_dist_fun_pairs_improv(pos,Nshells)
-            !       !call rad_dist_fun_pairs(pos,Nshells)
-            !       if(taskid==master) then
-            !             g_avg = g_avg + g
-            !             g_squared_avg = g_squared_avg + g**2
-            !       endif
+                   ! each processor computes its part of the g(r) and saves its contribution to the average: 
+                   call rad_dist_fun_pairs_improv(pos,Nshells)
+                   g_avg = g_avg + g
+                   g_squared_avg = g_squared_avg + g**2
             endif
       
             if(mod(i,int(0.001*n_total))==0 .and. taskid==master) then
@@ -294,17 +295,25 @@
       ! end if
       
       ! ! Average de la g(r)
-      ! if(taskid==master) then
-      !       g_avg = g_avg/dble(n_conf)
-      !       g_squared_avg = g_squared_avg/dble(n_conf)
-      !       write(12,*) " # r (reduced units),   g(r),   std_dev "
-      !       write(21,*) " # r (Angstroms),   g(r),    std_dev"
-      !       do i=1,Nshells
-      !             write(12,*) grid_shells*(i-1)+grid_shells/2d0, g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
-      !             write(21,*) grid_shells*(i-1)*sigma + grid_shells*sigma/2d0, g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
-      !       enddo
-      !       close(12)
-      ! endif
+      call MPI_REDUCE(g_avg,g_avg_final,Nshells,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
+      call MPI_REDUCE(g_squared_avg,g_squared_avg_final,Nshells,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
+      if(taskid==master) then
+             g_avg_final = g_avg_final/dble(n_conf)
+             g_squared_avg_final = g_squared_avg_final/dble(n_conf)
+             !g_avg = g_avg/dble(n_conf)
+             !g_squared_avg = g_squared_avg/dble(n_conf)
+             write(12,*) " # r (reduced units),   g(r),   std_dev "
+             write(21,*) " # r (Angstroms),   g(r),    std_dev"
+             do i=1,Nshells
+                   write(12,*) grid_shells*(i-1)+grid_shells/2d0, g_avg_final(i), dsqrt(g_squared_avg_final(i) - g_avg_final(i)**2)
+                   write(21,*) grid_shells*(i-1)*sigma + grid_shells*sigma/2d0, &
+                               g_avg_final(i), dsqrt(g_squared_avg_final(i) - g_avg_final(i)**2)
+             !      write(12,*) grid_shells*(i-1)+grid_shells/2d0, g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
+             !      write(21,*) grid_shells*(i-1)*sigma + grid_shells*sigma/2d0, g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
+             enddo
+             close(12)
+             close(21)
+       endif
 
       ! ! Averages finals
       ! if (allocated(epotVECins)) deallocate(epotVECins)
