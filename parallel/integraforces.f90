@@ -42,7 +42,7 @@ module integraforces
                         end if
                   end do
             end do
-            P = 1.d0/(3.d0*L**3)*P
+            Plocal = 1.d0/(3.d0*L**3)*Plocal
             call MPI_REDUCE(Ulocal,U,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
             call MPI_REDUCE(Plocal,P,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
       end subroutine compute_force_LJ
