@@ -11,45 +11,35 @@ module integraforces
             include 'mpif.h'
             real*8,intent(in)  :: r(D,N)
             real*8,intent(out) :: f(D,N),U,P
-            real*8             :: flocal(D,N),Ulocal,Plocal
             real*8             :: distv(D),dist,fij(D)
-            real*8             :: rlocal(D,N),coord(N)
             integer            :: i,j
-            integer            :: ierror,request
 
             !Initialize quantities.
             f = 0.d0
             U = 0.d0
             P = 0.d0
 
-            flocal = 0.d0
-            Ulocal = 0.d0
-            Plocal = 0.d0
-            rlocal = r
-
-
             do i=imin,imax !Loop over assigned particles
                   do j=1,N
                         if(i/=j) then
                               !Compute distance and apply minimum image convention.
-                              distv = rlocal(:,i)-rlocal(:,j)
+                              distv = r(:,i)-r(:,j)
                               call min_img(distv)
                               dist = sqrt(sum((distv)**2))
 
                               if(dist<rc) then !Cutoff
                                     !Compute forces and pressure.
                                     fij = (48.d0/dist**14 - 24.d0/dist**8)*distv
-                                    flocal(:,i) = flocal(:,i) + fij
+                                    f(:,i) = f(:,i) + fij
 
-                                    Ulocal = Ulocal + 4.d0*((1.d0/dist)**12-(1.d0/dist)**6)-&
+                                    U = U + 4.d0*((1.d0/dist)**12-(1.d0/dist)**6)-&
                                                 4.d0*((1.d0/rc)**12-(1.d0/rc)**6)
-                                    Plocal = Plocal + sum(distv * fij)
+                                    P = P + sum(distv * fij)
                               end if
                         end if
                   end do
             end do
             P = 1.d0/(3.d0*L**3)*P
-            f = flocal
             call MPI_BARRIER(MPI_COMM_WORLD,ierror)
       end subroutine compute_force_LJ
 
