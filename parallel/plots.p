@@ -18,7 +18,7 @@ set xlabel "Temps"
 set ylabel "Pressió"
 set offsets 0, 0, 0, 0
 unset key
-plot "./results/thermodynamics.dat" u 1:7 w l 
+plot "./results/thermodynamics.dat" u 1:6 w l 
 
 set terminal png size 800,600
 system "mkdir -p ./results/plots"
