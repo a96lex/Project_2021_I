@@ -11,13 +11,16 @@ module integraforces
             include 'mpif.h'
             real*8,intent(in)  :: r(D,N)
             real*8,intent(out) :: f(D,N),U,P
+            real*8             :: Ulocal,Plocal
             real*8             :: distv(D),dist,fij(D)
             integer            :: i,j
 
             !Initialize quantities.
             f = 0.d0
             U = 0.d0
+            Ulocal = 0.d0
             P = 0.d0
+            Plocal = 0.d0
 
             do i=imin,imax !Loop over assigned particles
                   do j=1,N
@@ -32,15 +35,16 @@ module integraforces
                                     fij = (48.d0/dist**14 - 24.d0/dist**8)*distv
                                     f(:,i) = f(:,i) + fij
 
-                                    U = U + 4.d0*((1.d0/dist)**12-(1.d0/dist)**6)-&
+                                    Ulocal = Ulocal + 4.d0*((1.d0/dist)**12-(1.d0/dist)**6)-&
                                                 4.d0*((1.d0/rc)**12-(1.d0/rc)**6)
-                                    P = P + sum(distv * fij)
+                                    Plocal = Plocal + sum(distv * fij)
                               end if
                         end if
                   end do
             end do
             P = 1.d0/(3.d0*L**3)*P
-            call MPI_BARRIER(MPI_COMM_WORLD,ierror)
+            call MPI_REDUCE(Ulocal,U,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
+            call MPI_REDUCE(Plocal,P,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
       end subroutine compute_force_LJ
 
       subroutine andersen_therm(v,Temp)
@@ -104,17 +108,10 @@ module integraforces
         ekin=0.0d0
         ekinlocal=0.d0
 
-        do i=1,D
-           if (taskid==master) vec = v(i,:)
-           call MPI_BCAST(vec,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
-           vlocal(i,:) = vec
-        end do
-
         do i=imin,imax
            ekinlocal=ekinlocal+sum(vlocal(:,i)**2)/2.0d0  
         enddo
 
-        call MPI_BARRIER(MPI_COMM_WORLD,ierror)
         call MPI_REDUCE(ekinlocal,ekin,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
      
         !Store instant temperature information in master
