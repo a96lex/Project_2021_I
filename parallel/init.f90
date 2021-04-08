@@ -263,14 +263,10 @@ module init
             real*8, intent(inout) :: vel(D,N)
             real*8, intent(in) :: T
 
-            ! real*8, allocatable :: vel_local(:,:)
-
             real*8 :: vel_CM_local(D)
             real*8 :: dummy_T, kin
             integer :: i, j, ierror
           
-            ! allocate(vel_local(D,imin:imax))
-
             ! Inicialitza les velocitats de manera random entre -1 i 1
             vel = 0.d0
             vel_CM_local = 0.d0
@@ -287,87 +283,15 @@ module init
                 vel(:,i) = vel(:,i) - vel_CM_local
             end do
             
-            ! Es guarda al master la velocitat total a partir de les locals
-            ! do i = 1, D
-            !     call MPI_Gatherv(vel_local(i,:), local_size, MPI_DOUBLE_PRECISION, vel(i,:), &
-            !                     aux_size, aux_pos, MPI_DOUBLE_PRECISION, master, &
-            !                     MPI_COMM_WORLD, ierror)
-            ! end do
-            
             ! Reescalem les velocitats a la temperatura objectiu
             call energy_kin(vel, kin, dummy_T)  
             call MPI_Bcast(kin, 1, MPI_DOUBLE_PRECISION, master, &
             MPI_COMM_WORLD, ierror)
-            print *, kin
+
             do i = imin, imax
                 vel(:,i) = vel(:,i) * sqrt(dble(3*N)*T/(2.d0*kin))
             end do
-            
-            ! do i = 1, D
-            !     call MPI_Gatherv(vel_local(i,:), local_size, MPI_DOUBLE_PRECISION, vel(i,:), &
-            !                     aux_size, aux_pos, MPI_DOUBLE_PRECISION, master, &
-            !                     MPI_COMM_WORLD, ierror)
-            ! end do
 
         end subroutine init_vel
-
-        subroutine init_vel_bad(vel, T)
-            ! Author: Eloi Sanchez
-            ! Torna el array de velocitats (aleatories) vel(D,N) consistent amb la T donada.
-            ! --- VARIABLES ---
-            ! vel(D,N) -> Array on es tornaran les velocitats de les part.
-            !        T -> Temp. a la que s'inicialitzara la velocitat de les part.
-            use integraforces, only : energy_kin
-            implicit none
-            include 'mpif.h'
-
-            real*8, intent(inout) :: vel(D,N)
-            real*8, intent(in) :: T
-
-            real*8, allocatable :: vel_local(:,:)
-          
-            real*8 :: vel_CM_local(D)
-            real*8 :: dummy_T, kin
-            integer :: i, j, ierror
-          
-            allocate(vel_local(D,imin:imax))
-
-            ! Inicialitza les velocitats de manera random entre -1 i 1
-            vel_CM_local = 0.d0
-            do i = imin, imax
-                do j = 1, D
-                    vel_local(j,i) = 2.*rand() - 1.
-                end do
-              vel_CM_local = vel_CM_local + vel_local(:,i)
-            end do
-            vel_CM_local = vel_CM_local/dble(local_size)
-            
-            ! Eliminem la velocitat neta del sistema
-            do i = imin, imax
-                vel_local(:,i) = vel_local(:,i) - vel_CM_local
-            end do
-
-            ! Es guarda al master la velocitat total a partir de les locals
-            do i = 1, D
-                call MPI_Gatherv(vel_local(i,:), local_size, MPI_DOUBLE_PRECISION, vel(i,:), &
-                                aux_size, aux_pos, MPI_DOUBLE_PRECISION, master, &
-                                MPI_COMM_WORLD, ierror)
-            end do
-            
-            ! Reescalem les velocitats a la temperatura objectiu
-            call energy_kin(vel, kin, dummy_T)  
-            call MPI_Bcast(kin, 1, MPI_DOUBLE_PRECISION, master, &
-                            MPI_COMM_WORLD, ierror)
-            
-            do i = imin, imax
-                vel_local(:,i) = vel_local(:,i) * sqrt(dble(3*N)*T/(2.d0*kin))
-            end do
-
-            do i = 1, D
-                call MPI_Gatherv(vel_local(i,:), local_size, MPI_DOUBLE_PRECISION, vel(i,:), &
-                                aux_size, aux_pos, MPI_DOUBLE_PRECISION, master, &
-                                MPI_COMM_WORLD, ierror)
-            end do
-
-        end subroutine init_vel_bad
+        
 end module init
