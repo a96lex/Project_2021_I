@@ -96,13 +96,12 @@ module integraforces
         !          ekin --> kinetic energy of the system 
         !          Tins --> instant temperature of the system
         ! --------------------------------------------------
-      implicit none
-      include 'mpif.h'
+        implicit none
+        include 'mpif.h'
         real(8), intent(in)   :: v(D,N)
-        real(8) :: vlocal(D,N), vec(N), ekinlocal
+        real(8) :: vec(N), ekinlocal
         real(8), intent (out) :: ekin, Tins
-        integer :: i
-        integer :: request, ierror
+        integer :: i, ierror
 
         !Initialization
         ekin=0.0d0
@@ -223,10 +222,10 @@ module integraforces
 
          !Write intial results.
          if (taskid==master) then
-             write(eunit,*)"#t,   K,   U,  E,  T,  v_tot,  Ptot"
-             write(eunit,*) t, ekin, U, ekin+U, Tins, dsqrt(sum(sum(v,2)**2)), Ptot
+             write(eunit,*)"#time,   K,   U,  E,  T,  Ptot"
+             write(eunit,*) t, ekin, U, ekin+U, Tins, Ptot
 
-             write(eunit_dim,*)"#t,   K,   U,  E,  T,  Ptot"
+             write(eunit_dim,*)"#time,   K,   U,  E,  T,  Ptot"
              write(eunit_dim,*) t*unit_of_time,&
                         ekin*unit_of_energy, U*unit_of_energy, (ekin+U)*unit_of_energy,&
                         Tins*epsilon, Ptot*unit_of_pressure
