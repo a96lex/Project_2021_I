@@ -109,7 +109,7 @@ module integraforces
         ekinlocal=0.d0
 
         do i=imin,imax
-           ekinlocal=ekinlocal+sum(vlocal(:,i)**2)/2.0d0  
+           ekinlocal=ekinlocal+sum(v(:,i)**2)/2.0d0  
         enddo
 
         call MPI_REDUCE(ekinlocal,ekin,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
