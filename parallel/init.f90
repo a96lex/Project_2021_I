@@ -33,7 +33,6 @@ module init
 
             call reduced_units()
             call divide_particles()
-            call divide_particles_pairs()
             call divide_particles_pairs_improv()
         end subroutine get_param
 

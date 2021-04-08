@@ -59,11 +59,11 @@ module rad_dist
     glocal = 0d0
     pos_local = pos
     
-    do i=1,3
-       if(taskid.eq.master) coord = pos_local(i,:)
-       call MPI_BCAST(coord,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
-       pos_local(i,:) = coord
-    enddo
+    !do i=1,3
+    !   if(taskid.eq.master) coord = pos_local(i,:)
+    !   call MPI_BCAST(coord,N,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,request,ierror)
+    !   pos_local(i,:) = coord
+    !enddo
     
     ! Nested loop for i,j pairs only
     do i=imin_p,imax_p
@@ -80,11 +80,12 @@ module rad_dist
           enddo
        enddo
     enddo
-    !print*, "Task", taskid, " g(40) ", glocal(40)
-    call MPI_BARRIER(MPI_COMM_WORLD,ierror)
-    call MPI_REDUCE(glocal,g,Nshells,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
+    g = glocal
+    g = 2d0*g/dble(N)
+    !call MPI_BARRIER(MPI_COMM_WORLD,ierror)
+    !call MPI_REDUCE(glocal,g,Nshells,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
     ! Add the duplicated contribution left by not counting the j,i pairs in the nested loop, normalize for N particles
-    if(taskid.eq.master) g = 2d0*g/dble(N)
+    !if(taskid.eq.master) g = 2d0*g/dble(N)
  end subroutine rad_dist_fun_pairs_improv
  
 
