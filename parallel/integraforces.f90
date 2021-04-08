@@ -241,7 +241,7 @@ module integraforces
 
             !Write to file.
             if (taskid==master) then
-               write(eunit,*) t, ekin, U, ekin+U, Tins, dsqrt(sum(sum(v,2)**2)), Ptot
+               write(eunit,*) t, ekin, U, ekin+U, Tins, Ptot
 
                write(eunit_dim,*) t*unit_of_time,&
                         ekin*unit_of_energy, U*unit_of_energy, (ekin+U)*unit_of_energy,&
