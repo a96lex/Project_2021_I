@@ -27,10 +27,8 @@
       call MPI_COMM_SIZE(MPI_COMM_WORLD,numproc,ierror)
       ti_global = MPI_WTIME()
 
-      if (taskid == master) then
-          allocate(aux_pos(numproc))
-          allocate(aux_size(numproc))
-      end if
+      allocate(aux_pos(numproc))
+      allocate(aux_size(numproc))
   
       ! To execute the program >> main.x input_file. Otherwise, an error will occur.
       if (command_argument_count() == 0) stop "ERROR: call using >> ./main.x input_path"
@@ -374,6 +372,8 @@
       if (allocated(noPBC)) deallocate(noPBC)
       if (allocated(g_avg)) deallocate(g_avg)
       if (allocated(g_squared_avg)) deallocate(g_squared_avg)
+      if (allocated(aux_size))allocate(aux_size(numproc))
+      if (allocated(aux_pos))allocate(aux_pos(numproc))
       call deallocate_g_variables()
   
       tf_global = MPI_WTIME()
