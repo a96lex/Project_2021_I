@@ -13,7 +13,7 @@ module integraforces
             real*8,intent(out) :: f(D,N),U,P
             real*8             :: Ulocal,Plocal
             real*8             :: distv(D),dist,fij(D)
-            integer            :: i,j
+            integer            :: i,j,ierror
 
             !Initialize quantities.
             f = 0.d0
