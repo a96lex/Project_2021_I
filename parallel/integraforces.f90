@@ -154,40 +154,33 @@ module integraforces
          implicit none 
          include 'mpif.h'
          integer :: i,j, time_i
-         real(8) :: r(D,N), v(D,N), U, f(D,N), fold(D,N), t, dt, P
-         real(8) :: flocal(D,N), vlocal(D,N), rlocal(D,N), flocal_old(D,N)
-         real(8) :: vec1(N), vec2(N), vec3(N)
-         integer :: request, request1, request2, request3, ierror, ierror1, ierror2, ierror3
+         real(8) :: r(D,N), rlocal(D,N), v(D,N), U, f(D,N), fold(D,N), t, dt, P
+         integer :: ierror
 
 
          !Initialize variables
-         rlocal=0.d0
-         vlocal=0.0d0
-         flocal=0.0d0
-         flocal_old=0.0d0
-
-         flocal_old = fold
-         vlocal = v
          rlocal = r
 
          !Change of positions
          do i=imin,imax
-            rlocal(:,i)=rlocal(:,i)+vlocal(:,i)*dt +flocal_old(:,i)*dt**2*0.5d0
+            rlocal(:,i)=rlocal(:,i)+v(:,i)*dt +fold(:,i)*dt**2*0.5d0
             call min_img(rlocal(:,i))  !Apply PBC
          enddo
 
-         !forces at t+dt
-         call compute_force_LJ(rlocal,flocal,U,P)
+         do i=1,D
+            call MPI_Allgatherv(rlocal(i,imin:imax), local_size, MPI_DOUBLE_PRECISION, r(i,:), &
+                                aux_size, aux_pos, MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierror)
+         enddo
 
-         
+         !forces at t+dt
+         call compute_force_LJ(r,f,U,P)
+
          !Compute velocities
          do i=imin,imax
-            vlocal(:,i)=vlocal(:,i)+(flocal_old(:,i)+flocal(:,i))*dt*0.5d0
+            v(:,i)=v(:,i)+(fold(:,i)+f(:,i))*dt*0.5d0
          enddo 
-
-         r = rlocal
-         v = vlocal
-         fold=flocal
+        
+         fold=f
          t=time_i*dt !Update time
          return
       end subroutine verlet_v_step
