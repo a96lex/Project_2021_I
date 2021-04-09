@@ -46,13 +46,38 @@
                 totlocal=totlocal+(vec(i)-mean)**(2.d0)
             enddo
             ! Juntem cada contribució del bucle en una i li passem al master, el qual calcularà la variància total
-            call MPI_BARRIER(MPI_COMM_WORLD,ierror)
             call MPI_REDUCE(totlocal,tot,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
             if (taskid.eq.master) then
                 var=tot/(dble(d)*(dble(d)-1.d0))
             endif
         return
         end subroutine estad
+        
+        
+        subroutine estadcoeff(d,vec,mean,var)
+        !Author: Jaume Ojer
+        ! Subrutina específica pels coeficients de difusió que retorna 
+        ! el valor esperat ('mean') i la variància ('var') d'un vector ('vec') de dimensió 'd'
+        implicit none
+        include 'mpif.h'
+        integer d,i,request,ierror,imin,imax
+        double precision vec(d)
+        double precision mean,var,tot,totlocal
+            mean=sum(vec)/dble(d)
+            imin = taskid * d / numproc + 1
+            imax = (taskid + 1) * d / numproc
+            totlocal=0.d0
+            tot=0.d0
+            do i=imin,imax
+                totlocal=totlocal+(vec(i)-mean)**(2.d0)
+            enddo
+            ! Juntem cada contribució del bucle en una i li passem al master, el qual calcularà la variància total
+            call MPI_REDUCE(totlocal,tot,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
+            if (taskid.eq.master) then
+                var=tot/(dble(d)*(dble(d)-1.d0))
+            endif
+        return
+        end subroutine estadcoeff
         
         
         subroutine binning(d,vec,numBINmin,file_unit)
@@ -171,7 +196,6 @@
                 corrlocal(tau)=corsum/dble(d-tau)
             enddo
             ! Juntem cada contribució del bucle en una i li passem al master, el qual escriurà el fitxer
-            call MPI_BARRIER(MPI_COMM_WORLD,ierror)
             call MPI_REDUCE(corrlocal,corr,lag,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
             if (taskid.eq.master) then
                 write(file_unit,*) 0, 1.d0

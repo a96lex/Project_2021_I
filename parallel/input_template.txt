@@ -7,7 +7,7 @@
 ! indica el final del namelist.
 
 ! System
-N=512           ! Number of atoms
+N=216           ! Number of atoms
 D=3             ! Number of dimensions
 rho=0.1         ! Redced density 
 T_ref=27.5      ! Reduced temperature 
@@ -17,7 +17,7 @@ seed=12345
 dt_sim=0.0001   ! Time-step for equilibration and simulation
 n_meas=10       ! Measure every n_meas iterations
 n_conf=1000    ! Total number of iterations to be measured
-n_equil=20000    ! Number of equilibration steps after melting and before simulation
+n_equil=2000    ! Number of equilibration steps after melting and before simulation
 
 ! Lennard-Jones potential
 !Source for sigma and epsilon:
