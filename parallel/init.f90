@@ -175,8 +175,8 @@ module init
             ! Es guarda al master la posicio total a partir de les locals
             do i = 1, D
                 call MPI_Allgatherv(pos_local(i,:), local_size, MPI_DOUBLE_PRECISION, pos(i,:), &
-                                aux_size, aux_pos, MPI_DOUBLE_PRECISION, &
-                                MPI_COMM_WORLD, ierror)
+                                    aux_size, aux_pos, MPI_DOUBLE_PRECISION, &
+                                    MPI_COMM_WORLD, ierror)
             end do
 
             deallocate(pos_local)           
@@ -220,9 +220,7 @@ module init
             call MPI_Bcast(kin, 1, MPI_DOUBLE_PRECISION, master, &
             MPI_COMM_WORLD, ierror)
 
-            do i = imin, imax
-                vel(:,i) = vel(:,i) * sqrt(dble(3*N)*T/(2.d0*kin))
-            end do
+            vel(:,imin:imax) = vel(:,imin:imax) * sqrt(dble(3*N)*T/(2.d0*kin))
 
         end subroutine init_vel
         
