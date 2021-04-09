@@ -6,7 +6,22 @@
          subroutine compute_force_LJ(r,f,U,P)
          !Author: Arnau Jurado
          ! Computes the force, potential energy and pressure of a system
-         ! of N particles. Needs the external parameters M,D,L,rc to work
+         ! of N particles. Needs the external parameters D,rc to work.
+         ! The pair-wise interaction is the LJ interaction potential.
+         !           Input
+         !           -----
+         !                 r : real*8,dimension(D,N)
+         !                       Positions of the particles of the system.
+         !           Output
+         !           ------
+         !                 f : real*8,dimension(D,N)
+         !                       Force on the particles. F(:,i) is the force
+         !                       vector of the forces acting on the i*th particle.
+         !                 U : real*8
+         !                       Potential energy of the system.
+         !                 P : real*8
+         !                       Potential contribution of the pressure.
+         !                       Factor 1/(3V) is already included on output
                implicit none
                real*8,intent(in) :: r(D,N)
                real*8,intent(out) :: f(D,N),U,P
