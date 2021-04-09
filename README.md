@@ -7,6 +7,8 @@ The code of this github page performs a molecular dynamics simulation of an atom
 - Radial distribution function.
 
 Scripts for generating plots of the results are also included.
+
+The program has a serial version (in `serie` directory) and a parallel version (in `parallel` directory). Most make functions are the same for both versions.
 ## Main files
 
 - init.f90 : initialization subroutines. Responsible: Eloi Sanchez.
@@ -20,7 +22,7 @@ Scripts for generating plots of the results are also included.
 
 After cloning the repository with `git clone https://github.com/EIA-Master/Project_2021_I` you can generate an executable file with `make`, which will generate an executable called main.x.
 
-You can run the program by executing `./main.x input.txt` with any proper input file (check the file input_template.txt to see the structure of the input file).
+You can run the program by executing `./main.x input.txt` (in serie) or `mpirun main.x input.txt` (in parallel) with any proper input file (check the file input_template.txt to see the structure of the input file).
 Alternatively `make sim input="input.txt"` with any file as input.txt.
 
 After performing a simulation the results will be present in the `results` directory. You can generate plots from the simulation data by running the gnuplot script (`gnuplot plots.p`) or by the Makefile rule `plots`.
@@ -29,7 +31,8 @@ Warning: if you run another simulation the results from will be erased. You can 
 
 ### Additional Makefile recipes
 
-- `make sim input="your_input.txt"`: Compiles the program if needed and runs a simulation with the parameters specified in `your_input.txt`
+- `make sim input="your_input.txt"`: Compiles the program if needed and runs a simulation with the parameters specified in `your_input.txt`. In the parallel version it will use all available processors.
+- `make simN numproc=N input="your_input.txt"` (only in parallel): Compiles the program if needed and runs a simulation with the parameters specified in `your_input.txt` with `N` tasks.
 - `make plots`: (see necessary packages) Generates plots from the result data in the results/plots directory
 - `make trajectory_video`: (see necessary packages) Generates an animated image (in gif format) with the resulting trajectory. The filename is defaulted to "trajectory.gif", but you can override it by passing an optional filename parameter: `make filename="your_filename" trajectory_video`
 - `make backup`: Generates a directory named `results_Y-M-D_H:M:S` and copies the contents of the results folder to it. Use this when you want to save the results obtained febore running the executable again.
@@ -39,6 +42,7 @@ Warning: if you run another simulation the results from will be erased. You can 
 ### Necessary packages
 
 - Gnuplot: it is a requirement to use `make plots`. Available [here](http://www.gnuplot.info/)
+- Open
 - Python version 3: is a requirement to use `make trajectory_video`
   - The only required python package is ase ([documentation](https://wiki.fysik.dtu.dk/ase/)). It can be installed using pip:
     - `pip install ase`
