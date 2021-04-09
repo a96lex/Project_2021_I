@@ -202,17 +202,16 @@ module integraforces
          integer :: i,j
          ! Flags for writing g:
          integer, intent(in) :: flag_g
-         integer :: Nshells
-         real(8), dimension(:), allocatable :: g_avg, g_squared_avg
+         integer :: Nshells, ierror
+         real(8), dimension(:), allocatable :: g_avg, g_avg_final
          
          ! Initialization of the g(r) calculation:
          if(flag_g.ne.0) then
            Nshells = 100
            call prepare_shells(Nshells)
            allocate(g_avg(Nshells))
-           allocate(g_squared_avg(Nshells))
            g_avg = 0d0
-           g_squared_avg = 0d0
+           if(taskid == master) allocate(g_avg_final(Nshells))
          endif
 
          t = 0.d0
@@ -249,11 +248,8 @@ module integraforces
             
             ! Save snapshot of g(r) to average
             if(flag_g.ne.0) then
-              call rad_dist_fun_pairs_improv(r,Nshells)
-              if(taskid==master) then
-                g_avg = g_avg + g
-                g_squared_avg = g_squared_avg + g**2
-              endif
+              call rad_dist_fun(r,Nshells)
+              g_avg = g_avg + g
             endif
 
             if(mod(i,int(0.001*Nt))==0 .and. taskid==master) then
@@ -263,11 +259,18 @@ module integraforces
             
          enddo
          
-         if(flag_g.ne.0.and.taskid.eq.master) then
-           do j=1,Nshells
-             write(eunit_g,*) (j-1)*grid_shells+grid_shells/2d0, g(j), dsqrt(g_squared_avg(i) - g_avg(i)**2)
-             write(eunit_g_dim,*) ((j-1)*grid_shells+grid_shells/2d0)*sigma, g(j), dsqrt(g_squared_avg(i) - g_avg(i)**2)
-           enddo
+         if(flag_g.ne.0) then
+           call MPI_REDUCE(g_avg,g_avg_final,Nshells,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
+           if(taskid.eq.master) then
+             g_avg_final = g_avg_final/dble(Nt)
+             do j=1,Nshells
+               write(eunit_g,*) (j-1)*grid_shells+grid_shells/2d0, g_avg_final(j)
+               write(eunit_g_dim,*) ((j-1)*grid_shells+grid_shells/2d0)*unit_of_length, g_avg_final(j)
+             enddo
+             deallocate(g_avg_final)
+           endif
+           deallocate(g_avg)
+           call deallocate_g_variables()
          endif
 
          return
