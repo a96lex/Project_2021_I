@@ -62,6 +62,7 @@ module integraforces
                         end if
                   end do
             end do
+            !Add 1/3V factor and collect contributions of U and P on Master.
             Plocal = 1.d0/(3.d0*L**3)*Plocal
             call MPI_REDUCE(Ulocal,U,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
             call MPI_REDUCE(Plocal,P,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)

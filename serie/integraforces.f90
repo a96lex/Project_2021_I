@@ -57,8 +57,7 @@
 
          subroutine andersen_therm(v,Temp)
          !Author: Arnau Jurado
-         !     Applies the Andersen thermostat to a system of N particles. Requires
-         !     boxmuller subroutine.
+         !     Applies the Andersen thermostat to a system of N particles.
          !           Input
          !           -----
          !                 v : real*8,dimension(D,N)
