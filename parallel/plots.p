@@ -6,7 +6,7 @@ data_directory_dim = "./results/dimensionalized/"
 plots_directory = "./results/plots/"
 plots_directory_dim = plots_directory."dimensionalized/"
 set fit quiet
-set fit logfile '/dev/null'
+set fit logfile "/dev/null"
 set terminal png size 800,600
 
 
@@ -162,8 +162,7 @@ set ylabel "Frequència"
 set yrange[0:]
 unset key
 unset offsets
-plot data_directory_dim."radial_distribution_dim.dat" u 1:2:3 w yerrorbars lc rgb "light-blue", \
-'' u 1:2 w l lc rgb "blue";
+plot data_directory_dim."radial_distribution_dim.dat" u 1:2 w l lc rgb "blue"
 
 
 set output plots_directory_dim."Coef_dif_x.png"
