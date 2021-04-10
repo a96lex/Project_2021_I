@@ -6,7 +6,7 @@ data_directory_dim = "./results/dimensionalized/"
 plots_directory = "./results/plots/"
 plots_directory_dim = plots_directory."dimensionalized/"
 set fit quiet
-set fit logfile "/dev/null"
+set fit logfile "./results/diffcoeff.fit"
 set terminal png size 800,600
 
 

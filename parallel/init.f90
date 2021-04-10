@@ -4,7 +4,7 @@ module init
     contains
 
         subroutine get_param(unit)
-            !Author: Eloi Sanchez
+            ! Author: Eloi Sanchez
             ! Llegim de l'input els parametres del sistema i es calcula el
             ! nº d'iteracions i la longitud de la cel·la.
             ! Els propers llocs on es faci servir 'use parameters' tindran
@@ -28,6 +28,7 @@ module init
             L = (N / rho) ** (1.d0 / D)
             rc = fact_rc * L / 2.d0
 
+            ! Cada tasca ha de tenir una seed diferent
             seed = seed + taskid
             call srand(seed)
 
@@ -37,12 +38,12 @@ module init
         end subroutine get_param
 
         subroutine divide_particles()
-           !Author: Arnau Jurado & Eloi Sanchez
-           !Divides the work among the processors by assigning each one an "imin" and
-           !a "imax", which are the indexes of the first and last particle they have
-           !to process e.g. with forces, each processor computes the forces
-           !from the imin-th particle to the imax-th particles, both included.
-           !aux_pos and aux_size are stored in master to be used in Gatherv calls
+           ! Author: Arnau Jurado & Eloi Sanchez
+           ! Divides the work among the processors by assigning each one an "imin" and
+           ! a "imax", which are the indexes of the first and last particle they have
+           ! to process e.g. with forces, each processor computes the forces
+           ! from the imin-th particle to the imax-th particles, both included.
+           ! aux_pos and aux_size are stored in master to be used in Gatherv calls
             implicit none
             include 'mpif.h'
             integer :: i
@@ -72,11 +73,10 @@ module init
            ! for their working particles
            implicit none
            !include 'mpif.h'
-           integer :: i,j,k,count_pairs,processor
+           integer :: i,j,count_pairs,processor
            integer, dimension(numproc) :: track_pairs
-           integer, dimension(N) :: num_pairs
            integer, dimension(:,:), allocatable :: ranges_proc_i, ranges_proc_j_imin, ranges_proc_j_imax
-           real(8) total_pairs, pairs_per_proc, sum_pairs
+           real(8) total_pairs, pairs_per_proc
            
            allocate(ranges_proc_i(numproc,2)) ! (:,1) for min i, (:,2) for max i
            allocate(ranges_proc_j_imin(numproc,2)) ! (:,1) for min j from min i, (:,2) for min j from max i
@@ -144,8 +144,6 @@ module init
             ! En la dimensio 2 farem 000111222000111222000111222
             ! En la dimensio 3 farem 012012012012012012012012012
             ! Així, cada columna indica les 3 coord de un atom. Al final es centra la grid.
-            ! Paralelització en el outer loop (les N particules) de la assignacio
-            ! Fins a un ordre de magnitud millor que la versio del reduce
 
             implicit none
             include 'mpif.h'
@@ -185,6 +183,7 @@ module init
         subroutine init_vel(vel, T)
             ! Author: Eloi Sanchez
             ! Torna el array de velocitats (aleatories) vel(D,N) consistent amb la T donada.
+            ! Cada tasca te les velocitats de les seves particules en vel(:,imin:imax) 
             ! --- VARIABLES ---
             ! vel(D,N) -> Array on es tornaran les velocitats de les part.
             !        T -> Temp. a la que s'inicialitzara la velocitat de les part.
