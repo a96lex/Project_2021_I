@@ -13,7 +13,7 @@
       real*8, allocatable :: epotVECins(:), g_avg(:), g_squared_avg(:)
       real*8, allocatable :: Xpos(:), Ypos(:), Zpos(:), posAUX(:,:), noPBC(:,:)
       
-      real*8  :: time,ekin,epot,Tins,P,etot
+      real*8  :: time,ekin,epot,Tins,P
       real*8  :: epotAUX,epotMEAN,PMEAN,epotVAR,PVAR
       real*8  :: ekinMEAN,ekinVAR,etotMEAN,etotVAR,TinsMEAN,TinsVAR
       real*8  :: Xmean,Ymean,Zmean,Xvar,Yvar,Zvar
