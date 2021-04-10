@@ -116,7 +116,6 @@
       open(unit=25,file="results/dimensionalized/radial_distribution_dim.dat")
       open(unit=23,file="results/dimensionalized/ekinBIN_dim.dat")
       open(unit=26,file="results/dimensionalized/epotBIN_dim.dat")
-      open(unit=27,file="results/dimensionalized/correlation_energy_dim.dat")
 
       write(10,*)"#t,   K,   U,  E,  T,  v_tot,  Ptot"
       write(16,*)"#t,   K,   U,  E,  T,  Ptot"
@@ -273,14 +272,12 @@
       
       ! Funció d'autocorrelació per l'energia total
       call corrtime(n_conf,etotVEC,22)
-      call corrtime(n_conf,etotVEC*unit_of_energy,27)
 
       close(20)
       close(21)
       close(23)
       close(26)
       close(22)
-      close(27)
 
       ! Deallocates
       deallocate(pos) 
