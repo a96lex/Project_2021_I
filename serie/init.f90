@@ -3,7 +3,7 @@ module init
     contains
 
         subroutine get_param(unit)
-            !Author: Eloi Sanchez
+            ! Author: Eloi Sanchez
             ! Llegim de l'input els parametres del sistema i es calcula el
             ! nº d'iteracions i la longitud de la cel·la.
             ! Els propers llocs on es faci servir 'use parameters' tindran
@@ -70,20 +70,11 @@ module init
                 end do
             end do
             pos = pos - (L - a) / 2.d0 ! Centrem el sistema al (0,0,0)
-            
-            ! Sanity check. Les coord de l'ultim atom han de ser totes iguals!
-            check = 0.d0
-            do i = 1, D - 1
-                check = check + abs(pos(i,N) - pos(i+1,N))
-            end do
-
-            if (check > 10.d-6) print *, "WARNING: Check that the initial conditions are correct!"
-            if (abs(M_check - M) > 1.d-3) print *, "The number of atoms per dimension is approximated", M_check, "->", M
 
         end subroutine
 
         subroutine init_vel(vel, T)
-            !Author: Eloi Sanchez
+            ! Author: Eloi Sanchez
             ! Torna el array de velocitats (aleatories) vel(D,N) consistent amb la T donada.
 
             use parameters, only : D, N
