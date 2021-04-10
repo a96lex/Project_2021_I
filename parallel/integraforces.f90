@@ -6,7 +6,27 @@ module integraforces
       subroutine compute_force_LJ(r,f,U,P)
       !Author: Arnau Jurado
       ! Computes the force, potential energy and pressure of a system
-      ! of N particles. Needs the external parameters M,D,L,rc to work
+      ! of N particles. Needs the external parameters D,rc to work.
+      ! The pair-wise interaction is the LJ interaction potential.
+      ! Parallel version, on calling the subroutine all tasks should know all
+      ! the updated positions, r, of the particles.
+      !           Input
+      !           -----
+      !                 r : real*8,dimension(D,N)
+      !                       Positions of the particles of the system.
+      !           Output
+      !           ------
+      !                 f : real*8,dimension(D,N)
+      !                       Force on the particles. F(:,i) is the force
+      !                       vector of the forces acting on the i*th particle.
+      !                       Each task only has the force for their assigned particles.                      
+      !                 U : real*8
+      !                       Potential energy of the system. Master has 
+      !                       the sum of all contributions.
+      !                 P : real*8
+      !                       Potential contribution of the pressure.
+      !                       Factor 1/(3V) is already included on output. 
+      !                       Master has the sum of all contributions.
             implicit none
             include 'mpif.h'
             real*8,intent(in)  :: r(D,N)
@@ -42,6 +62,7 @@ module integraforces
                         end if
                   end do
             end do
+            !Add 1/3V factor and collect contributions of U and P on Master.
             Plocal = 1.d0/(3.d0*L**3)*Plocal
             call MPI_REDUCE(Ulocal,U,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
             call MPI_REDUCE(Plocal,P,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
@@ -202,17 +223,16 @@ module integraforces
          integer :: i,j
          ! Flags for writing g:
          integer, intent(in) :: flag_g
-         integer :: Nshells
-         real(8), dimension(:), allocatable :: g_avg, g_squared_avg
+         integer :: Nshells, ierror
+         real(8), dimension(:), allocatable :: g_avg, g_avg_final
          
          ! Initialization of the g(r) calculation:
          if(flag_g.ne.0) then
            Nshells = 100
            call prepare_shells(Nshells)
            allocate(g_avg(Nshells))
-           allocate(g_squared_avg(Nshells))
            g_avg = 0d0
-           g_squared_avg = 0d0
+           if(taskid == master) allocate(g_avg_final(Nshells))
          endif
 
          t = 0.d0
@@ -249,11 +269,8 @@ module integraforces
             
             ! Save snapshot of g(r) to average
             if(flag_g.ne.0) then
-              call rad_dist_fun_pairs_improv(r,Nshells)
-              if(taskid==master) then
-                g_avg = g_avg + g
-                g_squared_avg = g_squared_avg + g**2
-              endif
+              call rad_dist_fun(r,Nshells)
+              g_avg = g_avg + g
             endif
 
             if(mod(i,int(0.001*Nt))==0 .and. taskid==master) then
@@ -263,11 +280,18 @@ module integraforces
             
          enddo
          
-         if(flag_g.ne.0.and.taskid.eq.master) then
-           do j=1,Nshells
-             write(eunit_g,*) (j-1)*grid_shells+grid_shells/2d0, g(j), dsqrt(g_squared_avg(i) - g_avg(i)**2)
-             write(eunit_g_dim,*) ((j-1)*grid_shells+grid_shells/2d0)*sigma, g(j), dsqrt(g_squared_avg(i) - g_avg(i)**2)
-           enddo
+         if(flag_g.ne.0) then
+           call MPI_REDUCE(g_avg,g_avg_final,Nshells,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
+           if(taskid.eq.master) then
+             g_avg_final = g_avg_final/dble(Nt)
+             do j=1,Nshells
+               write(eunit_g,*) (j-1)*grid_shells+grid_shells/2d0, g_avg_final(j)
+               write(eunit_g_dim,*) ((j-1)*grid_shells+grid_shells/2d0)*unit_of_length, g_avg_final(j)
+             enddo
+             deallocate(g_avg_final)
+           endif
+           deallocate(g_avg)
+           call deallocate_g_variables()
          endif
 
          return

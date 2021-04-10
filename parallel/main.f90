@@ -9,7 +9,7 @@
       implicit none
       include 'mpif.h'
       character(len=50)   :: input_name
-      real*8, allocatable :: pos(:,:), vel(:,:), fold(:,:), g_avg(:), g_squared_avg(:), g_avg_final(:), g_squared_avg_final(:)
+      real*8, allocatable :: pos(:,:), vel(:,:), fold(:,:), g_avg(:), g_avg_final(:)
       real*8, allocatable :: epotVECins(:), epotVEC(:), PVEC(:), ekinVEC(:), etotVEC(:), TinsVEC(:)
       real*8, allocatable :: Xpos(:), Ypos(:), Zpos(:), posAUX(:,:), noPBC(:,:)
       
@@ -138,16 +138,16 @@
             write(16,*)"#time,   K,   U,  E,  T,  Ptot"
       end if
   
-      ! Prepare g(r) variables
+      ! Prepare variables to compute g(r) on each processor:
       Nshells = 100
       call prepare_shells(Nshells)
+      ! Individual averages on each processor:
       allocate(g_avg(Nshells))
-      allocate(g_squared_avg(Nshells))
       g_avg = 0d0
-      g_squared_avg = 0d0
+      ! Final average will be computed on master task:
       if(taskid==master) then
             allocate(g_avg_final(Nshells))
-            allocate(g_squared_avg_final(Nshells))       
+            g_avg_final = 0d0
       endif
       
       if(taskid==master) then
@@ -229,10 +229,8 @@
                     call writeXyz(D,N,pos,11)
                     call writeXyz(D,N,pos*unit_of_length,17)
                 endif
-                   ! each processor computes its part of the g(r) and saves its contribution to the average: 
-                   call rad_dist_fun_pairs_improv(pos,Nshells)
-                   g_avg = g_avg + g
-                   g_squared_avg = g_squared_avg + g**2
+                call rad_dist_fun(pos,Nshells)
+                g_avg = g_avg + g
             endif
       
             if(mod(i,int(0.001*n_total))==0 .and. taskid==master) then
@@ -258,20 +256,13 @@
       
       ! Average de la g(r)
       call MPI_REDUCE(g_avg,g_avg_final,Nshells,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
-      call MPI_REDUCE(g_squared_avg,g_squared_avg_final,Nshells,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
       if(taskid==master) then
              g_avg_final = g_avg_final/dble(n_conf)
-             g_squared_avg_final = g_squared_avg_final/dble(n_conf)
-             !g_avg = g_avg/dble(n_conf)
-             !g_squared_avg = g_squared_avg/dble(n_conf)
-             write(12,*) " # r (reduced units),   g(r),   std_dev "
-             write(21,*) " # r (Angstroms),   g(r),    std_dev"
+             write(12,*) " # r (reduced units),   g(r)"
+             write(21,*) " # r (Angstroms),   g(r)"
              do i=1,Nshells
-                   write(12,*) grid_shells*(i-1)+grid_shells/2d0, g_avg_final(i), dsqrt(g_squared_avg_final(i) - g_avg_final(i)**2)
-                   write(21,*) grid_shells*(i-1)*sigma + grid_shells*sigma/2d0, &
-                               g_avg_final(i), dsqrt(g_squared_avg_final(i) - g_avg_final(i)**2)
-             !      write(12,*) grid_shells*(i-1)+grid_shells/2d0, g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
-             !      write(21,*) grid_shells*(i-1)*sigma + grid_shells*sigma/2d0, g_avg(i), dsqrt(g_squared_avg(i) - g_avg(i)**2)
+                   write(12,*) grid_shells*(i-1)+grid_shells/2d0, g_avg_final(i)
+                   write(21,*) (grid_shells*(i-1) + grid_shells/2d0)*unit_of_length, g_avg_final(i)
              enddo
              close(12)
              close(21)
@@ -342,7 +333,6 @@
     if (allocated(posAUX)) deallocate(posAUX)
     if (allocated(noPBC)) deallocate(noPBC)
     if (allocated(g_avg)) deallocate(g_avg)
-    if (allocated(g_squared_avg)) deallocate(g_squared_avg)
     if (allocated(aux_size))allocate(aux_size(numproc))
     if (allocated(aux_pos))allocate(aux_pos(numproc))
     call deallocate_g_variables()

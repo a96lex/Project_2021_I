@@ -34,7 +34,7 @@ module init
 
             call reduced_units()
             call divide_particles()
-            call divide_particles_pairs_improv()
+            call divide_particles_pairs()
         end subroutine get_param
 
         subroutine divide_particles()
@@ -63,49 +63,8 @@ module init
             end do
             
         end subroutine divide_particles
-        
-        subroutine divide_particles_pairs()
-           ! Author: David March
-           ! Distribute particles so they each processor computes an approx. equal number of pairs in a nested loop such as:
-           ! do i=imin_p,imax_p
-           !    do j=i+1,N
-           ! Sets the particles ranges per processor in imin_p, imax_p
-           implicit none
-           !include 'mpif.h'
-           integer :: i,j
-           integer, dimension(N) :: num_pairs
-           integer, dimension(:,:), allocatable :: ranges_proc
-           real(8) total_pairs, pairs_per_proc, sum_pairs
-           
-           do i=1,N
-              num_pairs(i) = N-i
-           enddo
-           total_pairs = dble(N*(N-1))/dble(2)
-           pairs_per_proc = total_pairs/dble(numproc)
-           
-           allocate(ranges_proc(numproc,2)) ! inferior limit at (:,1), superior at (:,2) for each processor
-           ranges_proc(1,1) = 1
-           ranges_proc(numproc,2) = N-1
-           do i=1,numproc-1
-              sum_pairs = 0d0
-              limits: do j=ranges_proc(i,1),N
-                 sum_pairs = sum_pairs + dble(num_pairs(j))
-                 if(sum_pairs.gt.pairs_per_proc) then
-                    ranges_proc(i,2) = j
-                    ranges_proc(i+1,1) = j+1
-                    exit limits
-                 endif
-              enddo limits
-           enddo
-          
-          ! Finally, assignate the min and max index to the global variables:
-          imin_p = ranges_proc(taskid+1,1)
-          imax_p = ranges_proc(taskid+1,2)
-          !print*, "task ",taskid, " with particle ranges ", imin_p, imax_p
-          deallocate(ranges_proc)
-       end subroutine divide_particles_pairs
-       
-       subroutine divide_particles_pairs_improv()
+              
+       subroutine divide_particles_pairs()
            ! Author: David March
            ! Distribute particles so they each processor computes an approx. equal number of pairs in a nested loop such as:
            ! do i=imin_p,imax_p
@@ -171,29 +130,10 @@ module init
               jmax_p(i) = N
           enddo
           
-          !if(taskid==master) CALL sleep(5)
-          ! CHECK:
-          !write(*,*) "Task", taskid
-          !do i=1,N
-          !    write(*,*) jmin_p(i),jmax_p(i)
-          !enddo
-          
-          ! Prova serie per veure els rangs ben ordenats
-          !if(taskid==master) then
-          !do k=1,numproc
-          !    write(*,'(A17, I2)') "Ranges processor ", k
-          !    write(*,'(A8, 2(I4,1X))') "     i: ", ranges_proc_i(k,1),ranges_proc_i(k,2)
-          !    write(*,'(A21, I5)') "     Pairs assigned: ", track_pairs(k)
-          !    write(*,'(A20, I4, A12, 2(I4,1X))') "          For min i ", ranges_proc_i(k,1), " j range is: ", &
-          !                                                   ranges_proc_j_imin(k,1), ranges_proc_j_imin(k,2)
-          !    write(*,'(A20, I4, A12, 2(I4,1X))') "          For max i ", ranges_proc_i(k,2), " j range is: ", &
-          !                                                   ranges_proc_j_imax(k,1), ranges_proc_j_imax(k,2)
-          !enddo
-          !endif
           deallocate(ranges_proc_i)
           deallocate(ranges_proc_j_imin)
           deallocate(ranges_proc_j_imax)
-       end subroutine divide_particles_pairs_improv
+       end subroutine divide_particles_pairs
 
         subroutine init_sc(pos)
             ! Author: Eloi Sanchez

@@ -46,6 +46,7 @@ simN : main.x
 
 ## plots: Generates the plots of the observables found in results/
 plots :
+	mkdir -p results/plots/dimensionalized
 	gnuplot plots.p
 
 ## trajectory_video: Creates the movie from results/trajectory.xyz
