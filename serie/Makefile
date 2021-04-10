@@ -6,7 +6,6 @@ compiler=gfortran
 opt=
 
 main.x : $(objects)
-	mkdir -p results
 	mkdir -p results/dimensionalized
 	$(compiler) -o main.x $(opt) $(objects)
 
@@ -42,6 +41,7 @@ sim : main.x
 
 ## plots: Generates the plots of the observables found in results/
 plots :
+	mkdir -p results/plots/dimensionalized
 	gnuplot plots.p
 
 ## trajectory_video: Creates the movie from results/trajectory.xyz
