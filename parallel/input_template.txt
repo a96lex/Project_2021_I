@@ -26,7 +26,7 @@ n_equil=20000    ! Number of equilibration steps after melting and before simula
 ! Helium:
 sigma=2.640 !Angstroms
 epsilon=10.9 !K
-mass=4.002 !g
+mass=4.002 !g/mol
 
 ! Xenon:
 !sigma=4.10
