@@ -60,7 +60,7 @@
         ! el valor esperat ('mean') i la variància ('var') d'un vector ('vec') de dimensió 'd'
         implicit none
         include 'mpif.h'
-        integer d,i,request,ierror,imin,imax
+        integer d,i,ierror,imin,imax
         double precision vec(d)
         double precision mean,var,tot,totlocal
             mean=sum(vec)/dble(d)

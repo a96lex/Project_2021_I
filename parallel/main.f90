@@ -13,11 +13,11 @@
       real*8, allocatable :: epotVECins(:), epotVEC(:), PVEC(:), ekinVEC(:), etotVEC(:), TinsVEC(:)
       real*8, allocatable :: Xpos(:), Ypos(:), Zpos(:), posAUX(:,:), noPBC(:,:)
       
-      real*8              :: time,ekin,epot,Tins,P,etot
+      real*8              :: time,ekin,epot,Tins,P
       real*8              :: epotAUX,epotMEAN,PMEAN,epotVAR,PVAR
       real*8              :: ekinMEAN,ekinVAR,etotMEAN,etotVAR,TinsMEAN,TinsVAR
       real*8              :: Xmean,Ymean,Zmean,Xvar,Yvar,Zvar
-      integer             :: i,j,ierror,request,Nshells,flag_g,k,cnt
+      integer             :: i,j,ierror,Nshells,flag_g,k,cnt
       real*8              :: ti_global,tf_global,elapsed_time !AJ: collective timing of program.
       
       ! Init MPI
@@ -162,7 +162,7 @@
       call compute_force_LJ(pos,fold,epot,P)
       do i = 1,n_total
 
-	        posAUX = pos
+            posAUX = pos
       
             call verlet_v_step(pos,vel,fold,time,i,dt_sim,epot,P)
             call andersen_therm(vel,T_ref)
