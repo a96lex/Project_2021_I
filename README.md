@@ -1,7 +1,9 @@
 # Project_2021_I
 
 ## Project description
+
 The code of this github page performs a molecular dynamics simulation of an atomic gas/liquid from the parameters defined on an input file (see `input_template.txt` for a template) and outputs different observables from the simulation. The results include:
+
 - Time series and averages of kinetic, potential and total energy of the system.
 - Time series and averages of the instanteous temperature and pressure.
 - Radial distribution function.
@@ -9,6 +11,7 @@ The code of this github page performs a molecular dynamics simulation of an atom
 Scripts for generating plots of the results are also included.
 
 The program has a serial version (in `serie` directory) and a parallel version (in `parallel` directory). Most make functions are the same for both versions.
+
 ## Main files
 
 - init.f90 : initialization subroutines. Responsible: Eloi Sanchez.
@@ -44,10 +47,8 @@ Warning: if you run another simulation the results from will be erased. You can 
 - Gnuplot: it is a requirement to use `make plots`. Available [here](http://www.gnuplot.info/)
 - Open
 - Python version 3: is a requirement to use `make trajectory_video`
-  - The only required python package is ase ([documentation](https://wiki.fysik.dtu.dk/ase/)). It can be installed using pip:
-    - `pip install ase`
-or
-    - `pip install molecule_plotter/requirements.txt` from the root directory
+  - The only required python package is ase ([documentation](https://wiki.fysik.dtu.dk/ase/)). It can be installed using pip: - `pip install ase`
+    or - `pip install -r molecule_plotter/requirements.txt` from the root directory
 
 ## Contributors
 
@@ -58,4 +59,4 @@ or
 
 ### Contact
 
-Voice any concerns to the responsible of this github page: arnau-jr.
+Voice any concerns to the responsible of this github page: [arnau-jr](https://github.com/arnau-jr).
