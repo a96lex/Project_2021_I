@@ -62,8 +62,8 @@ set ylabel "Frequència"
 set yrange[0:]
 unset key
 unset offsets
-plot data_directory."radial_distribution.dat" u 1:2:3 w yerrorbars lc rgb "light-blue", \
-'' u 1:2 w l lc rgb "blue";
+
+plot "./results/radial_distribution.dat" u 1:2 w l lc rgb "blue"
 
 
 set output plots_directory."Coef_dif_x.png"
