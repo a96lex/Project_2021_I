@@ -48,10 +48,9 @@ module rad_dist
     integer, intent(in) :: Nshells
     real(8), intent(in) :: pos(D,N)
     ! internal:
-    integer i,j,k,part_ini,part_end,ierror,request
+    integer i,j,k
     real(8) dist,inner_radius,outer_radius
     real(8), dimension(D) :: distv(D)
-    real(8), dimension(N) :: coord
     real(8), dimension(D,N) :: pos_local
     real(8), dimension(Nshells) :: glocal
     
@@ -113,7 +112,7 @@ module rad_dist
     integer, intent(in) :: Nshells
     real(8), intent(in) :: pos(D,N)
     ! internal:
-    integer i,j,k,part_ini,part_end,ierror,request
+    integer i,j,k,ierror,request
     real(8) dist,inner_radius,outer_radius
     real(8), dimension(D) :: distv(D)
     real(8), dimension(N) :: coord
@@ -169,7 +168,7 @@ module rad_dist
     integer, intent(in) :: Nshells
     real(8), intent(in) :: pos(D,N)
     ! internal:
-    integer i,j,k,part_ini,part_end,ierror,request
+    integer i,j,k,ierror,request
     real(8) dist,inner_radius,outer_radius
     real(8), dimension(D) :: distv(D)
     real(8), dimension(N) :: coord

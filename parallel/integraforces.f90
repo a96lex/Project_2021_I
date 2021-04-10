@@ -65,8 +65,8 @@ module integraforces
             include 'mpif.h'
             real*8,intent(inout) :: v(D,N)
             real*8,intent(in) :: Temp
-            real*8 :: std,x1,x2,PI,v_tmp(N),v_local(D,N)
-            integer :: im,i,j,request, ierror
+            real*8 :: std,x1,x2,PI
+            integer :: i,j
 
             std = sqrt(Temp) !Standard deviation of the gaussian.
             PI = 4d0*datan(1d0)
@@ -99,7 +99,7 @@ module integraforces
         implicit none
         include 'mpif.h'
         real(8), intent(in)   :: v(D,N)
-        real(8) :: vec(N), ekinlocal
+        real(8) :: ekinlocal
         real(8), intent (out) :: ekin, Tins
         integer :: i, ierror
 
@@ -139,7 +139,7 @@ module integraforces
          ! --------------------------------------------------
          implicit none 
          include 'mpif.h'
-         integer :: i,j, time_i
+         integer :: i, time_i
          real(8) :: r(D,N), rlocal(D,N), v(D,N), U, f(D,N), fold(D,N), t, dt, P
          integer :: ierror
 

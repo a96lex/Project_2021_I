@@ -113,11 +113,10 @@ module init
            ! for their working particles
            implicit none
            !include 'mpif.h'
-           integer :: i,j,k,count_pairs,processor
+           integer :: i,j,count_pairs,processor
            integer, dimension(numproc) :: track_pairs
-           integer, dimension(N) :: num_pairs
            integer, dimension(:,:), allocatable :: ranges_proc_i, ranges_proc_j_imin, ranges_proc_j_imax
-           real(8) total_pairs, pairs_per_proc, sum_pairs
+           real(8) total_pairs, pairs_per_proc
            
            allocate(ranges_proc_i(numproc,2)) ! (:,1) for min i, (:,2) for max i
            allocate(ranges_proc_j_imin(numproc,2)) ! (:,1) for min j from min i, (:,2) for min j from max i
