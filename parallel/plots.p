@@ -168,7 +168,7 @@ plot data_directory_dim."radial_distribution_dim.dat" u 1:2 w l lc rgb "blue"
 set output plots_directory_dim."Coef_dif_x.png"
 set title "Coeficient de difusió X"
 set xlabel "Temps [s]"
-set ylabel "Variància X [{\305}]"
+set ylabel "Variància X [{\305}^2]"
 set yrange[*:*]
 unset key
 lin(x)=a*x+b
@@ -179,7 +179,7 @@ plot data_directory_dim."diffcoeff_dim.dat" u 1:2 w l, lin(x) w l lc rgb "blue"
 set output plots_directory_dim."Coef_dif_y.png"
 set title "Coeficient de difusió Y"
 set xlabel "Temps [s]"
-set ylabel "Variància Y [{\305}]"
+set ylabel "Variància Y [{\305}^2]"
 set yrange[*:*]
 unset key
 lin(x)=a*x+b
@@ -190,7 +190,7 @@ plot data_directory_dim."diffcoeff_dim.dat" u 1:3 w l, lin(x) w l lc rgb "blue"
 set output plots_directory_dim."Coef_dif_z.png"
 set title "Coeficient de difusió Z"
 set xlabel "Temps [s]"
-set ylabel "Variància Z [{\305}]"
+set ylabel "Variància Z [{\305}^2]"
 set yrange[*:*]
 unset key
 lin(x)=a*x+b
