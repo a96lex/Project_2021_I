@@ -5,7 +5,6 @@ compiler=mpif90
 opt=-g
 
 main.x : $(objects)
-	mkdir -p results
 	mkdir -p results/dimensionalized
 	$(compiler) -o main.x $(opt) $(objects)
 
