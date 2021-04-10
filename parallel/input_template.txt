@@ -17,7 +17,7 @@ seed=12345
 dt_sim=0.0001   ! Time-step for equilibration and simulation
 n_meas=10       ! Measure every n_meas iterations
 n_conf=1000    ! Total number of iterations to be measured
-n_equil=2000    ! Number of equilibration steps after melting and before simulation
+n_equil=20000    ! Number of equilibration steps after melting and before simulation
 
 ! Lennard-Jones potential
 !Source for sigma and epsilon:
