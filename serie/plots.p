@@ -196,11 +196,3 @@ unset key
 lin(x)=a*x+b
 fit lin(x) data_directory_dim."diffcoeff_dim.dat" u 1:4 via a,b
 plot data_directory_dim."diffcoeff_dim.dat" u 1:4 w l, lin(x) w l lc rgb "blue"
-
-
-set output plots_directory_dim."Correlation_energy.png"
-set title "Funció Autocorrelació Energia Total"
-set xlabel "Time Lag"
-set ylabel "Autocorrelació"
-unset key
-plot data_directory_dim."correlation_energy_dim.dat" w l
