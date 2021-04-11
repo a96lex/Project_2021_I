@@ -165,7 +165,6 @@ module integraforces
          real(8) :: r(D,N), rlocal(D,N), v(D,N), U, f(D,N), fold(D,N), t, dt, P
          integer :: ierror
 
-
          !Initialize variables
          rlocal = r
 
@@ -206,7 +205,7 @@ module integraforces
          !        dt  --> time step
          !        r --> positions of the particles
          !        v  --> velocities of the system
-         !        T --> temperature of the system
+         !        Temp --> temperature of the system
          !        eunit --> unit of file to write energies and temperature
          !        eunit_dim --> "" with physical units
          !        eunit_g --> unit of file to write g(r)
@@ -239,13 +238,12 @@ module integraforces
          t = 0.d0
          call compute_force_LJ(r,f,U,Ppot) !Initial force, energy and pressure
          call energy_kin(v,ekin,Tins) !Compute initial kinetic energy
-         if (taskid==master) Ptot = rho*Tins + Ppot !AJ: modifed to use the rho in parameters.
 
          !Write intial results.
          if (taskid==master) then
+             Ptot = rho*Tins + Ppot !AJ: modifed to use the rho in parameters.
              write(eunit,*)"#time,   K,   U,  E,  T,  Ptot"
              write(eunit,*) t, ekin, U, ekin+U, Tins, Ptot
-
              write(eunit_dim,*)"#time,   K,   U,  E,  T,  Ptot"
              write(eunit_dim,*) t*unit_of_time,&
                         ekin*unit_of_energy, U*unit_of_energy, (ekin+U)*unit_of_energy,&
@@ -257,12 +255,11 @@ module integraforces
             call verlet_v_step(r,v,fold,t,i,dt,U,Ppot) !Perform Verlet step.
             call andersen_therm(v,Temp) !Apply thermostat
             call energy_kin(v,ekin,Tins)
-            if (taskid==master) Ptot = rho*Tins + Ppot
 
-            !Write to file.
+            !Write in file.
             if (taskid==master) then
+               Ptot = rho*Tins + Ppot
                write(eunit,*) t, ekin, U, ekin+U, Tins, Ptot
-
                write(eunit_dim,*) t*unit_of_time,&
                         ekin*unit_of_energy, U*unit_of_energy, (ekin+U)*unit_of_energy,&
                         Tins*epsilon, Ptot*unit_of_pressure
