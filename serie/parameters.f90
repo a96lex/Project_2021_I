@@ -8,7 +8,7 @@
       real*8  :: sigma, epsilon, mass
       integer :: seed
 
-      real*8 :: unit_of_time,unit_of_energy,unit_of_length,unit_of_pressure
+      real*8           :: unit_of_time,unit_of_energy,unit_of_length,unit_of_pressure
       real*8,parameter :: boltzmann_k = 8.31446261815324 !J/(mol K), technically R.
       real*8,parameter :: N_A = 6.022d23 ! mol**-1
 

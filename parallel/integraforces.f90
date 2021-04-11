@@ -70,7 +70,7 @@ module integraforces
       end subroutine compute_force_LJ
 
       subroutine andersen_therm(v,Temp)
-         !Author: Arnau Jurado
+         !Author: Alex Parraga
          !     Applies the Andersen thermostat to a system of N particles. Requires
          !     boxmuller subroutine.
          !           Input
