@@ -158,7 +158,7 @@
       epotAUX = 0.d0
       noPBC = 0.d0
       
-      call compute_force_LJ(pos,fold,epot,P)
+      call compute_force_LJ(pos,fold,epot,P) !Compute forces at t=0
       do i = 1,n_total
 
             posAUX = pos
@@ -186,7 +186,7 @@
                 noPBC(3,j) = noPBC(3,j) + L
             endif
              enddo
-             ! Càlcul del coeficient de difusió per cada dimensió
+             ! Diffusion coefficient calculation for each dimension
              Xpos(:) = pos(1,:) + noPBC(1,:)
              Ypos(:) = pos(2,:) + noPBC(2,:)
              Zpos(:) = pos(3,:) + noPBC(3,:)
@@ -204,7 +204,7 @@
              epotVECins(k) = epot
       
             if(mod(i,n_meas) == 0) then ! AJ : measure every n_meas steps
-                ! Average de epot cada n_meas. Ho escribim en un fitxer
+                ! Epot average every n_meas. Write in file
                 k = 0
                 cnt = cnt+1
                 call estad(n_meas,epotVECins,epotMEAN,epotVAR)
@@ -228,6 +228,7 @@
                     call writeXyz(D,N,pos,11)
                     call writeXyz(D,N,pos*unit_of_length,17)
                 endif
+                ! Compute g(r) and write in file
                 call rad_dist_fun(pos,Nshells)
                 g_avg = g_avg + g
             endif
@@ -253,7 +254,7 @@
             close(19)
       end if
       
-      ! Average de la g(r)
+      ! g(r) average 
       call MPI_REDUCE(g_avg,g_avg_final,Nshells,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,ierror)
       if(taskid==master) then
              g_avg_final = g_avg_final/dble(n_conf)
@@ -267,7 +268,7 @@
              close(21)
        endif
 
-       ! Averages finals
+       ! Final averages
        if (allocated(epotVECins)) deallocate(epotVECins)
 
        call estad(n_conf,ekinVEC,ekinMEAN,ekinVAR)
@@ -294,14 +295,14 @@
            close(20)
        endif
 
-       ! Binning de les energies cinetica i potencial
+       ! Kinetic and potential energies binning
        call binning(n_conf,ekinVEC,50,22)
        call binning(n_conf,epotVEC,50,23)
       
        call binning(n_conf,ekinVEC*unit_of_energy,50,25)
        call binning(n_conf,epotVEC*unit_of_energy,50,26)
       
-       ! Funció d'autocorrelació per l'energia total
+       ! Autocorrelation function of total energy 
        call corrtime(n_conf,etotVEC,24)
       
        if (taskid==master) then
@@ -313,7 +314,7 @@
          close(26)
        endif
   
-  
+    ! Deallocates
     if (allocated(pos)) deallocate(pos)
     if (allocated(vel)) deallocate(vel)
     if (allocated(fold)) deallocate (fold)
