@@ -57,10 +57,10 @@ module integraforces
 
                                     Ulocal = Ulocal + 4.d0*((1.d0/dist)**12-(1.d0/dist)**6)-&
                                                 4.d0*((1.d0/rc)**12-(1.d0/rc)**6)
-                                    Plocal = Plocal + sum(distv * fij)
                               end if
                         end if
                   end do
+                  Plocal = Plocal + sum(r(:,i) * f(:,i))
             end do
             !Add 1/3V factor and collect contributions of U and P on Master.
             Plocal = 1.d0/(3.d0*L**3)*Plocal
