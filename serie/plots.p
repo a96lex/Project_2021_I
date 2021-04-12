@@ -112,7 +112,7 @@ plot data_directory."correlation_energy.dat" w l
 
 set output plots_directory_dim."Energies.png"
 set title "Energies respecte temps"
-set xlabel "Temps [s]"
+set xlabel "Temps [ps]"
 set ylabel "Energia [J/mol]"
 set offsets 0, 0, 50, 0
 set key bmargin center horizontal spacing 3
@@ -121,7 +121,7 @@ plot data_directory_dim."thermodynamics_dim.dat" u 1:2 w l t "Energia cinètica"
 
 set output plots_directory_dim."Pressio.png"
 set title "Pressió respecte temps"
-set xlabel "Temps [s]"
+set xlabel "Temps [ps]"
 set ylabel "Pressió [pa]"
 set offsets 0, 0, 0, 0
 unset key
@@ -130,7 +130,7 @@ plot data_directory_dim."thermodynamics_dim.dat" u 1:6 w l
 
 set output plots_directory_dim."Temperatura.png"
 set title "Temperatura respecte temps"
-set xlabel "Temps [s]"
+set xlabel "Temps [ps]"
 set ylabel "Temperatura [K]"
 set offsets 0, 0, 0, 0
 unset key
@@ -167,7 +167,7 @@ plot data_directory_dim."radial_distribution_dim.dat" u 1:2 w l lc rgb "blue"
 
 set output plots_directory_dim."Coef_dif_x.png"
 set title "Coeficient de difusió X"
-set xlabel "Temps [s]"
+set xlabel "Temps [ps]"
 set ylabel "Variància X [{\305}^2]"
 set yrange[*:*]
 unset key
@@ -178,7 +178,7 @@ plot data_directory_dim."diffcoeff_dim.dat" u 1:2 w l, lin(x) w l lc rgb "blue"
 
 set output plots_directory_dim."Coef_dif_y.png"
 set title "Coeficient de difusió Y"
-set xlabel "Temps [s]"
+set xlabel "Temps [ps]"
 set ylabel "Variància Y [{\305}^2]"
 set yrange[*:*]
 unset key
@@ -189,7 +189,7 @@ plot data_directory_dim."diffcoeff_dim.dat" u 1:3 w l, lin(x) w l lc rgb "blue"
 
 set output plots_directory_dim."Coef_dif_z.png"
 set title "Coeficient de difusió Z"
-set xlabel "Temps [s]"
+set xlabel "Temps [ps]"
 set ylabel "Variància Z [{\305}^2]"
 set yrange[*:*]
 unset key
