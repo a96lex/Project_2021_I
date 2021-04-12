@@ -122,7 +122,7 @@ plot data_directory_dim."thermodynamics_dim.dat" u 1:2 w l t "Energia cinètica"
 set output plots_directory_dim."Pressio.png"
 set title "Pressió respecte temps"
 set xlabel "Temps [ps]"
-set ylabel "Pressió [pa]"
+set ylabel "Pressió [Pa]"
 set offsets 0, 0, 0, 0
 unset key
 plot data_directory_dim."thermodynamics_dim.dat" u 1:6 w l 
