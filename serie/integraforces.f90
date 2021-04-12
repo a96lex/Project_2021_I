@@ -169,7 +169,7 @@
             !        dt  --> time step
             !        r --> positions of the particles
             !        v  --> velocities of the system
-            !        T --> temperature of the system
+            !        Temp --> temperature of the system
             !        eunit --> unit of file to write energies and temperature
             !        eunit_dim --> "" with physical units
             !        eunit_g --> unit of file to write g(r)

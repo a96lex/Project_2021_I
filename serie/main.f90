@@ -25,11 +25,11 @@
       
       call cpu_time(ti)
 
-      ! Per executar el programa cal fer >> main.x input_file. Si no, donara error.
+      ! To execute the program >> main.x input_file. Otherwise, an error will occur.
       if (command_argument_count() == 0) stop "ERROR: Cridar fent >> ./main.x input_path"
       call get_command_argument(1, input_name)
       
-      ! Obrim input i el llegim
+      ! Open and read input 
       open(unit=10, file=input_name)
       call get_param(10)
       close(10)
@@ -62,7 +62,7 @@
 
       ! Initialize positions and velocities
       call init_sc(pos)
-      call init_vel(vel, 10.d0)  ! Cridem amb temperatura reduida (T'=10) molt alta per fer el melting
+      call init_vel(vel, 10.d0)  ! Use a very high reduced temperature (T'=10) to melt the system
 
 
       ! Start melting of the system
@@ -165,7 +165,7 @@
                     noPBC(3,j) = noPBC(3,j) + L
               endif
             enddo
-            ! Càlcul del coeficient de difusió per cada dimensió (s'han evitat les PBC)
+            ! Diffusion coefficient calculation for each dimension (PBC's avoided)
             Xpos(:) = pos(1,:) + noPBC(1,:)
             Ypos(:) = pos(2,:) + noPBC(2,:)
             Zpos(:) = pos(3,:) + noPBC(3,:)
@@ -181,7 +181,7 @@
             epotVECins(k) = epot
 
             if(mod(i,n_meas) == 0) then ! AJ : measure every n_meas steps
-                  ! Average de epot cada n_meas. Ho escribim en un fitxer
+                  ! Epot average every n_meas. Write in file
                   k = 0
                   cnt = cnt+1
                   call estad(n_meas,epotVECins,epotMEAN,epotVAR)
@@ -202,7 +202,7 @@
                   call writeXyz(D,N,pos,11)
                   call writeXyz(D,N,pos*unit_of_length,17)
 
-                  ! Compute g(r) and write to file
+                  ! Compute g(r) and write in file
                   call rad_distr_fun(pos,Nshells)
                   g_avg = g_avg + g
                   g_squared_avg = g_squared_avg + g**2
@@ -226,7 +226,7 @@
       close(18)
       close(19)
       
-      ! Average de la g(r)
+      ! g(r) average 
       g_avg = g_avg/dble(n_conf)
       g_squared_avg = g_squared_avg/dble(n_conf)
       write(12,*) " # r (reduced units),   g(r),   std dev "
@@ -239,7 +239,7 @@
       close(25)
         
 
-      ! Averages finals
+       ! Final averages
       deallocate(epotVECins)
 
       call estad(n_conf,ekinVEC,ekinMEAN,ekinVAR)
@@ -263,14 +263,14 @@
       write(24,*) "Pressure", PMEAN*unit_of_pressure, dsqrt(PVAR)*unit_of_pressure
       close(24)
 
-      ! Binning de les energies cinètica i potencial
+      ! Kinetic and potential energies binning
       call binning(n_conf,ekinVEC,50,20)
       call binning(n_conf,epotVEC,50,21)
       
       call binning(n_conf,ekinVEC*unit_of_energy,50,23)
       call binning(n_conf,epotVEC*unit_of_energy,50,26)
       
-      ! Funció d'autocorrelació per l'energia total
+      ! Autocorrelation function of total energy 
       call corrtime(n_conf,etotVEC,22)
 
       close(20)
