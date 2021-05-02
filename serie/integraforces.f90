@@ -6,7 +6,22 @@
          subroutine compute_force_LJ(r,f,U,P)
          !Author: Arnau Jurado
          ! Computes the force, potential energy and pressure of a system
-         ! of N particles. Needs the external parameters M,D,L,rc to work
+         ! of N particles. Needs the external parameters D,rc to work.
+         ! The pair-wise interaction is the LJ interaction potential.
+         !           Input
+         !           -----
+         !                 r : real*8,dimension(D,N)
+         !                       Positions of the particles of the system.
+         !           Output
+         !           ------
+         !                 f : real*8,dimension(D,N)
+         !                       Force on the particles. F(:,i) is the force
+         !                       vector of the forces acting on the i*th particle.
+         !                 U : real*8
+         !                       Potential energy of the system.
+         !                 P : real*8
+         !                       Potential contribution of the pressure.
+         !                       Factor 1/(3V) is already included on output
                implicit none
                real*8,intent(in) :: r(D,N)
                real*8,intent(out) :: f(D,N),U,P
@@ -42,8 +57,7 @@
 
          subroutine andersen_therm(v,Temp)
          !Author: Arnau Jurado
-         !     Applies the Andersen thermostat to a system of N particles. Requires
-         !     boxmuller subroutine.
+         !     Applies the Andersen thermostat to a system of N particles.
          !           Input
          !           -----
          !                 v : real*8,dimension(D,N)
@@ -57,16 +71,16 @@
             implicit none
             real*8,intent(inout) :: v(D,N)
             real*8,intent(in) :: Temp
-            real*8 :: std,x1,x2
+            real*8 :: PI,std,x1,x2
             integer :: i,j
             std = sqrt(Temp) !Standard deviation of the gaussian.
+            PI = 4d0*datan(1d0)
             do i=1,N
                   if (rand()<nu) then ! Check if collision happens.
                         do j=1,D
                               x1 = rand()
                               x2 = rand()
-                              call box_muller(std,x1,x2) !Modify the velocity.
-                              v(j,i) = x1
+                              v(j,i) = std*dsqrt(-2d0*dlog(1.d0-x1))*dcos(2d0*PI*x2)
                               !Here we are effectively throwing away one of the
                               !two gaussian numbers given by box_muller
                         enddo
@@ -74,22 +88,6 @@
             enddo
          end subroutine andersen_therm  
                   
-
-      subroutine box_muller(std, X1,X2)
-         !Author: Arnau Jurado
-         !Generates two gaussian distributed numbers from two uniform random numbers
-         !using the box muller method.
-            implicit none
-            real*8,intent(in) :: std
-            real*8,intent(inout) :: x1,x2
-            real*8 :: x1aux,x2aux
-            real*8 :: PI
-            PI = 4d0*datan(1d0)
-            x1aux = x1
-            x2aux = x2
-            x1 = std*dsqrt(-2d0*dlog(1.d0-x1aux))*dcos(2d0*PI*x2aux)
-            x2 = std*dsqrt(-2d0*dlog(1.d0-x1aux))*dsin(2d0*PI*x2aux)
-      end subroutine box_muller
 
 
          subroutine energy_kin(v,ekin,Tins)
@@ -160,7 +158,7 @@
          end subroutine verlet_v_step
 
 
-         subroutine vvel_solver(Nt,dt,r,v,Temp,eunit,eunit_g,flag_g)
+         subroutine vvel_solver(Nt,dt,r,v,Temp,eunit,eunit_dim,eunit_g,eunit_g_dim,flag_g)
          !Author: Laia Barjuan
          !Co-Authors: David March (radial distribution), Arnau Jurado (interface with forces)
    !     Performs Nt steps of the velocity verlet algorithm while computing
@@ -171,8 +169,9 @@
             !        dt  --> time step
             !        r --> positions of the particles
             !        v  --> velocities of the system
-            !        T --> temperature of the system
+            !        Temp --> temperature of the system
             !        eunit --> unit of file to write energies and temperature
+            !        eunit_dim --> "" with physical units
             !        eunit_g --> unit of file to write g(r)
             !        flag_g --> different to a non-zero int to write files
             ! output: 
@@ -180,7 +179,7 @@
             ! --------------------------------------------------
             use rad_dist
             implicit none
-            integer, intent(in) :: Nt, eunit, eunit_g
+            integer, intent(in) :: Nt, eunit, eunit_dim, eunit_g, eunit_g_dim
             real(8) :: dt, Temp
             real(8) :: r(D,N), v(D,N), f(D,N), fold(D,N)
             real(8) :: ekin, U, t, Tins, Ppot, Ptot
@@ -188,11 +187,16 @@
             ! Flags for writing g:
             integer, intent(in) :: flag_g
             integer :: Nshells
+            real(8), dimension(:), allocatable :: g_avg, g_squared_avg
             
             ! Initialization of the g(r) calculation:
             if(flag_g.ne.0) then
               Nshells = 100
               call prepare_shells(Nshells)
+              allocate(g_avg(Nshells))
+              allocate(g_squared_avg(Nshells))
+              g_avg = 0d0
+              g_squared_avg = 0d0
             endif
 
             t = 0.d0
@@ -204,30 +208,42 @@
             write(eunit,*)"#t,   K,   U,  E,  T,  v_tot,  Ptot"
             write(eunit,*) t, ekin, U, ekin+U, Tins, dsqrt(sum(sum(v,2)**2)), Ptot
 
-            f=fold
+            write(eunit_dim,*)"#t,   K,   U,  E,  T,  Ptot"
+            write(eunit_dim,*) t*unit_of_time,&
+                        ekin*unit_of_energy, U*unit_of_energy, (ekin+U)*unit_of_energy,&
+                        Tins*epsilon, Ptot*unit_of_pressure
+
+            fold = f
             do i=1,Nt !Main time loop.
                call verlet_v_step(r,v,fold,t,i,dt,U,Ppot) !Perform Verlet step.
                call andersen_therm(v,Temp) !Apply thermostat
                call energy_kin(v,ekin,Tins)
                Ptot = rho*Tins + Ppot
 
-               !Write to file.
+               !Write to files.
                write(eunit,*) t, ekin, U, ekin+U, Tins, dsqrt(sum(sum(v,2)**2)), Ptot
-               !Write snapshot of g(r)
+               write(eunit_dim,*) t*unit_of_time,&
+                        ekin*unit_of_energy, U*unit_of_energy, (ekin+U)*unit_of_energy,&
+                        Tins*epsilon, Ptot*unit_of_pressure
+               !Save snapshot of g(r) to average
                if(flag_g.ne.0) then
                  call rad_distr_fun(r,Nshells)
-                 do j=1,Nshells
-                     write(eunit_g,*) (j-1)*grid_shells, g(j)
-                 enddo
-                 write(eunit_g,*) ! separation line
+                 g_avg = g_avg + g
+                 g_squared_avg = g_squared_avg + g**2
                endif
 
                if(mod(i,int(0.001*Nt))==0) then
                   write (*,"(A,F5.1,A)",advance="no") "Progress: ",i/dble(Nt)*100.,"%"
                   if (i<Nt) call execute_command_line('echo "\033[A"')
-                endif
-               
+                endif            
             enddo
+            
+            if(flag_g.ne.0) then
+              do j=1,Nshells
+                write(eunit_g,*) (j-1)*grid_shells+grid_shells/2d0, g(j), dsqrt(g_squared_avg(i) - g_avg(i)**2)
+                write(eunit_g_dim,*) ((j-1)*grid_shells+grid_shells/2d0)*sigma, g(j), dsqrt(g_squared_avg(i) - g_avg(i)**2)
+              enddo
+            endif
 
             return
          end subroutine vvel_solver

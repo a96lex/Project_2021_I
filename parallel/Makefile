@@ -5,7 +5,6 @@ compiler=mpif90
 opt=-g
 
 main.x : $(objects)
-	mkdir -p results
 	mkdir -p results/dimensionalized
 	$(compiler) -o main.x $(opt) $(objects)
 
@@ -17,7 +16,7 @@ parameters.o : parameters.f90
 init.o : init.f90 parameters.o integraforces.o
 	$(compiler) -c $(opt) init.f90 
 
-integraforces.o : integraforces.f90 parameters.o pbc.o
+integraforces.o : integraforces.f90 parameters.o pbc.o rad_dist.o
 	$(compiler) -c $(opt) integraforces.f90 
 
 statvis.o : statvis.f90
@@ -46,6 +45,7 @@ simN : main.x
 
 ## plots: Generates the plots of the observables found in results/
 plots :
+	mkdir -p results/plots/dimensionalized
 	gnuplot plots.p
 
 ## trajectory_video: Creates the movie from results/trajectory.xyz

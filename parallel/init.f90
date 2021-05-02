@@ -4,7 +4,7 @@ module init
     contains
 
         subroutine get_param(unit)
-            !Author: Eloi Sanchez
+            ! Author: Eloi Sanchez
             ! Llegim de l'input els parametres del sistema i es calcula el
             ! nº d'iteracions i la longitud de la cel·la.
             ! Els propers llocs on es faci servir 'use parameters' tindran
@@ -28,22 +28,22 @@ module init
             L = (N / rho) ** (1.d0 / D)
             rc = fact_rc * L / 2.d0
 
+            ! Cada tasca ha de tenir una seed diferent
             seed = seed + taskid
             call srand(seed)
 
             call reduced_units()
             call divide_particles()
             call divide_particles_pairs()
-            call divide_particles_pairs_improv()
         end subroutine get_param
 
         subroutine divide_particles()
-           !Author: Arnau Jurado & Eloi Sanchez
-           !Divides the work among the processors by assigning each one an "imin" and
-           !a "imax", which are the indexes of the first and last particle they have
-           !to process e.g. with forces, each processor computes the forces
-           !from the imin-th particle to the imax-th particles, both included.
-           !aux_pos and aux_size are stored in master to be used in Gatherv calls
+           ! Author: Arnau Jurado & Eloi Sanchez
+           ! Divides the work among the processors by assigning each one an "imin" and
+           ! a "imax", which are the indexes of the first and last particle they have
+           ! to process e.g. with forces, each processor computes the forces
+           ! from the imin-th particle to the imax-th particles, both included.
+           ! aux_pos and aux_size are stored in master to be used in Gatherv calls
             implicit none
             include 'mpif.h'
             integer :: i
@@ -52,63 +52,19 @@ module init
             imin = taskid * N / numproc + 1
             imax = (taskid + 1) * N / numproc
             local_size = imax - imin + 1
-            ! print*,taskid,imin,imax,imax-imin+1
             
             ! We create aux_size(numproc) and aux_pos(numproc) only in master
-            call MPI_Gather(local_size, 1, MPI_INTEGER, aux_size, 1, MPI_INTEGER, &
-            master, MPI_COMM_WORLD, ierror)
+            call MPI_Allgather(local_size, 1, MPI_INTEGER, aux_size, 1, & 
+                               MPI_INTEGER, MPI_COMM_WORLD, ierror)
             
-            if (taskid == master) then
-                aux_pos(1) = 0  ! Must start at 0 for OpenMPI issues
-                do i = 1, numproc - 1
-                    aux_pos(i+1) = aux_pos(i) + aux_size(i)
-                end do
-            end if
-
+            aux_pos(1) = 0  ! Must start at 0 for OpenMPI issues
+            do i = 1, numproc - 1
+                aux_pos(i+1) = aux_pos(i) + aux_size(i)
+            end do
+            
         end subroutine divide_particles
-        
-        subroutine divide_particles_pairs()
-           ! Author: David March
-           ! Distribute particles so they each processor computes an approx. equal number of pairs in a nested loop such as:
-           ! do i=imin_p,imax_p
-           !    do j=i+1,N
-           ! Sets the particles ranges per processor in imin_p, imax_p
-           implicit none
-           !include 'mpif.h'
-           integer :: i,j
-           integer, dimension(N) :: num_pairs
-           integer, dimension(:,:), allocatable :: ranges_proc
-           real(8) total_pairs, pairs_per_proc, sum_pairs
-           
-           do i=1,N
-              num_pairs(i) = N-i
-           enddo
-           total_pairs = dble(N*(N-1))/dble(2)
-           pairs_per_proc = total_pairs/dble(numproc)
-           
-           allocate(ranges_proc(numproc,2)) ! inferior limit at (:,1), superior at (:,2) for each processor
-           ranges_proc(1,1) = 1
-           ranges_proc(numproc,2) = N-1
-           do i=1,numproc-1
-              sum_pairs = 0d0
-              limits: do j=ranges_proc(i,1),N
-                 sum_pairs = sum_pairs + dble(num_pairs(j))
-                 if(sum_pairs.gt.pairs_per_proc) then
-                    ranges_proc(i,2) = j
-                    ranges_proc(i+1,1) = j+1
-                    exit limits
-                 endif
-              enddo limits
-           enddo
-          
-          ! Finally, assignate the min and max index to the global variables:
-          imin_p = ranges_proc(taskid+1,1)
-          imax_p = ranges_proc(taskid+1,2)
-          !print*, "task ",taskid, " with particle ranges ", imin_p, imax_p
-          deallocate(ranges_proc)
-       end subroutine divide_particles_pairs
-       
-       subroutine divide_particles_pairs_improv()
+              
+       subroutine divide_particles_pairs()
            ! Author: David March
            ! Distribute particles so they each processor computes an approx. equal number of pairs in a nested loop such as:
            ! do i=imin_p,imax_p
@@ -117,11 +73,10 @@ module init
            ! for their working particles
            implicit none
            !include 'mpif.h'
-           integer :: i,j,k,count_pairs,processor
+           integer :: i,j,count_pairs,processor
            integer, dimension(numproc) :: track_pairs
-           integer, dimension(N) :: num_pairs
            integer, dimension(:,:), allocatable :: ranges_proc_i, ranges_proc_j_imin, ranges_proc_j_imax
-           real(8) total_pairs, pairs_per_proc, sum_pairs
+           real(8) total_pairs, pairs_per_proc
            
            allocate(ranges_proc_i(numproc,2)) ! (:,1) for min i, (:,2) for max i
            allocate(ranges_proc_j_imin(numproc,2)) ! (:,1) for min j from min i, (:,2) for min j from max i
@@ -175,29 +130,10 @@ module init
               jmax_p(i) = N
           enddo
           
-          !if(taskid==master) CALL sleep(5)
-          ! CHECK:
-          !write(*,*) "Task", taskid
-          !do i=1,N
-          !    write(*,*) jmin_p(i),jmax_p(i)
-          !enddo
-          
-          ! Prova serie per veure els rangs ben ordenats
-          !if(taskid==master) then
-          !do k=1,numproc
-          !    write(*,'(A17, I2)') "Ranges processor ", k
-          !    write(*,'(A8, 2(I4,1X))') "     i: ", ranges_proc_i(k,1),ranges_proc_i(k,2)
-          !    write(*,'(A21, I5)') "     Pairs assigned: ", track_pairs(k)
-          !    write(*,'(A20, I4, A12, 2(I4,1X))') "          For min i ", ranges_proc_i(k,1), " j range is: ", &
-          !                                                   ranges_proc_j_imin(k,1), ranges_proc_j_imin(k,2)
-          !    write(*,'(A20, I4, A12, 2(I4,1X))') "          For max i ", ranges_proc_i(k,2), " j range is: ", &
-          !                                                   ranges_proc_j_imax(k,1), ranges_proc_j_imax(k,2)
-          !enddo
-          !endif
           deallocate(ranges_proc_i)
           deallocate(ranges_proc_j_imin)
           deallocate(ranges_proc_j_imax)
-       end subroutine divide_particles_pairs_improv
+       end subroutine divide_particles_pairs
 
         subroutine init_sc(pos)
             ! Author: Eloi Sanchez
@@ -208,8 +144,6 @@ module init
             ! En la dimensio 2 farem 000111222000111222000111222
             ! En la dimensio 3 farem 012012012012012012012012012
             ! Així, cada columna indica les 3 coord de un atom. Al final es centra la grid.
-            ! Paralelització en el outer loop (les N particules) de la assignacio
-            ! Fins a un ordre de magnitud millor que la versio del reduce
 
             implicit none
             include 'mpif.h'
@@ -238,9 +172,9 @@ module init
 
             ! Es guarda al master la posicio total a partir de les locals
             do i = 1, D
-                call MPI_Gatherv(pos_local(i,:), local_size, MPI_DOUBLE_PRECISION, pos(i,:), &
-                                aux_size, aux_pos, MPI_DOUBLE_PRECISION, master, &
-                                MPI_COMM_WORLD, ierror)
+                call MPI_Allgatherv(pos_local(i,:), local_size, MPI_DOUBLE_PRECISION, pos(i,:), &
+                                    aux_size, aux_pos, MPI_DOUBLE_PRECISION, &
+                                    MPI_COMM_WORLD, ierror)
             end do
 
             deallocate(pos_local)           
@@ -249,6 +183,7 @@ module init
         subroutine init_vel(vel, T)
             ! Author: Eloi Sanchez
             ! Torna el array de velocitats (aleatories) vel(D,N) consistent amb la T donada.
+            ! Cada tasca te les velocitats de les seves particules en vel(:,imin:imax) 
             ! --- VARIABLES ---
             ! vel(D,N) -> Array on es tornaran les velocitats de les part.
             !        T -> Temp. a la que s'inicialitzara la velocitat de les part.
@@ -259,50 +194,33 @@ module init
             real*8, intent(inout) :: vel(D,N)
             real*8, intent(in) :: T
 
-            real*8, allocatable :: vel_local(:,:)
-          
             real*8 :: vel_CM_local(D)
             real*8 :: dummy_T, kin
             integer :: i, j, ierror
           
-            allocate(vel_local(D,imin:imax))
-
             ! Inicialitza les velocitats de manera random entre -1 i 1
+            vel = 0.d0
             vel_CM_local = 0.d0
             do i = imin, imax
                 do j = 1, D
-                    vel_local(j,i) = 2.*rand() - 1.
+                    vel(j,i) = 2.d0*rand() - 1.d0
                 end do
-              vel_CM_local = vel_CM_local + vel_local(:,i)
+              vel_CM_local = vel_CM_local + vel(:,i)
             end do
             vel_CM_local = vel_CM_local/dble(local_size)
-            
+
             ! Eliminem la velocitat neta del sistema
             do i = imin, imax
-                vel_local(:,i) = vel_local(:,i) - vel_CM_local
-            end do
-
-            ! Es guarda al master la velocitat total a partir de les locals
-            do i = 1, D
-                call MPI_Gatherv(vel_local(i,:), local_size, MPI_DOUBLE_PRECISION, vel(i,:), &
-                                aux_size, aux_pos, MPI_DOUBLE_PRECISION, master, &
-                                MPI_COMM_WORLD, ierror)
+                vel(:,i) = vel(:,i) - vel_CM_local
             end do
             
             ! Reescalem les velocitats a la temperatura objectiu
             call energy_kin(vel, kin, dummy_T)  
             call MPI_Bcast(kin, 1, MPI_DOUBLE_PRECISION, master, &
-                            MPI_COMM_WORLD, ierror)
-            
-            do i = imin, imax
-                vel_local(:,i) = vel_local(:,i) * sqrt(dble(3*N)*T/(2.d0*kin))
-            end do
+            MPI_COMM_WORLD, ierror)
 
-            do i = 1, D
-                call MPI_Gatherv(vel_local(i,:), local_size, MPI_DOUBLE_PRECISION, vel(i,:), &
-                                aux_size, aux_pos, MPI_DOUBLE_PRECISION, master, &
-                                MPI_COMM_WORLD, ierror)
-            end do
+            vel(:,imin:imax) = vel(:,imin:imax) * sqrt(dble(3*N)*T/(2.d0*kin))
 
         end subroutine init_vel
+        
 end module init

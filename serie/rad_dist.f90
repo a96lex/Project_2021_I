@@ -16,7 +16,7 @@ module rad_dist
       !      Nshells:    number of bins where g(r) will be computed
       ! OUTPUT: (module variable)
       !      shells_vect:    holds the volume*density product of each sperical shell
-      use parameters, only : L, rho
+      use parameters, only : L
       implicit none
       integer, intent(in) :: Nshells
       integer i
@@ -38,7 +38,7 @@ module rad_dist
     !      Nshells:    number of bins where to compute g
     ! OUTPUT: (module variable)
     !      g:    radial distribution function
-    use parameters, only : N,L,D
+    use parameters, only : N,D
     use pbc
     implicit none
     integer, intent(in) :: Nshells

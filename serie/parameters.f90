@@ -8,8 +8,9 @@
       real*8  :: sigma, epsilon, mass
       integer :: seed
 
-      real*8 :: unit_of_time,unit_of_energy,unit_of_length,unit_of_pressure
-      real*8,parameter :: boltzmann_k = 8.31446261815324 !J/mol, technically R.
+      real*8           :: unit_of_time,unit_of_energy,unit_of_length,unit_of_pressure
+      real*8,parameter :: boltzmann_k = 8.31446261815324 !J/(mol K), technically R.
+      real*8,parameter :: N_A = 6.022d23 ! mol**-1
 
       contains
 
@@ -20,6 +21,6 @@
                   unit_of_time = sigma*sqrt((mass/1000)/epsilon)/sqrt(boltzmann_k)/100.d0!ps
                   unit_of_energy = epsilon*boltzmann_k !J/mol
                   unit_of_length = sigma !Angstroms
-                  unit_of_pressure = unit_of_energy/(unit_of_length)**3*(10.d0**(-10))**3 !Pa
+                  unit_of_pressure = unit_of_energy/(unit_of_length)**3*(10.d0**(10))**3/N_A !Pa
             end subroutine reduced_units
       end module parameters

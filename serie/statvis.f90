@@ -111,15 +111,15 @@
         end subroutine binning
         
         
-	    subroutine corrtime(d,vec,file_unit)
-	    !Author: Jaume Ojer
-	    ! Construcció de la funció i temps d'autocorrelació (tau = d/10)
+        subroutine corrtime(d,vec,file_unit)
+        !Author: Jaume Ojer
+        ! Construcció de la funció i temps d'autocorrelació (tau = d/10)
         ! El vector 'vec' a analitzar de dimensió 'd' és l'input.
         ! La subrutina escriu en un fitxer de nom 'filename' la funció i temps d'autocorrelació
-	    implicit none
-	    integer d,file_unit,tau,n,lag
-	    double precision vec(d),mean,var,corsum,time
-	    double precision,allocatable :: corr(:)
+        implicit none
+        integer d,file_unit,tau,n,lag
+        double precision vec(d),mean,var,corsum,time
+        double precision,allocatable :: corr(:)
             call estad(size(vec),vec,mean,var)
             lag=d/10
             allocate(corr(lag))
@@ -134,7 +134,7 @@
               !  if (mod(tau,200).eq.(0)) then
               !    write(*,*) tau
               !  endif
-                corr(tau)=corsum/(dble(d-tau)*var)
+                corr(tau)=corsum/(dble(d-tau)*var*dble(d))
                 write(file_unit,*) tau,corr(tau)
             enddo
             ! Calculem també el temps d'autocorrelació integrat
@@ -143,6 +143,6 @@
             write(file_unit,*)
             write(file_unit,*) "Integrated Autocorrelation Time =", time
             deallocate(corr)
-	    return
-	    end subroutine corrtime
+        return
+        end subroutine corrtime
     end module statvis
